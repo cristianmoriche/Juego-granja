@@ -1,0 +1,178 @@
+{
+ "Terreno": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Fachada_roca": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Tunel_entrada": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "txt_MINA": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Estructura_Madera_mina": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Estructura_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Estructura_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Estructura_Riel": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Estructura_Tejado_madera": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Estructura_Cuero": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_Madera_mina": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_Riel": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Prop_Mineral_roca": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_Cobre_pepitas": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Prop_Hierro_pepitas": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Prop_Grava": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_Saco": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_Llama": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_MINA_i": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel02_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_handle_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_5": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_5": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_5": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_handle_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ }
+}

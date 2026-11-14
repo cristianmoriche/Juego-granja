@@ -1,0 +1,166 @@
+{
+ "Brasas": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   0.36,
+   0.08,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.4,
+  "emision": [
+   1.0,
+   0.38,
+   0.08
+  ],
+  "fuerza_emision": 4.2
+ },
+ "Ceramica": {
+  "tipo": "estandar",
+  "color": [
+   0.68,
+   0.36,
+   0.22,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.45
+ },
+ "Hierro": {
+  "tipo": "estandar",
+  "color": [
+   0.12,
+   0.12,
+   0.13,
+   1.0
+  ],
+  "metalico": 0.85,
+  "rug": 0.42
+ },
+ "Madera_suelo": {
+  "tipo": "triplanar",
+  "escala": 1.4,
+  "tinte": [
+   0.42,
+   0.28,
+   0.16
+  ],
+  "fuerza_tinte": 0.35,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ },
+ "Papel": {
+  "tipo": "estandar",
+  "color": [
+   0.92,
+   0.86,
+   0.72,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.78
+ },
+ "Piedra": {
+  "tipo": "triplanar",
+  "escala": 1.6,
+  "tinte": [
+   0.52,
+   0.5,
+   0.46
+  ],
+  "fuerza_tinte": 0.25,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/mossy_stone_wall/mossy_stone_wall_albedo.jpg",
+  "normal": "res://assets/texturas/mossy_stone_wall/mossy_stone_wall_normal.png",
+  "rugosidad": "res://assets/texturas/mossy_stone_wall/mossy_stone_wall_rug.jpg"
+ },
+ "Tablas": {
+  "tipo": "triplanar",
+  "escala": 1.4,
+  "tinte": [
+   0.55,
+   0.38,
+   0.22
+  ],
+  "fuerza_tinte": 0.25,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ },
+ "Tela_azul": {
+  "tipo": "estandar",
+  "color": [
+   0.18,
+   0.32,
+   0.52,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.88
+ },
+ "Tela_blanca": {
+  "tipo": "estandar",
+  "color": [
+   0.9,
+   0.86,
+   0.78,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.85
+ },
+ "Troncos": {
+  "tipo": "triplanar",
+  "escala": 1.2,
+  "tinte": [
+   0.34,
+   0.22,
+   0.14
+  ],
+  "fuerza_tinte": 0.42,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/pine_bark/pine_bark_albedo.jpg",
+  "normal": "res://assets/texturas/pine_bark/pine_bark_normal.png",
+  "rugosidad": "res://assets/texturas/pine_bark/pine_bark_rug.jpg"
+ },
+ "Ventana_calida": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   0.76,
+   0.44,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.2,
+  "emision": [
+   1.0,
+   0.72,
+   0.38
+  ],
+  "fuerza_emision": 2.4
+ },
+ "Vigas": {
+  "tipo": "triplanar",
+  "escala": 1.0,
+  "tinte": [
+   0.16,
+   0.1,
+   0.06
+  ],
+  "fuerza_tinte": 0.62,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ }
+}

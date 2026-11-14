@@ -1,0 +1,70 @@
+{
+ "Suelo": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_norte": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_sur": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_oeste": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_este": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Vigas_estructura": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Puerta_salida": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Herrajes_puerta": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Ventanas_luz": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Techo_interior": {
+  "colision": true,
+  "solo_sombra": true
+ },
+ "Alfombra_a": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Mesa_casita_a": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cuenco_casita_a": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Alacena_casita_a": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Tarros_casita_a": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Fogon_casita_a": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Fogon_brasas_a": {
+  "colision": false,
+  "solo_sombra": false
+ }
+}

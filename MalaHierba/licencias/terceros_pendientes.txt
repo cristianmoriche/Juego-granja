@@ -1,0 +1,22 @@
+RECURSOS DE TERCEROS PENDIENTES DE VERIFICACION DE LICENCIA
+============================================================
+
+Durante la auditoria de distribucion (T10-distribucion) se revisaron todos
+los recursos empaquetados en Mala Hierba. Los siguientes archivos ya existian
+en el repositorio sin metadatos ni historial de descarga que acrediten su
+licencia original; NO se ha asumido ni inventado ninguna licencia para ellos:
+
+1. Malla base, esqueleto original y texturas heredadas de personajes:
+   - Origen de trabajo: `personajes/personaje_farmer.blend`
+   - En el proyecto: `assets/personajes/leo/leo_farmer_textured_ultra.jpg`,
+     accesorios/esqueleto heredados en `assets/personajes/leo/leo.glb` y
+     texturas base previas en `assets/personajes/aldeanos/` (`*_color.jpg`,
+     `herrero_Herrero_albedo.jpg`, `herrero_Herrero_rugosidad.jpg`).
+   - Estado: PENDIENTE de verificacion por el autor (confirmar procedencia
+     y licencia antes de redistribucion publica, o sustituir en caso necesario).
+
+2. Imagen de fondo del menu principal:
+   - En el proyecto: `assets/ui/fondo_menu.png`
+   - Estado: PENDIENTE de verificacion por el autor (confirmar procedencia
+     y licencia antes de redistribucion publica, o sustituir por captura o
+     arte con licencia documentada).

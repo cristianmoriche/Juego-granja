@@ -1,0 +1,12 @@
+mina_interior juego: 449.7 fps · 57678 primitivas · carga 393 ms · 0 instancias
+mina_interior suelo: 416.8 fps · 69452 primitivas · carga 393 ms · 0 instancias
+mina_exterior juego: 177.8 fps · 2662166 primitivas · carga 2032 ms · 14622 instancias
+mina_exterior suelo: 102.1 fps · 7605415 primitivas · carga 2032 ms · 14622 instancias
+pueblo juego: 165.8 fps · 2341352 primitivas · carga 2669 ms · 14610 instancias
+pueblo suelo: 138.1 fps · 5005135 primitivas · carga 2669 ms · 14610 instancias
+granja juego: 144.3 fps · 5564862 primitivas · carga 1288 ms · 13840 instancias
+granja suelo: 100.2 fps · 7446262 primitivas · carga 1288 ms · 13840 instancias
+bosque_norte juego: 143.6 fps · 3498656 primitivas · carga 560 ms · 2954 instancias
+bosque_norte suelo: 167.2 fps · 2305547 primitivas · carga 560 ms · 2954 instancias
+costa_lago juego: 225.7 fps · 1846067 primitivas · carga 385 ms · 1575 instancias
+costa_lago suelo: 163.9 fps · 3944935 primitivas · carga 385 ms · 1575 instancias

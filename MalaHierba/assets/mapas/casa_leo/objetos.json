@@ -1,0 +1,110 @@
+{
+ "Suelo": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_norte": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_sur": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_oeste": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_este": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Vigas_estructura": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Puerta_salida": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Herrajes_puerta": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Ventanas_luz": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Techo_interior": {
+  "colision": true,
+  "solo_sombra": true
+ },
+ "Cama_estructura": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cama_colcha": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Cama_almohada": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Cocina_piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cocina_fogon": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Cocina_encimera": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cocina_brasas": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Mesa_carta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Carta_abuela": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Calendario_marco": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Calendario_hoja": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Arcon_madera": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Arcon_herrajes": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Estanteria_casa": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Estanteria_tarros": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Banco_carpinteria": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Banco_prensa": {
+  "colision": false,
+  "solo_sombra": false
+ }
+}

@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/pueblo/npc.gd" id="1_npc"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
+radius = 0.3115
+height = 1.5575
+
+[node name="Npc" type="CharacterBody3D" groups=["npc"]]
+collision_layer = 16
+collision_mask = 19
+script = ExtResource("1_npc")
+
+[node name="Colision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77875, 0)
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="Modelo" type="Node3D" parent="."]

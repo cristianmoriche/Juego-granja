@@ -1,0 +1,279 @@
+{
+  "casa_leo": [
+    {
+      "marcador": "Interaccion_carta_abuela",
+      "verbo": "Leer",
+      "nombre": "la carta de la abuela Rosa",
+      "malla": "Mesa_carta",
+      "radio": 1.4,
+      "accion": "carta",
+      "descripcion": "La carta que dejó la abuela Rosa sobre la mesa de pino."
+    },
+    {
+      "marcador": "Interaccion_calendario",
+      "verbo": "Mirar",
+      "nombre": "el calendario",
+      "malla": "Calendario_marco",
+      "radio": 1.4,
+      "accion": "calendario",
+      "descripcion": "Un calendario de pared con las cuatro estaciones y las fiestas de Villaverde."
+    },
+    {
+      "marcador": "Interaccion_arcon",
+      "verbo": "Abrir",
+      "nombre": "el arcón",
+      "malla": "Arcon_madera",
+      "radio": 1.45,
+      "accion": "arcon",
+      "descripcion": "Un arcón recio de castaño con herrajes de hierro y espacio para treinta objetos."
+    },
+    {
+      "marcador": "Interaccion_cocina",
+      "verbo": "Examinar",
+      "nombre": "la cocina de leña",
+      "malla": "Cocina_piedra",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "Una vieja cocina económica de hierro y piedra. Las brasas conservan el rescoldo y dan un calor agradable a toda la cabaña."
+    },
+    {
+      "marcador": "Interaccion_estanteria",
+      "verbo": "Examinar",
+      "nombre": "la estantería",
+      "malla": "Estanteria_casa",
+      "radio": 1.4,
+      "accion": "",
+      "descripcion": "Libros de labranza anotados por la abuela Rosa, tarros de conserva vacíos y una lata con botones y cordel."
+    },
+    {
+      "marcador": "Interaccion_carpinteria",
+      "verbo": "Usar",
+      "nombre": "el banco de carpintería",
+      "malla": "Banco_carpinteria",
+      "radio": 1.5,
+      "accion": "carpinteria",
+      "descripcion": "Un recio banco de trabajo para fabricar muebles con madera, piedra, fibra y minerales."
+    }
+  ],
+  "tienda": [
+    {
+      "marcador": "Interaccion_mostrador",
+      "verbo": "Usar",
+      "nombre": "el mostrador de la tienda",
+      "malla": "Mostrador_tienda",
+      "radio": 1.55,
+      "accion": "tienda:tienda_mateo",
+      "descripcion": "El mostrador de madera pulida desde el que Don Mateo despacha semillas y compra la cosecha del valle."
+    },
+    {
+      "marcador": "Interaccion_estanterias_tienda",
+      "verbo": "Examinar",
+      "nombre": "las estanterías con género",
+      "malla": "Estanterias_genero",
+      "radio": 1.5,
+      "accion": "",
+      "descripcion": "Baldas repletas de tarros de legumbres, botellas de aceite, jabón en pastilla y sobres de semillas clasificados por estación."
+    },
+    {
+      "marcador": "Interaccion_sacos",
+      "verbo": "Examinar",
+      "nombre": "los sacos de grano",
+      "malla": "Sacos_tienda",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "Sacos de arpillera llenos de trigo, patatas de siembra y abono seco recién traído de la comarca."
+    },
+    {
+      "marcador": "Interaccion_bascula",
+      "verbo": "Examinar",
+      "nombre": "la báscula",
+      "malla": "Bascula_tienda",
+      "radio": 1.4,
+      "accion": "",
+      "descripcion": "Una báscula de dos platos de latón con su juego de pesas calibradas al gramo. Don Mateo la limpia cada mañana."
+    }
+  ],
+  "herreria": [
+    {
+      "marcador": "Interaccion_yunque",
+      "verbo": "Usar",
+      "nombre": "el yunque",
+      "malla": "Yunque_herreria",
+      "radio": 1.5,
+      "accion": "mejoras",
+      "descripcion": "Un yunque pesado de acero asentado sobre un tocón de roble. Aquí Clara templa y refuerza los aperos de labranza."
+    },
+    {
+      "marcador": "Interaccion_fragua",
+      "verbo": "Examinar",
+      "nombre": "la fragua encendida",
+      "malla": "Fragua_piedra",
+      "radio": 1.55,
+      "accion": "",
+      "descripcion": "El carbón arde al rojo vivo bajo el tiro de la campana de piedra. El calor se nota a dos pasos de distancia."
+    },
+    {
+      "marcador": "Interaccion_herramientas",
+      "verbo": "Examinar",
+      "nombre": "las herramientas colgadas",
+      "malla": "Banco_herramientas",
+      "radio": 1.5,
+      "accion": "",
+      "descripcion": "Tenazas de fragua, martillos de bola, limas gruesas y herraduras recién forjadas ordenadas por tamaño sobre el banco."
+    }
+  ],
+  "taberna": [
+    {
+      "marcador": "Interaccion_barra",
+      "verbo": "Pedir en",
+      "nombre": "la barra de la taberna",
+      "malla": "Barra_taberna",
+      "radio": 1.55,
+      "accion": "tienda:taberna_ramon",
+      "descripcion": "La barra de roble de El Candil, donde Ramón sirve guisos calientes, pan de pueblo y café recién hecho."
+    },
+    {
+      "marcador": "Interaccion_mesas",
+      "verbo": "Examinar",
+      "nombre": "las mesas y sillas",
+      "malla": "Mesas_taberna",
+      "radio": 1.5,
+      "accion": "",
+      "descripcion": "Mesas redondas de madera con señales de años de partidas de cartas y meriendas al salir del campo."
+    },
+    {
+      "marcador": "Interaccion_chimenea",
+      "verbo": "Examinar",
+      "nombre": "la chimenea",
+      "malla": "Chimenea_taberna",
+      "radio": 1.5,
+      "accion": "",
+      "descripcion": "Un hogar ancho de piedra con troncos de encina crepitando. En invierno es el rincón más buscado del pueblo."
+    },
+    {
+      "marcador": "Interaccion_fotos",
+      "verbo": "Mirar",
+      "nombre": "el tablero con fotos antiguas",
+      "malla": "Tablero_marco",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "Fotografías en sepia de la historia de Villaverde de los Rosales: la apertura de la mina vieja en 1924, la gran cosecha del 68 —con la abuela Rosa joven junto al pozo— y la construcción de la presa del valle."
+    }
+  ],
+  "casa_alcalde": [
+    {
+      "marcador": "Interaccion_despacho",
+      "verbo": "Examinar",
+      "nombre": "el despacho del alcalde",
+      "malla": "Despacho_alcalde",
+      "radio": 1.5,
+      "accion": "",
+      "descripcion": "El escritorio de don Anselmo, con el libro de actas abierto, el sello municipal de caucho y plumas estilográficas bien alineadas."
+    },
+    {
+      "marcador": "Interaccion_mapa_valle",
+      "verbo": "Mirar",
+      "nombre": "el mapa del valle",
+      "malla": "Mapa_marco",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "Un plano topográfico antiguo de Villaverde de los Rosales. Se distinguen las lindes de El Granado al oeste, el casco del pueblo en el centro y las galerías de la mina hacia los riscos del este."
+    },
+    {
+      "marcador": "Interaccion_estanteria_alcalde",
+      "verbo": "Examinar",
+      "nombre": "la estantería de archivos",
+      "malla": "Estanteria_alcalde",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "Tomos encuadernados en cuero con los catastros de las fincas, censos de vecinos y crónicas del ayuntamiento desde el siglo pasado."
+    }
+  ],
+  "capilla": [
+    {
+      "marcador": "Interaccion_bancos",
+      "verbo": "Examinar",
+      "nombre": "los bancos de madera",
+      "malla": "Bancos_capilla",
+      "radio": 1.5,
+      "accion": "",
+      "descripcion": "Hileras de bancos de castaño bruñido por el paso del tiempo, dispuestos a ambos lados del pasillo central."
+    },
+    {
+      "marcador": "Interaccion_altar",
+      "verbo": "Examinar",
+      "nombre": "el altar",
+      "malla": "Altar_piedra",
+      "radio": 1.5,
+      "accion": "",
+      "descripcion": "Un altar sencillo de piedra labrada cubierto con un mantel de lino blanco y dos candelabros de bronce con velas encendidas."
+    },
+    {
+      "marcador": "Interaccion_campana",
+      "verbo": "Examinar",
+      "nombre": "la cuerda de la campana",
+      "malla": "Soporte_campana",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "La soga de cáñamo que sube hasta el campanario. Todavía se toca para anunciar las fiestas del valle o avisar de tormenta."
+    }
+  ],
+  "casita_a": [
+    {
+      "marcador": "Interaccion_mesa_casita_a",
+      "verbo": "Examinar",
+      "nombre": "la mesa del comedor",
+      "malla": "Mesa_casita_a",
+      "radio": 1.4,
+      "accion": "",
+      "descripcion": "Una mesa rústica con un cuenco de barro lleno de manzanas recién cogidas y un paño bordado."
+    },
+    {
+      "marcador": "Interaccion_alacena_casita_a",
+      "verbo": "Examinar",
+      "nombre": "la alacena de conservas",
+      "malla": "Alacena_casita_a",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "Tarros de cristal con tomate frito, pimientos asados y mermelada casera etiquetados con letra menuda."
+    },
+    {
+      "marcador": "Interaccion_fogon_casita_a",
+      "verbo": "Examinar",
+      "nombre": "el fogón de piedra",
+      "malla": "Fogon_casita_a",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "El fogón guarda el calor del puchero de la mañana; huele a romero y leña seca."
+    }
+  ],
+  "casita_b": [
+    {
+      "marcador": "Interaccion_mesa_casita_b",
+      "verbo": "Examinar",
+      "nombre": "la mesa con verduras",
+      "malla": "Mesa_casita_b",
+      "radio": 1.4,
+      "accion": "",
+      "descripcion": "Un cesto de mimbre con hortalizas frescas del huerto y ramilletes de flores secas sobre el tablero."
+    },
+    {
+      "marcador": "Interaccion_aparador_casita_b",
+      "verbo": "Examinar",
+      "nombre": "el aparador de madera",
+      "malla": "Aparador_casita_b",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "Platos de loza pintada a mano, jarras de peltre y servilletas dobladas con esmero."
+    },
+    {
+      "marcador": "Interaccion_chimenea_casita_b",
+      "verbo": "Examinar",
+      "nombre": "la chimenea",
+      "malla": "Chimenea_casita_b",
+      "radio": 1.45,
+      "accion": "",
+      "descripcion": "Una chimenea recogida de piedra y ladrillo con brasas suaves que calientan la estancia."
+    }
+  ]
+}

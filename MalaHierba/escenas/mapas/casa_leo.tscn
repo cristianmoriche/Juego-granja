@@ -1,0 +1,30 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/mapas/mapa.gd" id="1_mapa"]
+[ext_resource type="Script" path="res://scripts/mapas/ciclo_dia.gd" id="2_ciclo"]
+[ext_resource type="Script" path="res://scripts/granja/cama.gd" id="3_cama"]
+[ext_resource type="Script" path="res://scripts/mapas/interacciones_interior.gd" id="4_inter"]
+[ext_resource type="Script" path="res://scripts/granja/decoracion_casa.gd" id="5_deco"]
+
+[node name="CasaLeo" type="Node3D"]
+script = ExtResource("1_mapa")
+id_mapa = "casa_leo"
+interior = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="Sol" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 40, 0)
+shadow_enabled = true
+script = ExtResource("2_ciclo")
+
+[node name="Objetos" type="Node3D" parent="."]
+
+[node name="Cama" type="Node3D" parent="Objetos"]
+script = ExtResource("3_cama")
+
+[node name="InteraccionesInterior" type="Node3D" parent="Objetos"]
+script = ExtResource("4_inter")
+
+[node name="DecoracionCasa" type="Node3D" parent="Objetos"]
+script = ExtResource("5_deco")

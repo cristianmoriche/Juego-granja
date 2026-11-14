@@ -1,0 +1,206 @@
+[
+  {
+    "id": "mesa_roble",
+    "nombre": "Mesa de roble",
+    "categoria": "Mesas",
+    "tam": [2, 1],
+    "capa": "suelo",
+    "colision": [1.38, 0.78, 0.68],
+    "receta": {"madera": 8},
+    "modelo": "res://assets/muebles/mesa_roble.glb"
+  },
+  {
+    "id": "mesa_redonda",
+    "nombre": "Mesa redonda",
+    "categoria": "Mesas",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.68, 0.77, 0.68],
+    "receta": {"madera": 6},
+    "modelo": "res://assets/muebles/mesa_redonda.glb"
+  },
+  {
+    "id": "mesita_noche",
+    "nombre": "Mesita de noche",
+    "categoria": "Mesas",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.56, 0.59, 0.50],
+    "receta": {"madera": 5, "hierro": 1},
+    "modelo": "res://assets/muebles/mesita_noche.glb"
+  },
+  {
+    "id": "silla_roble",
+    "nombre": "Silla de roble",
+    "categoria": "Sillas",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.46, 0.94, 0.46],
+    "receta": {"madera": 4},
+    "modelo": "res://assets/muebles/silla_roble.glb"
+  },
+  {
+    "id": "taburete_madera",
+    "nombre": "Taburete rústico",
+    "categoria": "Sillas",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.40, 0.49, 0.40],
+    "receta": {"madera": 3},
+    "modelo": "res://assets/muebles/taburete_madera.glb"
+  },
+  {
+    "id": "banco_entrada",
+    "nombre": "Banco de madera",
+    "categoria": "Sillas",
+    "tam": [2, 1],
+    "capa": "suelo",
+    "colision": [1.32, 0.47, 0.42],
+    "receta": {"madera": 6},
+    "modelo": "res://assets/muebles/banco_entrada.glb"
+  },
+  {
+    "id": "sillon_campo",
+    "nombre": "Sillón tapizado",
+    "categoria": "Sillas",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.68, 0.88, 0.64],
+    "receta": {"madera": 6, "fibra": 8},
+    "modelo": "res://assets/muebles/sillon_campo.glb"
+  },
+  {
+    "id": "estanteria_alta",
+    "nombre": "Estantería alta",
+    "categoria": "Estanterías",
+    "tam": [2, 1],
+    "capa": "suelo",
+    "colision": [1.38, 1.99, 0.46],
+    "receta": {"madera": 10},
+    "modelo": "res://assets/muebles/estanteria_alta.glb"
+  },
+  {
+    "id": "estanteria_baja",
+    "nombre": "Librería baja",
+    "categoria": "Estanterías",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.72, 1.03, 0.42],
+    "receta": {"madera": 6},
+    "modelo": "res://assets/muebles/estanteria_baja.glb"
+  },
+  {
+    "id": "alfombra_roja",
+    "nombre": "Alfombra carmesí",
+    "categoria": "Alfombras",
+    "tam": [3, 2],
+    "capa": "alfombra",
+    "colision": [],
+    "receta": {"fibra": 12},
+    "modelo": "res://assets/muebles/alfombra_roja.glb"
+  },
+  {
+    "id": "alfombra_verde",
+    "nombre": "Alfombra del valle",
+    "categoria": "Alfombras",
+    "tam": [2, 2],
+    "capa": "alfombra",
+    "colision": [],
+    "receta": {"fibra": 9},
+    "modelo": "res://assets/muebles/alfombra_verde.glb"
+  },
+  {
+    "id": "alfombra_pasillo",
+    "nombre": "Alfombra de pasillo",
+    "categoria": "Alfombras",
+    "tam": [2, 1],
+    "capa": "alfombra",
+    "colision": [],
+    "receta": {"fibra": 6},
+    "modelo": "res://assets/muebles/alfombra_pasillo.glb"
+  },
+  {
+    "id": "lampara_pie",
+    "nombre": "Lámpara de pie",
+    "categoria": "Lámparas",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.38, 1.65, 0.38],
+    "luz": {"color": [1.0, 0.84, 0.56], "energia": 1.15, "alcance": 6.5, "pos": [0.0, 1.48, 0.0]},
+    "receta": {"madera": 4, "cobre": 2},
+    "modelo": "res://assets/muebles/lampara_pie.glb"
+  },
+  {
+    "id": "farol_mesa",
+    "nombre": "Farol de mesa",
+    "categoria": "Lámparas",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.30, 0.58, 0.30],
+    "luz": {"color": [1.0, 0.78, 0.44], "energia": 0.95, "alcance": 5.5, "pos": [0.0, 0.25, 0.0]},
+    "receta": {"madera": 3, "hierro": 1, "cuarzo": 1},
+    "modelo": "res://assets/muebles/farol_mesa.glb"
+  },
+  {
+    "id": "maceta_helecho",
+    "nombre": "Helecho en maceta",
+    "categoria": "Plantas",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.42, 0.70, 0.42],
+    "receta": {"piedra": 2, "fibra": 4},
+    "modelo": "res://assets/muebles/maceta_helecho.glb"
+  },
+  {
+    "id": "maceta_flor",
+    "nombre": "Maceta florida",
+    "categoria": "Plantas",
+    "tam": [1, 1],
+    "capa": "suelo",
+    "colision": [0.40, 0.62, 0.40],
+    "receta": {"piedra": 2, "fibra": 4},
+    "modelo": "res://assets/muebles/maceta_flor.glb"
+  },
+  {
+    "id": "cuadro_valle",
+    "nombre": "Cuadro del valle",
+    "categoria": "Cuadros",
+    "tam": [1, 1],
+    "capa": "pared",
+    "colision": [],
+    "receta": {"madera": 3, "fibra": 3},
+    "modelo": "res://assets/muebles/cuadro_valle.glb"
+  },
+  {
+    "id": "cuadro_girasoles",
+    "nombre": "Cuadro de girasoles",
+    "categoria": "Cuadros",
+    "tam": [1, 1],
+    "capa": "pared",
+    "colision": [],
+    "receta": {"madera": 3, "fibra": 3},
+    "modelo": "res://assets/muebles/cuadro_girasoles.glb"
+  },
+  {
+    "id": "baul_roble",
+    "nombre": "Baúl de roble",
+    "categoria": "Almacén",
+    "tam": [2, 1],
+    "capa": "suelo",
+    "colision": [1.18, 0.76, 0.58],
+    "almacen": true,
+    "receta": {"madera": 8, "hierro": 2},
+    "modelo": "res://assets/muebles/baul_roble.glb"
+  },
+  {
+    "id": "chimenea_piedra",
+    "nombre": "Chimenea de piedra",
+    "categoria": "Hogar",
+    "tam": [2, 1],
+    "capa": "suelo",
+    "colision": [1.42, 2.72, 0.68],
+    "luz": {"color": [1.0, 0.54, 0.22], "energia": 1.45, "alcance": 8.0, "pos": [0.0, 0.36, 0.25]},
+    "receta": {"piedra": 12, "madera": 5, "hierro": 2},
+    "modelo": "res://assets/muebles/chimenea_piedra.glb"
+  }
+]

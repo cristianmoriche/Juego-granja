@@ -1,0 +1,8 @@
+# Caché de Godot: cada uno la genera al abrir el proyecto
+.godot/
+# Editor de Godot y juego exportado: se descargan de la Release, no van en git
+Godot 4.7.2/
+release/
+*.blend1
+__pycache__/
+*.tmp

@@ -1,0 +1,455 @@
+{
+  "umbrales": [20, 60, 110, 160],
+  "escenas": {
+    "mateo": [
+      {
+        "titulo": "Las cuentas en rojo",
+        "lineas": [
+          {"nombre": "Don Mateo", "texto": "Pasa detrás del mostrador un momento, Leo. Quiero enseñarte este cuaderno de tapas negras."},
+          {"nombre": "Don Mateo", "texto": "Es el libro de fiado de los últimos diez años. Antes, media página era de tu abuela Rosa: sacos de patata, cuerda, aceite."},
+          {"nombre": "Leo", "texto": "Y ahora casi todas las hojas de atrás están en blanco..."},
+          {"nombre": "Don Mateo", "texto": "Así es. Cerró la panadería y el camión del distribuidor ya solo sube los martes si le junto pedido. Por eso me alegra tanto verte con la azada al hombro."}
+        ]
+      },
+      {
+        "titulo": "La receta de los tarros",
+        "lineas": [
+          {"nombre": "Don Mateo", "texto": "Esta mañana me acordé de cuando Rosa dejaba cajas de tomates maduros aquí al lado para Marisol y Eusebio."},
+          {"nombre": "Leo", "texto": "¿En la tienda, sin cobrarles?"},
+          {"nombre": "Don Mateo", "texto": "Decía que en El Granado sobraba tierra para quien quisiera agacharse. Si consigues levantar la huerta, volverás a ver la plaza con cestas llenas."}
+        ]
+      },
+      {
+        "titulo": "Un pedido nuevo",
+        "lineas": [
+          {"nombre": "Don Mateo", "texto": "¿Ves esas cajas junto al saco de sal? Hoy el repartidor ha traído el doble de semilla que el año pasado."},
+          {"nombre": "Leo", "texto": "¿Ha vuelto a comprar alguien de las casas de abajo?"},
+          {"nombre": "Don Mateo", "texto": "Bernardo ha arreglado su bancal, y hasta Don Anselmo pregunta por habas. Cuando uno tira del carro, los demás se animan."}
+        ]
+      },
+      {
+        "titulo": "Cinco años más",
+        "lineas": [
+          {"nombre": "Don Mateo", "texto": "Ayer escribí a mi sobrino a Valencia. Me había ofrecido traspasar el local antes del invierno."},
+          {"nombre": "Don Mateo", "texto": "Le he dicho que se espere cinco años por lo menos. Con la luz encendida en El Granado y la gente comprando en la plaza, no me jubilo todavía."}
+        ]
+      }
+    ],
+    "clara": [
+      {
+        "titulo": "La grieta del fuelle",
+        "lineas": [
+          {"nombre": "Clara", "texto": "Acércate al yunque, pero no toques nada que quema. ¿Ves esa soldadura en el fuelle viejo?"},
+          {"nombre": "Clara", "texto": "La hizo mi padre el invierno en que enfermó. Cuando volví de estudiar fuera, el taller estaba frío y lleno de telarañas."},
+          {"nombre": "Leo", "texto": "¿Pensaste en cerrar la fragua entonces?"},
+          {"nombre": "Clara", "texto": "Cada semana. Pero Rosa bajó con su hoz mellada y me obligó a encender la fragua a base de cabezonería. Se lo debo casi todo."}
+        ]
+      },
+      {
+        "titulo": "El temple de la sierra",
+        "lineas": [
+          {"nombre": "Clara", "texto": "Tomás me trajo ayer dos muestras de mena buena sin decir palabra. El hombre parece de granito, pero cuida del pueblo a su manera."},
+          {"nombre": "Leo", "texto": "Siempre me advierte que no baje sin pico ni comida."},
+          {"nombre": "Clara", "texto": "Porque vio marcharse a treinta chavales cuando cerró la cantera. Guardo aquí un lingote antiguo para cuando necesites herramienta seria."}
+        ]
+      },
+      {
+        "titulo": "El espejo de cuarzo",
+        "lineas": [
+          {"nombre": "Clara", "texto": "Mira esta piedra traslúcida que dejó mi padre en el cajón. Decía que mezclando polvo de cuarzo en el temple sale acero de primera."},
+          {"nombre": "Clara", "texto": "Me daba rabia oír a la promotora decir que en Villaverde solo queda chatarra. Algún día nos volverán a encargar rejas de media comarca."}
+        ]
+      },
+      {
+        "titulo": "Las llaves del taller",
+        "lineas": [
+          {"nombre": "Clara", "texto": "Esta semana he tirado a la basura los anuncios de trabajo que guardaba de Zaragoza."},
+          {"nombre": "Leo", "texto": "¿Te quedas de verdad, Clara?"},
+          {"nombre": "Clara", "texto": "Voy a ensanchar el tejadillo para poner otra piedra de afilar. Mientras tú tengas callos en las manos y el pueblo lata, aquí sigo al pie de la fragua."}
+        ]
+      }
+    ],
+    "ramon": [
+      {
+        "titulo": "Las sillas recogidas",
+        "lineas": [
+          {"nombre": "Ramón", "texto": "¿Ves aquellas cuatro mesas apoyadas contra el muro del fondo? Llevan así desde hace tres años."},
+          {"nombre": "Ramón", "texto": "Para limpiar menos, me digo a veces. La verdad es que me pesaba servir solo tres cafés en un comedor tan grande."},
+          {"nombre": "Leo", "texto": "Todavía huelo el caldo desde la plaza cuando entro al pueblo."},
+          {"nombre": "Ramón", "texto": "Y mientras me quede leña, el puchero seguirá al fuego. No pienso dejar que El Candil parezca una estación vacía."}
+        ]
+      },
+      {
+        "titulo": "La promesa del domingo",
+        "lineas": [
+          {"nombre": "Ramón", "texto": "Tu abuela Rosa tenía sitio fijo junto a la ventana. Pedía chocolate espeso los domingos y siempre invitaba a Pablo y a Irene a bollos."},
+          {"nombre": "Leo", "texto": "Me habló Pablo de aquellas galletas y bollos el primer día que hablamos."},
+          {"nombre": "Ramón", "texto": "En cuanto vea que la deuda deja de apretarte el cuello y la plaza respira, saco los manteles de cuadros para hacer cena abierta a todo el valle."}
+        ]
+      },
+      {
+        "titulo": "El puchero de todos",
+        "lineas": [
+          {"nombre": "Ramón", "texto": "¿No te lo vas a creer, Leo? Ayer por la tarde estuvieron Don Anselmo y Tomás charlando en la barra más de una hora."},
+          {"nombre": "Leo", "texto": "¿Y no discutieron por los papeles de la mina?"},
+          {"nombre": "Ramón", "texto": "Ni una voz más alta que otra. Hablaban de cómo ha cambiado tu huerta desde primavera y de preparar buen género para los festejos."}
+        ]
+      },
+      {
+        "titulo": "Fuego en la chimenea",
+        "lineas": [
+          {"nombre": "Ramón", "texto": "He bajado las cuatro mesas del rincón y he encargado medio barril más de vino de la tierra."},
+          {"nombre": "Ramón", "texto": "No sabes lo que suena una taberna llena otra vez, Leo. Tómate hoy el café de mi cuenta, que esto hay que celebrarlo."}
+        ]
+      }
+    ],
+    "anselmo": [
+      {
+        "titulo": "Las carpetas azules",
+        "lineas": [
+          {"nombre": "Don Anselmo", "texto": "Siéntate un segundo, Leo. Esas tres carpetas azules de mi mesa son de la promotora inmobiliaria."},
+          {"nombre": "Don Anselmo", "texto": "Llevan cuatro años ofreciendo dinero para recalificar El Granado y los prados del norte y levantar adosados cerrados once meses al año."},
+          {"nombre": "Leo", "texto": "Mi abuela no cedió ni un palmo, ¿verdad?"},
+          {"nombre": "Don Anselmo", "texto": "Ni medio. Por eso el plazo de los cinco mil euros que pesa sobre la finca es su último recurso para echarle el guante."}
+        ]
+      },
+      {
+        "titulo": "El padrón de los doscientos",
+        "lineas": [
+          {"nombre": "Don Anselmo", "texto": "Te hablaré sin rodeos de alcalde: somos ciento noventa y seis empadronados. Si bajamos más, nos cierran el consultorio médico."},
+          {"nombre": "Leo", "texto": "Y Lucía me dijo que en la escuela solo quedan cuatro niños."},
+          {"nombre": "Don Anselmo", "texto": "Un pueblo sin escuela ni médico pasa a ser un paisaje bonito sin gente. Lo que estás sembrando ahí fuera vale más que diez subvenciones."}
+        ]
+      },
+      {
+        "titulo": "La firma en el archivo",
+        "lineas": [
+          {"nombre": "Don Anselmo", "texto": "Esta mañana recibí otra llamada del abogado de la promotora preguntando si ibas a poder cubrir los plazos."},
+          {"nombre": "Leo", "texto": "¿Y qué le dijiste?"},
+          {"nombre": "Don Anselmo", "texto": "Que se buscara solar en otra sierra, porque El Granado vuelve a dar fruto y el dueño tiene más empuje que toda su oficina junta."}
+        ]
+      },
+      {
+        "titulo": "Las llaves del bando",
+        "lineas": [
+          {"nombre": "Don Anselmo", "texto": "Tu abuela me pidió que guardara en el cajón la escritura original del lindero por si algún día flaqueaba la memoria."},
+          {"nombre": "Don Anselmo", "texto": "Puedo mirar hoy a todo Villaverde a la cara y decirle que este valle no se vende. Gracias, muchacho; Rosa te estaría abrazando ahora mismo."}
+        ]
+      }
+    ],
+    "tomas": [
+      {
+        "titulo": "El turno antiguo",
+        "lineas": [
+          {"nombre": "Tomás", "texto": "Antes de que preguntes por el ruido del pozo: no siempre estuve solo en esa bocamina."},
+          {"nombre": "Tomás", "texto": "Cuando cerró la cantera grande bajaron treinta compañeros en el último autobús. Yo me quedé porque tenía a mi madre aquí."},
+          {"nombre": "Leo", "texto": "Debió de hacerse muy largo bajar todos los días sin relevo."},
+          {"nombre": "Tomás", "texto": "Todavía cuento las herramientas dos veces antes de apagar el candil. Ver llegar a alguien nuevo con pico me quita algo de frío de encima."}
+        ]
+      },
+      {
+        "titulo": "Cuidar la espalda",
+        "lineas": [
+          {"nombre": "Tomás", "texto": "¿Has visto a Rufino sentado junto al camino de la mina? Fue mi capataz veinte años."},
+          {"nombre": "Leo", "texto": "Siempre me recuerda cómo distinguir el cobre del hierro por el color de la veta."},
+          {"nombre": "Tomás", "texto": "Las rodillas ya no le dejan bajar, pero sube igual por no perder costumbre. Si te paras dos minutos con él cada vez que vayas, le alegras la semana."}
+        ]
+      },
+      {
+        "titulo": "El filón limpio",
+        "lineas": [
+          {"nombre": "Tomás", "texto": "No se lo digas todavía a media plaza, pero en la segunda galería he encontrado un filón sano de hierro y cuarzo con buen techo."},
+          {"nombre": "Leo", "texto": "¿Suficiente para volver a dar trabajo?"},
+          {"nombre": "Tomás", "texto": "Para un par de cuadrillas pequeñas y surtir la fragua de Clara sin peligro. Si el pueblo aguanta este año, la sierra aún tiene mucho que dar."}
+        ]
+      },
+      {
+        "titulo": "Casco colgado, no guardado",
+        "lineas": [
+          {"nombre": "Tomás", "texto": "Me escribió ayer el hijo de Rufino preguntando si en primavera haría falta un ayudante arriba."},
+          {"nombre": "Tomás", "texto": "No soy hombre de discursos, Leo, pero que hayas venido tú con tu huerta ha dado ánimo hasta en la ladera. Aquí tienes un amigo."}
+        ]
+      }
+    ],
+    "pablo": [
+      {
+        "titulo": "El banco del patio",
+        "lineas": [
+          {"nombre": "Pablo", "texto": "¿Sabes a qué jugamos Irene y yo en el recreo? Al rescate entre dos, porque los mayores ya cogieron el autobús al instituto."},
+          {"nombre": "Leo", "texto": "Eso tiene mérito, pero con dos se corre el doble."},
+          {"nombre": "Pablo", "texto": "Lucía juega con nosotros cuando hace buen tiempo. Me dijo que si viene más gente al pueblo el año que viene igual somos seis en clase."}
+        ]
+      },
+      {
+        "titulo": "El rastro del zorro",
+        "lineas": [
+          {"nombre": "Pablo", "texto": "No te enfades, Leo... pero los martes asomo la nariz por tu cerca para ver si vuelve el zorro rojo."},
+          {"nombre": "Leo", "texto": "Mientras no entre a por los cultivos, tiene derecho al paseo."},
+          {"nombre": "Pablo", "texto": "Tengo un cuaderno entero con tus surcos y con sus huellas. Dice la profe que dibujo las zanahorias mejor que el mapa de ríos."}
+        ]
+      },
+      {
+        "titulo": "La redacción del cole",
+        "lineas": [
+          {"nombre": "Pablo", "texto": "¡Leo! Lucía ha colgado mi dibujo de El Granado en el corcho de la escuela."},
+          {"nombre": "Pablo", "texto": "Antes ponía siempre que de mayor quería vivir en una ciudad con metro. Ahora he puesto que quiero arreglar acequias y plantar manzanos como tú."}
+        ]
+      },
+      {
+        "titulo": "El ayudante mayor",
+        "lineas": [
+          {"nombre": "Pablo", "texto": "Mi madre ya no dice que estés loco por dejar la ciudad. Hasta le pidió semillas de cebolla a Don Mateo."},
+          {"nombre": "Pablo", "texto": "Cuando saldes lo del banco y hagamos fiesta en grande, Irene y yo repartimos los carteles por todas las puertas, ¿trato hecho?"}
+        ]
+      }
+    ]
+  },
+  "festividades": {
+    "feria_siembra": {
+      "mateo": [
+        "¡Feliz Feria de la Siembra, Leo! Hacía años que no veía tantos sacos de semilla y guirnaldas alegres en la plaza.",
+        "Hoy no me encierro tras el mostrador: prefiero saludar a todos junto al pozo como hacía con tu abuela."
+      ],
+      "clara": [
+        "He apagado la fragua todo el día para disfrutar de la Feria de la Siembra. ¡Hasta Tomás ha bajado con camisa limpia!",
+        "Las flores de la plaza dan gusto. Así da gloria quedarse a vivir en Villaverde."
+      ],
+      "ramon": [
+        "¡Pase usted a brindar, Leo! Hoy hemos sacado pan recién hecho, queso y caldo templado para celebrar la siembra.",
+        "La última Feria así de concurrida fue cuando tu abuela aún repartía esquejes de rosal por toda la plaza."
+      ],
+      "anselmo": [
+        "¡Bienvenido a la Feria de la Siembra, Leo! Hoy todo Villaverde sale al sol, y ni la promotora podría torcernos la sonrisa.",
+        "Mira qué viva está la plaza con los puestos y las guirnaldas. Que el año entero nos cunda igual."
+      ],
+      "tomas": [
+        "Por un día he dejado el pico en la caseta. Rufino y Gema insistieron en bajar a la Feria de la Siembra, y tienen razón.",
+        "Hacía mucho que no se oía tanta charla seguida junto al pozo."
+      ],
+      "pablo": [
+        "¡Leo, mira los banderines de colores! ¡Irene y yo ayudamos a colgar las cintas del pozo!",
+        "Lucía nos ha dado bolsitas de semillas de girasol para que cada niño plante una en primavera."
+      ],
+      "marisol": [
+        "Qué alegría ver el pozo adornado de flores otra vez. Hoy me siento veinte años más joven."
+      ],
+      "eusebio": [
+        "En tiempos de mis abuelos la Feria de la Siembra duraba tres días. Con este bullicio en la plaza ya me doy por satisfecho."
+      ],
+      "lucia": [
+        "Mis cuatro alumnos llevan toda la semana preparando murales de primavera. ¡Hoy han venido hasta familias de las caserías!"
+      ],
+      "bernardo": [
+        "Me pasé la mañana clavando los mástiles de los banderines. Han quedado derechos como abetos."
+      ],
+      "irene": [
+        "¡Hay guirnaldas por toda la plaza! ¡Y Pablo dice que luego vamos a buscar flores de colores!"
+      ],
+      "rufino": [
+        "Hacía años que no bajaba de la bocamina para fiestas, muchacho. El aire de la plaza hoy huele a pan y a vida."
+      ],
+      "gema": [
+        "Qué tradición tan preciosa tenéis aquí en primavera. Hasta dejé el martillo geológico en la mochila."
+      ]
+    },
+    "fiesta_cosecha": {
+      "mateo": [
+        "¡Feliz Fiesta de la Cosecha, Leo! Mira esas calabazas y las mesas llenas de frutos de la tierra.",
+        "Ver tu huerta en marcha y los puestos alrededor del pozo me devuelve la fe en este pueblo."
+      ],
+      "clara": [
+        "Entre los farolillos naranjas y el olor a boniato asado, esta es sin duda la mejor tarde del año en Villaverde.",
+        "Tomás dice que nunca había visto tantas hogazas y calabazas juntas desde que era chaval."
+      ],
+      "ramon": [
+        "¡La Fiesta de la Cosecha por fin vuelve a llenar la plaza! Hoy corren el mosto, las sopas de ajo y las tartas de calabaza.",
+        "¿Notas el murmullo de la gente riendo junto a las mesas? Eso no lo compra ninguna empresa de fuera."
+      ],
+      "anselmo": [
+        "¡Salud y buena cosecha, Leo! Hoy todo el valle celebra el fruto de meses de trabajo duro.",
+        "Cuando Rosa me hablaba de recuperar la Fiesta de la Cosecha, la veía exactamente así, iluminada con farolillos al caer la tarde."
+      ],
+      "tomas": [
+        "He subido temprano con Rufino y Gema para ayudar a mover los barriles a la plaza. No me la perdía por nada.",
+        "Con gente así reunida, hasta el invierno que viene se va a hacer más corto."
+      ],
+      "pablo": [
+        "¡Leo! ¡Mira qué enormes son las calabazas de la mesa central! ¡Casi tan grandes como una rueda del carro!",
+        "Ramón nos ha guardado boniato dulce a Irene y a mí para después del pregón."
+      ],
+      "marisol": [
+        "El olor a calabaza asada y mosto llega hasta mi ventana. Hoy nadie cena solo en casa."
+      ],
+      "eusebio": [
+        "Buen otoño y mesas llenas alrededor del pozo: señal de que Villaverde pasará el invierno con el granero bien surtido."
+      ],
+      "lucia": [
+        "Los niños han hecho farolillos de papel para la Fiesta de la Cosecha. Ver la plaza encendida así emociona a cualquiera."
+      ],
+      "bernardo": [
+        "Corté troncos secos de roble para los braseros de esta noche. Aquí el otoño se celebra como Dios manda."
+      ],
+      "irene": [
+        "¡Me encantan los farolillos naranjas! Parecen luciérnagas gigantes encima del pozo."
+      ],
+      "rufino": [
+        "Qué buen banquete habéis montado. Hacía mucho que este viejo minero no veía la plaza iluminada con tanta alegría."
+      ],
+      "gema": [
+        "Aplacé el informe de la universidad un día entero solo para quedarme a la Fiesta de la Cosecha. Valió la pena."
+      ]
+    }
+  },
+  "lluvia": {
+    "mateo": [
+      "Menudo chaparrón cae sobre los tejados. Quédate bajo el techo un rato, que hoy la tierra se riega sola.",
+      "Con días así de agua, la taberna de Ramón suele animarse bastante a mediodía."
+    ],
+    "clara": [
+      "Al menos la lluvia refresca la puerta de la fragua. ¡Ni se te ocurra descuidar el barro del camino a la mina!"
+    ],
+    "ramon": [
+      "En días de lluvia El Candil es el mejor sitio del valle. Pásate cuando quieras que hay caldo bien caliente."
+    ],
+    "anselmo": [
+      "Esta agua vale oro para los pozos y la huerta de El Granado, aunque me temo que cala hasta los huesos en la plaza."
+    ],
+    "tomas": [
+      "Con tanta lluvia fuera, dentro de la galería al menos no te mojas... pero cuidado con los resbalones en la boca de la mina."
+    ],
+    "pablo": [
+      "¡Uff, nos hemos tenido que meter bajo el porche para no calarnos! Lucía dice que la lluvia despierta a las lombrices."
+    ],
+    "marisol": [
+      "A mis años la humedad se me mete en las rodillas. Menos mal que podemos cobijarnos bajo techado a charlar."
+    ],
+    "eusebio": [
+      "Agua mansa y sin pedrisco: mano de santo para tus patatas y las berzas de invierno."
+    ],
+    "lucia": [
+      "Hoy el patio del colegio es un charco gigante. Me refugio un rato aquí hasta que escampe."
+    ],
+    "bernardo": [
+      "Con esta agua no hay quien aserre en el monte, así que aprovecho el día bajo cubierto."
+    ],
+    "irene": [
+      "¡Jo, con lo bien que se estaba jugando junto al pozo! Menos mal que bajo el tejadillo de la tienda no entra agua."
+    ],
+    "rufino": [
+      "Día gris en la ladera. Abrígate bien si subes, que el viento viene helado."
+    ],
+    "gema": [
+      "La lluvia limpia las vetas de roca y las hace brillar, aunque trabajar con la libreta mojada es un suplicio."
+    ]
+  },
+  "vecinos_y_deuda": {
+    "mateo": {
+      "0": [
+        "Anselmo me comentó lo de los 5.000 € de plazo. Ve poco a poco con las cosechas y vende en cuanto puedas; todos empujamos contigo.",
+        "Si ves a Marisol por la plaza, pregúntale por los tarros de conserva; sabe de agricultura más que medio ministerio."
+      ],
+      "1": [
+        "Me contó Don Anselmo que ya has amortizado un buen pico de la deuda de la finca. El pueblo entero anda hablando de ello.",
+        "Bernardo y Eusebio pasan ahora más contentos por la tienda; ya hasta colocaron jardineras nuevas en la plaza."
+      ],
+      "2": [
+        "¡Has pagado más de la mitad de la deuda! Hasta Marisol ha vuelto a abrir el puesto del Horno de Villaverde frente a la tienda.",
+        "Ramón no para de presumir de cómo has espantado a la promotora con trabajo y sin un solo grito."
+      ],
+      "3": [
+        "¡Cinco mil euros saldados y El Granado libre para siempre! Anselmo casi descorcha algo en pleno ayuntamiento.",
+        "Con el Horno abierto y la plaza llena de flores, este pueblo vuelve a ser el que conoció tu abuela Rosa."
+      ]
+    },
+    "clara": {
+      "0": [
+        "Cinco mil euros en un año parecen una montaña, ya lo sé. Pero Tomás saca buena veta y tú tienes buenas manos.",
+        "Gema me trajo el otro día unas muestras de mineral curioso; pásate por la ladera de la mina si te cruzas con ella."
+      ],
+      "1": [
+        "Se nota en las aceras que las cuentas van mejor: hasta han plantado jardineras nuevas alrededor del pozo.",
+        "Don Anselmo anda mucho más tranquilo desde que empezaste a amortizar la deuda de tu abuela."
+      ],
+      "2": [
+        "Con el puesto del Horno funcionando en la plaza y la terraza de Ramón llena, da gusto bajar de la fragua.",
+        "Tomás dice que con lo que llevas pagado de deuda ya tienes medio pie firme en el valle."
+      ],
+      "3": [
+        "¡Deuda a cero! Ni un céntimo a la promotora, Leo. Hoy en Villaverde nos sentimos todos un poco dueños de nuestro futuro.",
+        "Hasta Bernardo anda sonriendo todo el día ayudando a adornar la plaza. ¡Enhorabuena!"
+      ]
+    },
+    "ramon": {
+      "0": [
+        "No te agobies por esos 5.000 €, chaval. Empieza abonando a Don Anselmo cuando puedas y cuida las noches de buen mercado.",
+        "Anselmo pasa cada mediodía a tomar un café y solo habla de cómo le vendría al pueblo que El Granado saliera adelante."
+      ],
+      "1": [
+        "Ya corre la voz por la barra de que vas recortando la deuda. ¿Has visto las jardineras nuevas que han puesto en la plaza?",
+        "Clara y Tomás dicen que este año no te gana a constancia nadie del valle."
+      ],
+      "2": [
+        "¡Qué olor a pan recién hecho sube otra vez desde el Horno en la plaza! Desde que has pagado tanto de deuda, hasta me han puesto mesas fuera.",
+        "Lucía ha traído a los niños a por bollos después de clase; el ambiente es otro."
+      ],
+      "3": [
+        "¡Deuda liquidada! ¡Mira ese arco de flores y los banderines cruzando la plaza!",
+        "Mateo, Anselmo, Clara y Tomás... todos hemos brindado hoy por Rosa y por ti en El Candil."
+      ]
+    },
+    "anselmo": {
+      "0": [
+        "Cada euro que juntes y me traigas para rebajar esos 5.000 € frena en seco las prisas de la promotora.",
+        "Si ve a Don Mateo o a Ramón, hágales caso: conocen a todo el vecindario y tienen buen ojo para cuándo vender."
+      ],
+      "1": [
+        "Con lo que ya has abonado, el ayuntamiento ha podido arreglar jardineras y farolillos en la plaza. El ánimo cambia.",
+        "Lucía me dijo que las familias del valle miran hacia Villaverde con otros ojos ahora."
+      ],
+      "2": [
+        "Más de tres mil euros cubiertos: hemos podido reabrir el Horno de Villaverde y poner mesitas junto a la taberna.",
+        "Eusebio dice que hace quince años que la plaza no tenía tan buen color."
+      ],
+      "3": [
+        "¡Deuda completamente saldada, Leo! Has salvado El Granado y has levantado Villaverde de los Rosales entero.",
+        "Todo el pueblo luce banderines y flores en tu honor. Qué tranquila descansaría Rosa sabiéndolo."
+      ]
+    },
+    "tomas": {
+      "0": [
+        "Si necesitas dinero rápido para ir bajando esos 5.000 €, baja a picar cobre o hierro y tráemelos: pago más que nadie.",
+        "Clara dice que si bajas al segundo nivel con buena herramienta volverás cargado."
+      ],
+      "1": [
+        "Me contó Rufino que ya has empezado a quitarle mordiscos a la deuda. Se nota la plaza más cuidada.",
+        "Sigue así; cada ingreso te acerca a quedarte la tierra sin que mande ninguna empresa."
+      ],
+      "2": [
+        "Ayer bajé y compré pan caliente en el puesto nuevo de la plaza. Da gusto ver que Villaverde respira gracias a tu empeño.",
+        "Ramón ya apenas da abasto los viernes en la taberna."
+      ],
+      "3": [
+        "Me han dicho que ya no debes un euro. Sabía desde que te vi bajar con el pico que no venías a perder el tiempo.",
+        "Ahora toca celebrar con Clara, Rufino y el resto del pueblo."
+      ]
+    },
+    "pablo": {
+      "0": [
+        "Dice Don Anselmo que tienes que pagar mucho dinero para quedarte la granja. ¡Yo te ayudo a buscar lombrices si valen monedas!",
+        "Irene dice que cuando tengas la granja llena de verduras vamos a venir a merendar."
+      ],
+      "1": [
+        "¡Han puesto macetas con flores por toda la plaza! Mi madre dice que es porque las cuentas del pueblo ya van mucho mejor gracias a ti.",
+        "Eusebio me enseña nombres de nubes mientras jugamos junto al pozo."
+      ],
+      "2": [
+        "¡Ha abierto el puesto del pan! ¡Marisol huele a bollos recién horneados toda la mañana!",
+        "Irene y yo nos sentamos a veces en las mesas nuevas frente a la taberna a dibujar."
+      ],
+      "3": [
+        "¡Leo! ¡Ya no debes nada! ¡Hay banderines y flores por toda la plaza como si fuera fiesta todos los días!",
+        "Lucía nos dijo en clase que Villaverde se ha salvado gracias a un vecino nuevo muy terco."
+      ]
+    }
+  }
+}

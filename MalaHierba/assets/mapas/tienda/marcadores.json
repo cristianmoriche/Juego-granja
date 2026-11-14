@@ -1,0 +1,291 @@
+{
+ "mapa": "tienda",
+ "aabb": [
+  -5.5,
+  -0.5,
+  -4.5,
+  5.5,
+  4.2,
+  4.5
+ ],
+ "sol": {
+  "dir": [
+   0.32,
+   -0.86,
+   -0.39
+  ],
+  "color": [
+   1.0,
+   0.84,
+   0.66
+  ],
+  "energia": 0.65
+ },
+ "cielo": null,
+ "niebla": {
+  "densidad": 0.001,
+  "color": [
+   0.22,
+   0.18,
+   0.14
+  ]
+ },
+ "ambiente": {
+  "color": [
+   0.9,
+   0.8,
+   0.66
+  ],
+  "energia": 1.45
+ },
+ "marcadores": [
+  {
+   "nombre": "Salida",
+   "tipo": "salida",
+   "t": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    3.45
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Entrada",
+   "tipo": "spawn",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    0.0,
+    0.0,
+    2.65
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Spawn_Protagonista",
+   "tipo": "spawn",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    0.0,
+    0.0,
+    2.65
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Camara_juego",
+   "tipo": "camara",
+   "t": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.83349,
+    -0.55254,
+    0.0,
+    0.55254,
+    0.83349,
+    0.0,
+    6.9,
+    8.5
+   ],
+   "fov": 38.0
+  },
+  {
+   "nombre": "Obj_mostrador",
+   "tipo": "otro",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    0.0,
+    0.0,
+    -1.15
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Interaccion_mostrador",
+   "tipo": "otro",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    0.0,
+    0.0,
+    -1.15
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Puesto_Mateo",
+   "tipo": "spawn",
+   "t": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    -2.45
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Obj_bascula",
+   "tipo": "otro",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    3.2,
+    0.0,
+    -1.25
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Interaccion_bascula",
+   "tipo": "otro",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    3.2,
+    0.0,
+    -1.25
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Obj_estanterias_tienda",
+   "tipo": "otro",
+   "t": [
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    -1.0,
+    0.0,
+    -0.0,
+    -4.15,
+    0.0,
+    -0.6
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Interaccion_estanterias_tienda",
+   "tipo": "otro",
+   "t": [
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    -1.0,
+    0.0,
+    -0.0,
+    -4.15,
+    0.0,
+    -0.6
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Obj_sacos",
+   "tipo": "otro",
+   "t": [
+    0.0,
+    0.0,
+    -1.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    3.7,
+    0.0,
+    1.4
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Interaccion_sacos",
+   "tipo": "otro",
+   "t": [
+    0.0,
+    0.0,
+    -1.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    3.7,
+    0.0,
+    1.4
+   ],
+   "sintetico": true
+  }
+ ],
+ "zonas": []
+}

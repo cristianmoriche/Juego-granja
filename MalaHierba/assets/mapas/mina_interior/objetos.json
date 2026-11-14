@@ -1,0 +1,118 @@
+{
+ "Roca_inferior": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Techo_roca": {
+  "colision": true,
+  "solo_sombra": true
+ },
+ "Pozo_escalera": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Madera_int_Madera_mina": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Madera_int_Cuero": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Madera_int_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Via_int_Riel": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Via_int_Madera_mina": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Prop_int_Laton": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_int_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_int_Cristal_farol": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Prop_int_Llama": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Prop_int_Cobre_pepitas": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Prop_int_Hierro_pepitas": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Prop_int_Mineral_roca": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_int_Agua": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Prop_int_Roca_cueva": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_int_Madera_mina": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Prop_int_Riel": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Cristal_int_Cristal_azul": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ }
+}

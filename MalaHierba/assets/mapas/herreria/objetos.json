@@ -1,0 +1,78 @@
+{
+ "Suelo": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_norte": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_sur": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_oeste": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Pared_este": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Vigas_estructura": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Puerta_salida": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Herrajes_puerta": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Ventanas_luz": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Techo_interior": {
+  "colision": true,
+  "solo_sombra": true
+ },
+ "Tocon_yunque": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Yunque_herreria": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Fragua_piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Fragua_brasas": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Fragua_carbon": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Banco_herramientas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Herramientas_colgadas": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Tina_templado": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Tina_agua": {
+  "colision": false,
+  "solo_sombra": false
+ }
+}

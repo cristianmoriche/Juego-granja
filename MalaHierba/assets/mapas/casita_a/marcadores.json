@@ -1,0 +1,253 @@
+{
+ "mapa": "casita_a",
+ "aabb": [
+  -4.3,
+  -0.5,
+  -3.8,
+  4.3,
+  4.0,
+  3.8
+ ],
+ "sol": {
+  "dir": [
+   0.32,
+   -0.86,
+   -0.39
+  ],
+  "color": [
+   1.0,
+   0.84,
+   0.66
+  ],
+  "energia": 0.65
+ },
+ "cielo": null,
+ "niebla": {
+  "densidad": 0.001,
+  "color": [
+   0.22,
+   0.18,
+   0.14
+  ]
+ },
+ "ambiente": {
+  "color": [
+   0.9,
+   0.8,
+   0.66
+  ],
+  "energia": 1.45
+ },
+ "marcadores": [
+  {
+   "nombre": "Salida",
+   "tipo": "salida",
+   "t": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.6,
+    0.0,
+    2.75
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Entrada",
+   "tipo": "spawn",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    0.6,
+    0.0,
+    1.95
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Spawn_Protagonista",
+   "tipo": "spawn",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    0.6,
+    0.0,
+    1.95
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Camara_juego",
+   "tipo": "camara",
+   "t": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.82111,
+    -0.57077,
+    0.0,
+    0.57077,
+    0.82111,
+    0.0,
+    6.7,
+    7.8
+   ],
+   "fov": 38.0
+  },
+  {
+   "nombre": "Obj_mesa_casita_a",
+   "tipo": "otro",
+   "t": [
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    -1.0,
+    0.0,
+    -0.0,
+    -1.4,
+    0.0,
+    -0.5
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Interaccion_mesa_casita_a",
+   "tipo": "otro",
+   "t": [
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    -1.0,
+    0.0,
+    -0.0,
+    -1.4,
+    0.0,
+    -0.5
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Obj_alacena_casita_a",
+   "tipo": "otro",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    0.4,
+    0.0,
+    -2.45
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Interaccion_alacena_casita_a",
+   "tipo": "otro",
+   "t": [
+    -1.0,
+    0.0,
+    -0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    0.4,
+    0.0,
+    -2.45
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Obj_fogon_casita_a",
+   "tipo": "otro",
+   "t": [
+    0.0,
+    0.0,
+    -1.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    2.65,
+    0.0,
+    -1.2
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Interaccion_fogon_casita_a",
+   "tipo": "otro",
+   "t": [
+    0.0,
+    0.0,
+    -1.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    2.65,
+    0.0,
+    -1.2
+   ],
+   "sintetico": true
+  },
+  {
+   "nombre": "Puesto_Marisol",
+   "tipo": "spawn",
+   "t": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    -0.2,
+    0.0,
+    -1.6
+   ],
+   "sintetico": true
+  }
+ ],
+ "zonas": []
+}

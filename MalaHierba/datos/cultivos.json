@@ -1,0 +1,18 @@
+[
+  {"id": "patata", "nombre": "Patata", "semilla": "semilla_patata", "estaciones": [0], "dias": 5, "etapas": 4, "cosecha": "patata", "cantidad": [1, 2], "rebrota": 0, "color": "#c9a66b"},
+  {"id": "zanahoria", "nombre": "Zanahoria", "semilla": "semilla_zanahoria", "estaciones": [0], "dias": 4, "etapas": 4, "cosecha": "zanahoria", "cantidad": [1, 1], "rebrota": 0, "color": "#e08a2e"},
+  {"id": "haba", "nombre": "Haba", "semilla": "semilla_haba", "estaciones": [0], "dias": 6, "etapas": 4, "cosecha": "haba", "cantidad": [1, 1], "rebrota": 3, "color": "#7fa04a"},
+
+  {"id": "tomate", "nombre": "Tomate", "semilla": "semilla_tomate", "estaciones": [1], "dias": 6, "etapas": 4, "cosecha": "tomate", "cantidad": [1, 1], "rebrota": 3, "color": "#d9442f"},
+  {"id": "pimiento", "nombre": "Pimiento", "semilla": "semilla_pimiento", "estaciones": [1], "dias": 5, "etapas": 4, "cosecha": "pimiento", "cantidad": [1, 2], "rebrota": 0, "color": "#c8321f"},
+  {"id": "melon", "nombre": "Melón", "semilla": "semilla_melon", "estaciones": [1], "dias": 10, "etapas": 5, "cosecha": "melon", "cantidad": [1, 1], "rebrota": 0, "color": "#a8c46a"},
+
+  {"id": "calabaza", "nombre": "Calabaza", "semilla": "semilla_calabaza", "estaciones": [2], "dias": 9, "etapas": 5, "cosecha": "calabaza", "cantidad": [1, 1], "rebrota": 0, "color": "#e0902a"},
+  {"id": "col", "nombre": "Col", "semilla": "semilla_col", "estaciones": [2], "dias": 5, "etapas": 4, "cosecha": "col", "cantidad": [1, 2], "rebrota": 0, "color": "#6fae6a"},
+  {"id": "boniato", "nombre": "Boniato", "semilla": "semilla_boniato", "estaciones": [2], "dias": 6, "etapas": 4, "cosecha": "boniato", "cantidad": [1, 2], "rebrota": 0, "color": "#b4577a"},
+
+  {"id": "ajo", "nombre": "Ajo", "semilla": "semilla_ajo", "estaciones": [3], "dias": 6, "etapas": 4, "cosecha": "ajo", "cantidad": [1, 2], "rebrota": 0, "color": "#e8e0cc"},
+  {"id": "espinaca", "nombre": "Espinaca", "semilla": "semilla_espinaca", "estaciones": [3], "dias": 4, "etapas": 4, "cosecha": "espinaca", "cantidad": [2, 3], "rebrota": 2, "color": "#3d7a3f"},
+  {"id": "nabo", "nombre": "Nabo", "semilla": "semilla_nabo", "estaciones": [3], "dias": 7, "etapas": 4, "cosecha": "nabo", "cantidad": [1, 2], "rebrota": 0, "color": "#a85c94"},
+  {"id": "azafran", "nombre": "Azafrán", "semilla": "semilla_azafran", "estaciones": [0, 2, 3], "dias": 5, "etapas": 4, "cosecha": "azafran", "cantidad": [1, 2], "rebrota": 0, "color": "#8b5cc2"}
+]

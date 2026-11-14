@@ -1,0 +1,269 @@
+[
+  {
+    "id": "marisol",
+    "nombre": "Marisol",
+    "rol": "Vecina",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Nino",
+    "desplazar": [5.0, 3.5],
+    "radio": 7.0,
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1350, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-3.5, 2.0], "radio": 4.0},
+      {"lluvia": true, "desde": 360, "hasta": 720, "mapa": "pueblo", "marcador": "Spawn_Tendera", "desplazar": [-0.5, 0.8], "radio": 0.9},
+      {"lluvia": true, "desde": 720, "hasta": 1260, "mapa": "taberna", "marcador": "Entrada", "desplazar": [-1.8, 0.2], "radio": 1.4},
+      {"tramo_deuda_min": 2, "desde": 540, "hasta": 840, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [6.5, -5.0], "radio": 1.6},
+      {"dias": [2], "desde": 960, "hasta": 1200, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [0.8, 1.5], "radio": 2.8},
+      {"dias": [3], "desde": 540, "hasta": 840, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-1.6, 3.6], "radio": 2.4},
+      {"dias": [6], "desde": 960, "hasta": 1140, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-1.4, 2.8], "radio": 2.5},
+      {"estaciones": [1], "desde": 1170, "hasta": 1320, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [2.2, -1.8], "radio": 3.0},
+      {"estaciones": [3], "desde": 900, "hasta": 1260, "mapa": "taberna", "marcador": "Interaccion_chimenea", "desplazar": [1.5, 0.2], "radio": 1.4}
+    ],
+    "modelo": "tendera",
+    "escala": 0.96,
+    "tinte": {"ropa": "#4f7a8c", "pelo": "#2b2623"},
+    "sombrero": "",
+    "dialogos": [
+      "Buenos días. Salgo a dar mi vuelta antes de que apriete el calor. A mi edad, si no camino, me oxido.",
+      "Tu abuela Rosa me enseñó a conservar los tomates en tarros. Don Mateo aún vende los mismos botes.",
+      "Me quedo a vivir aquí hasta el final, aunque mis hijos insistan en que me vaya con ellos a la ciudad.",
+      "El pozo de la plaza tiene el agua más fría de todo el valle. Eusebio dice que quita diez años de encima.",
+      "Si cultivas calabazas, guárdame una para el puchero del domingo. ¿Cómo va esa deuda de la finca?"
+    ],
+    "dialogos_deuda": {
+      "1": [
+        "¡Qué gusto ver jardineras con flores en la plaza otra vez! Se nota que vas sacando adelante El Granado.",
+        "Eusebio y yo comentábamos ayer lo bien que sienta ver al alcalde más tranquilo con los números."
+      ],
+      "2": [
+        "Con el dinero que ya has amortizado pudimos volver a abrir el puesto del Horno en la plaza. ¡El pueblo vuelve a oler a pan caliente!",
+        "Pablo e Irene pasan cada mañana mirando los bollos recién horneados."
+      ],
+      "3": [
+        "¡Has pagado hasta el último céntimo de la deuda! ¡Mira qué alegre está Villaverde hoy!",
+        "Tu abuela Rosa se estaría riendo ahora mismo viéndonos festejar en mitad de la plaza."
+      ]
+    }
+  },
+  {
+    "id": "eusebio",
+    "nombre": "Eusebio",
+    "rol": "Pastor jubilado",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Alcalde",
+    "desplazar": [-6.0, 4.0],
+    "radio": 6.0,
+    "horario": [{"desde": 840, "hasta": 1140, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-3.0, 3.0]}],
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [4.8, 2.5], "radio": 4.0},
+      {"lluvia": true, "desde": 360, "hasta": 720, "mapa": "pueblo", "marcador": "Spawn_Alcalde", "desplazar": [-1.2, -0.4], "radio": 0.8},
+      {"lluvia": true, "desde": 720, "hasta": 1200, "mapa": "taberna", "marcador": "Entrada", "desplazar": [2.2, -0.5], "radio": 1.4},
+      {"dias": [2], "desde": 960, "hasta": 1200, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [2.4, 0.5], "radio": 2.6},
+      {"dias": [3], "desde": 540, "hasta": 840, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-2.8, 2.8], "radio": 2.2},
+      {"dias": [4], "desde": 1110, "hasta": 1260, "se_va": 1380, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.2, 3.0], "radio": 2.2},
+      {"dias": [4], "desde": 1260, "hasta": 1380, "se_va": 1380, "mapa": "taberna", "marcador": "Entrada", "desplazar": [2.0, 0.2], "radio": 1.2},
+      {"estaciones": [1], "desde": 1170, "hasta": 1320, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-2.5, -2.0], "radio": 3.0},
+      {"estaciones": [3], "desde": 900, "hasta": 1260, "mapa": "taberna", "marcador": "Interaccion_mesas", "desplazar": [-0.5, 0.5], "radio": 1.2}
+    ],
+    "modelo": "alcalde",
+    "escala": 0.97,
+    "tinte": {"ropa": "#5b6b4a", "pelo": "#d9d6cc"},
+    "sombrero": "boina",
+    "dialogos": [
+      "Hum. Hoy se me ha escapado la tarde mirando las nubes. A las ovejas ya no las llevo, pero la costumbre queda.",
+      "Cuando yo era chico, esta plaza era mercado los jueves. Venía gente de tres valles a vender queso.",
+      "El que no mira el cielo no sabe cuándo sembrar. Bernardo y yo siempre lo discutimos junto al pozo.",
+      "A la mina no subo ya. Me falta el aire y me sobran los años.",
+      "Dicen que la finca de Rosa tenía las mejores patatas. A ver si con ellas saldas pronto esos cinco mil euros."
+    ],
+    "dialogos_deuda": {
+      "1": [
+        "Con lo que vas rebajando de deuda ya se arreglan las jardineras de la plaza. Buen paso llevas, zagal.",
+        "Marisol dice que hasta las farolas parecen alumbrar con más ganas este año."
+      ],
+      "2": [
+        "Volvió a abrir la panadería y Ramón ya saca mesas fuera de la taberna. ¡Así da gloria envejecer en Villaverde!",
+        "Ni los promotores ni las prisas van a poder contigo."
+      ],
+      "3": [
+        "¡Cinco mil euros cubiertos y el pueblo adornado de fiesta! Me quito la boina delante de ti, Leo.",
+        "Ahora ya no tienes deuda alguna; solo te queda disfrutar tu tierra."
+      ]
+    }
+  },
+  {
+    "id": "lucia",
+    "nombre": "Lucía",
+    "rol": "Maestra",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Tabernero",
+    "desplazar": [-7.0, 6.0],
+    "radio": 6.5,
+    "se_va": 1080,
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1350, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [2.6, 4.0], "radio": 4.0},
+      {"lluvia": true, "desde": 360, "hasta": 720, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-1.8, -0.1], "radio": 0.8},
+      {"lluvia": true, "desde": 720, "hasta": 1080, "mapa": "taberna", "marcador": "Entrada", "desplazar": [-1.4, 0.8], "radio": 1.2},
+      {"dias": [2], "desde": 960, "hasta": 1200, "se_va": 1200, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-0.4, -0.5], "radio": 2.4},
+      {"estaciones": [1], "desde": 1140, "hasta": 1320, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [3.2, -1.0], "radio": 3.5},
+      {"estaciones": [3], "desde": 840, "hasta": 1080, "mapa": "taberna", "marcador": "Entrada", "desplazar": [-1.2, 0.8], "radio": 1.2}
+    ],
+    "modelo": "tendera",
+    "escala": 1.0,
+    "tinte": {"ropa": "#7a5f8c", "pelo": "#6b3a1e"},
+    "sombrero": "",
+    "dialogos": [
+      "Hola, soy Lucía, la maestra. Tengo cuatro alumnos en total. Cuatro, sí, pero son los mejores del mundo.",
+      "Pablo me ha contado que tienes una granja. Le haría mucha ilusión que le enseñases cómo crece una planta.",
+      "Vengo de Zaragoza. Me destinaron aquí por un año y llevo seis. Será que el pueblo engancha.",
+      "Si el pueblo pierde la escuela, pierde a las familias. Por eso Don Anselmo y yo peleamos por cada niño que queda.",
+      "El miércoles por la tarde hago cuentacuentos en la plaza junto a Pablo e Irene, por si te pasas."
+    ],
+    "dialogos_deuda": {
+      "1": [
+        "Los niños están encantados con las flores nuevas de la plaza. Se nota otra ilusión desde que rebajas la deuda.",
+        "Don Mateo me pidió cuadernos para tener en la tienda por si vienen familias en verano."
+      ],
+      "2": [
+        "¡Con el puesto del Horno abierto otra vez, Pablo e Irene ya meriendan pan tierno al salir del cole!",
+        "Gracias a tu esfuerzo en El Granado nadie habla ya de cerrar la escuela."
+      ],
+      "3": [
+        "¡Deuda saldada! Ayer lo celebramos dibujando pancartas en clase con todos los niños.",
+        "Villaverde tiene futuro, Leo. Y tú tienes mucha culpa de ello."
+      ]
+    }
+  },
+  {
+    "id": "bernardo",
+    "nombre": "Bernardo",
+    "rol": "Leñador",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Herrero",
+    "desplazar": [-3.0, 8.0],
+    "radio": 7.0,
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1380, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-5.5, -2.5], "radio": 4.0},
+      {"lluvia": true, "desde": 360, "hasta": 720, "mapa": "pueblo", "marcador": "Spawn_Herrero", "desplazar": [-1.6, -0.4], "radio": 0.9},
+      {"lluvia": true, "desde": 720, "hasta": 1260, "mapa": "taberna", "marcador": "Entrada", "desplazar": [1.5, 0.8], "radio": 1.2},
+      {"dias": [3], "desde": 540, "hasta": 840, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-3.5, 1.8], "radio": 2.4},
+      {"dias": [4], "desde": 1110, "hasta": 1260, "se_va": 1380, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [2.2, 2.8], "radio": 2.4},
+      {"dias": [4], "desde": 1260, "hasta": 1380, "se_va": 1380, "mapa": "taberna", "marcador": "Entrada", "desplazar": [1.5, 0.8], "radio": 1.2},
+      {"estaciones": [1], "desde": 840, "hasta": 1020, "mapa": "pueblo", "marcador": "Spawn_Herrero", "desplazar": [-1.8, -0.4], "radio": 1.2},
+      {"estaciones": [2], "desde": 480, "hasta": 720, "mapa": "pueblo", "marcador": "Spawn_Herrero", "desplazar": [-2.8, 3.5], "radio": 4.5}
+    ],
+    "modelo": "tabernero",
+    "escala": 1.03,
+    "tinte": {"ropa": "#8c4a3a", "pelo": "#3a2a1c"},
+    "sombrero": "paja",
+    "dialogos": [
+      "Eh, vecino. Bajo del monte con la leña justa; esta noche promete helada.",
+      "El hacha buena es la que se afila antes de que haga falta. Pregúntale a Clara, que de eso sabe.",
+      "He visto jabalíes cerca de tu valla. No son malos, solo tienen hambre.",
+      "Si necesitas madera, el bosque está lleno. Lo difícil es sacarla sin que se te caiga encima.",
+      "Hace falta mano de obra para arreglar la plaza si sacas adelante la deuda. Yo sé clavar tablones, cuenta conmigo."
+    ],
+    "dialogos_deuda": {
+      "1": [
+        "¡Las cuatro jardineras de madera de la plaza las cepillé yo mismo en cuanto Don Anselmo dio orden!",
+        "Da gusto trabajar cuando ves que El Granado despega."
+      ],
+      "2": [
+        "¿Has visto qué robusto ha quedado el mostrador del Horno de Villaverde? Madera de roble curada, como antes.",
+        "Con las mesas nuevas de Ramón fuera, los viernes se está de lujo."
+      ],
+      "3": [
+        "¡Qué pedazo de arco floral hemos montado por la deuda saldada! Ni un temporal lo tira.",
+        "Te lo has ganado a pulso, Leo."
+      ]
+    }
+  },
+  {
+    "id": "irene",
+    "nombre": "Irene",
+    "rol": "Vecina",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Nino",
+    "desplazar": [-4.0, -3.0],
+    "radio": 5.0,
+    "se_va": 1140,
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [1.5, 2.2], "radio": 4.5},
+      {"lluvia": true, "desde": 360, "hasta": 1140, "mapa": "pueblo", "marcador": "Spawn_Tendera", "desplazar": [-1.2, 1.0], "radio": 0.9},
+      {"dias": [2], "desde": 960, "hasta": 1200, "se_va": 1200, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-1.6, -1.2], "radio": 2.4},
+      {"estaciones": [3], "llega": 420, "se_va": 1080, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-2.0, -2.5], "radio": 3.0}
+    ],
+    "modelo": "nino",
+    "escala": 0.97,
+    "tinte": {"ropa": "#c25a3e", "pelo": "#1f1814"},
+    "sombrero": "",
+    "dialogos": [
+      "¡Hola! Estoy esperando a Pablo para jugar a pillar. Siempre llega tarde porque su madre le hace terminar la sopa.",
+      "Yo tengo siete años y tres cuartos. Los cuartos importan.",
+      "¿Es verdad que en tu granja hay un granado? Mi abuela dice que da granadas rojísimas.",
+      "Me han dejado salir a la plaza hasta que se encienda la farola. Lucía nos vigila desde allí.",
+      "Cuando sea mayor voy a ser alcaldesa como Don Anselmo y pondré un tobogán gigante."
+    ],
+    "dialogos_deuda": {
+      "1": [
+        "¡Han puesto flores de colores por toda la plaza! Pablo y yo contamos cuántas rojas hay cada tarde."
+      ],
+      "2": [
+        "¡Marisol me dio un trozo de pan calentito del puesto nuevo! ¡Dice que es gracias a ti!"
+      ],
+      "3": [
+        "¡Mira qué banderines más chulos! ¡Es como si todos los días fueran fiesta en el pueblo!"
+      ]
+    }
+  },
+  {
+    "id": "rufino",
+    "nombre": "Rufino",
+    "rol": "Minero jubilado",
+    "mapa": "mina_exterior",
+    "marcador": "Spawn_Protagonista",
+    "desplazar": [6.0, -3.0],
+    "radio": 5.0,
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-5.5, 4.5], "radio": 3.5},
+      {"lluvia": true, "desde": 360, "hasta": 1260, "mapa": "mina_exterior", "marcador": "Spawn_Minero", "desplazar": [-2.2, 1.5], "radio": 1.2}
+    ],
+    "modelo": "minero",
+    "escala": 1.0,
+    "tinte": {"ropa": "#7a6a4f", "pelo": "#cfcfc8"},
+    "sombrero": "boina",
+    "dialogos": [
+      "Treinta y dos años bajando ahí dentro y todavía sueño con el olor a humedad. No sé qué me pasa.",
+      "Tomás es buen chico. Pica como un toro, pero no sabe esperar a que la roca se cueza sola.",
+      "Si te dan miedo las alturas, no mires al pozo del fondo. Yo nunca miré y mira cómo estoy.",
+      "El cobre es agradecido, el hierro es tozudo y el cuarzo, caprichoso. Cada uno a su manera.",
+      "Antes subíamos con el carro lleno hasta la plaza. Me dice Tomás que andas peleando una buena deuda ahí abajo; ánimos, chico."
+    ]
+  },
+  {
+    "id": "gema",
+    "nombre": "Gema",
+    "rol": "Geóloga de paso",
+    "mapa": "mina_exterior",
+    "marcador": "Llegada_Exterior",
+    "desplazar": [7.0, 3.0],
+    "radio": 4.5,
+    "llega": 540,
+    "se_va": 1080,
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [8.5, -4.0], "radio": 3.5},
+      {"dias": [6], "desde": 600, "hasta": 1080, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [4.2, -2.8], "radio": 4.0},
+      {"lluvia": true, "desde": 540, "hasta": 1080, "mapa": "mina_exterior", "marcador": "Spawn_Minero", "desplazar": [-1.0, -1.2], "radio": 1.0}
+    ],
+    "modelo": "tendera",
+    "escala": 0.98,
+    "tinte": {"ropa": "#3f7f6a", "pelo": "#a2532a"},
+    "sombrero": "paja",
+    "dialogos": [
+      "Hola. Estudio las vetas de esta ladera para la universidad. Dicen que aquí hay más cobre del que se sacó nunca.",
+      "Fíjate en el color de la roca: la parte rojiza avisa del cobre y la gris azulada, del hierro.",
+      "El cuarzo no se deja ver desde fuera. Hay que bajar hasta el segundo nivel para dar con él.",
+      "No te adentres con poca energía. Tomás y Rufino conocen cada rincón de este cerro.",
+      "Si encuentras una piedra brillante y rara, enséñasela a Clara. Ella sabe qué hacer con ella."
+    ]
+  }
+]

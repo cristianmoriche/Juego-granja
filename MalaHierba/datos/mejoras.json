@@ -1,0 +1,27 @@
+{
+  "azada": [
+    {"nivel": 1, "nombre": "Azada de cobre", "dinero": 350, "material": "cobre", "cantidad": 5},
+    {"nivel": 2, "nombre": "Azada de hierro", "dinero": 950, "material": "hierro", "cantidad": 5},
+    {"nivel": 3, "nombre": "Azada de cuarzo", "dinero": 1600, "material": "cuarzo", "cantidad": 4}
+  ],
+  "regadera": [
+    {"nivel": 1, "nombre": "Regadera de cobre", "dinero": 350, "material": "cobre", "cantidad": 5},
+    {"nivel": 2, "nombre": "Regadera de hierro", "dinero": 950, "material": "hierro", "cantidad": 5},
+    {"nivel": 3, "nombre": "Regadera de cuarzo", "dinero": 1600, "material": "cuarzo", "cantidad": 4}
+  ],
+  "hoz": [
+    {"nivel": 1, "nombre": "Hoz de cobre", "dinero": 120, "material": "cobre", "cantidad": 4},
+    {"nivel": 2, "nombre": "Hoz de hierro", "dinero": 320, "material": "hierro", "cantidad": 4},
+    {"nivel": 3, "nombre": "Hoz de cuarzo", "dinero": 750, "material": "cuarzo", "cantidad": 3}
+  ],
+  "hacha": [
+    {"nivel": 1, "nombre": "Hacha de cobre", "dinero": 150, "material": "cobre", "cantidad": 5},
+    {"nivel": 2, "nombre": "Hacha de hierro", "dinero": 400, "material": "hierro", "cantidad": 5},
+    {"nivel": 3, "nombre": "Hacha de cuarzo", "dinero": 900, "material": "cuarzo", "cantidad": 4}
+  ],
+  "pico": [
+    {"nivel": 1, "nombre": "Pico de cobre", "dinero": 150, "material": "cobre", "cantidad": 5},
+    {"nivel": 2, "nombre": "Pico de hierro", "dinero": 850, "material": "hierro", "cantidad": 5},
+    {"nivel": 3, "nombre": "Pico de cuarzo", "dinero": 1000, "material": "cuarzo", "cantidad": 4}
+  ]
+}

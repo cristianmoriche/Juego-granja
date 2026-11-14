@@ -1,0 +1,12 @@
+[
+  {"id": "tarea_regar_huerto", "npc": "mateo", "tipo": "regar", "icono": "regadera", "texto": "Riega {n} parcelas de tu huerto hoy para mantener verde El Granado.", "pide": "", "cantidad": 6, "dinero": 15, "amistad": 8},
+  {"id": "tarea_regar_brote", "npc": "pablo", "tipo": "regar", "icono": "regadera", "texto": "Pablo reta a regar {n} cultivos en una sola jornada.", "pide": "", "cantidad": 10, "dinero": 20, "amistad": 10},
+  {"id": "tarea_talar_fragua", "npc": "clara", "tipo": "talar", "icono": "hacha", "texto": "Despeja y tala {n} troncos en la finca para surtir la fragua.", "pide": "", "cantidad": 2, "dinero": 18, "amistad": 10},
+  {"id": "tarea_talar_lena", "npc": "ramon", "tipo": "talar", "icono": "hacha", "texto": "Corta {n} troncos secos para el hogar de El Candil.", "pide": "", "cantidad": 3, "dinero": 22, "amistad": 10},
+  {"id": "tarea_minar_galerias", "npc": "tomas", "tipo": "minar", "icono": "pico", "texto": "Pica {n} rocas en la mina interior para comprobar las vetas.", "pide": "", "cantidad": 4, "dinero": 20, "amistad": 10},
+  {"id": "tarea_minar_vetas", "npc": "clara", "tipo": "minar", "icono": "pico", "texto": "Rompe {n} vetas minerales bajo tierra antes de que caiga la tarde.", "pide": "", "cantidad": 6, "dinero": 25, "amistad": 12},
+  {"id": "tarea_regalar_detalle", "npc": "pablo", "tipo": "regalar", "icono": "pan", "texto": "Haz {n} regalo a un vecino de Villaverde para alegrarle el día.", "pide": "", "cantidad": 1, "dinero": 16, "amistad": 12},
+  {"id": "tarea_regalar_plaza", "npc": "anselmo", "tipo": "regalar", "icono": "bocadillo", "texto": "Reparte {n} regalos entre los vecinos de la plaza hoy.", "pide": "", "cantidad": 2, "dinero": 24, "amistad": 14},
+  {"id": "tarea_pescar_rio", "npc": "ramon", "tipo": "pescar", "icono": "pan", "texto": "Pesca {n} piezas frescas en el río o la costa para la cena.", "pide": "", "cantidad": 2, "dinero": 20, "amistad": 10},
+  {"id": "tarea_pescar_costa", "npc": "mateo", "tipo": "pescar", "icono": "pan", "texto": "Consigue {n} capturas con la caña antes del anochecer.", "pide": "", "cantidad": 3, "dinero": 26, "amistad": 12}
+]

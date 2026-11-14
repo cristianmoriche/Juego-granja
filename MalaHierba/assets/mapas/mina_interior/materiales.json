@@ -1,0 +1,262 @@
+{
+ "Madera_mina": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ },
+ "Cuero": {
+  "tipo": "estandar",
+  "color": [
+   0.18,
+   0.1,
+   0.06,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.7
+ },
+ "Vigas": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ },
+ "Riel": {
+  "tipo": "estandar",
+  "color": [
+   0.2,
+   0.11,
+   0.07,
+   1.0
+  ],
+  "metalico": 0.9,
+  "rug": 0.42
+ },
+ "Laton": {
+  "tipo": "estandar",
+  "color": [
+   0.45,
+   0.3,
+   0.1,
+   1.0
+  ],
+  "metalico": 1.0,
+  "rug": 0.35
+ },
+ "Hierro": {
+  "tipo": "estandar",
+  "color": [
+   0.05,
+   0.05,
+   0.055,
+   1.0
+  ],
+  "metalico": 0.9,
+  "rug": 0.42
+ },
+ "Cristal_farol": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   0.55,
+   0.2,
+   0.8
+  ],
+  "metalico": 0.0,
+  "rug": 0.8,
+  "emision": [
+   1.0,
+   0.55,
+   0.2
+  ],
+  "fuerza_emision": 1.05,
+  "alpha": "mezcla",
+  "doble_cara": true
+ },
+ "Llama": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   0.6,
+   0.2,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "emision": [
+   1.0,
+   0.6,
+   0.2
+  ],
+  "fuerza_emision": 60.0
+ },
+ "Cobre_pepitas": {
+  "tipo": "estandar",
+  "color": [
+   0.8,
+   0.38,
+   0.16,
+   1.0
+  ],
+  "metalico": 1.0,
+  "rug": 0.28
+ },
+ "Hierro_pepitas": {
+  "tipo": "estandar",
+  "color": [
+   0.32,
+   0.33,
+   0.38,
+   1.0
+  ],
+  "metalico": 1.0,
+  "rug": 0.3
+ },
+ "Mineral_roca": {
+  "tipo": "triplanar",
+  "escala": 0.8,
+  "tinte": [
+   0.11999999731779099,
+   0.10499999672174454,
+   0.0949999988079071
+  ],
+  "fuerza_tinte": 0.5,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/rocky_terrain_02/rocky_terrain_02_albedo.jpg",
+  "normal": "res://assets/texturas/rocky_terrain_02/rocky_terrain_02_normal.png",
+  "rugosidad": "res://assets/texturas/rocky_terrain_02/rocky_terrain_02_rug.jpg"
+ },
+ "Agua": {
+  "tipo": "estandar",
+  "color": [
+   0.01,
+   0.02,
+   0.02,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.03
+ },
+ "Cristal_azul": {
+  "tipo": "estandar",
+  "color": [
+   0.1,
+   0.35,
+   0.95,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.12,
+  "emision": [
+   0.1,
+   0.42,
+   1.0
+  ],
+  "fuerza_emision": 3.2
+ },
+ "wooden_barrels_01_barrel01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/wooden_barrels_01_barrel01/wooden_barrels_01_barrel01_albedo.jpg",
+  "normal": "res://assets/texturas/wooden_barrels_01_barrel01/wooden_barrels_01_barrel01_normal.png",
+  "rugosidad": "res://assets/texturas/wooden_barrels_01_barrel01/wooden_barrels_01_barrel01_rug.jpg",
+  "emision": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "fuerza_emision": 1.0
+ },
+ "wooden_crate_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/wooden_crate_01/wooden_crate_01_albedo.jpg",
+  "normal": "res://assets/texturas/wooden_crate_01/wooden_crate_01_normal.png",
+  "rugosidad": "res://assets/texturas/wooden_crate_01/wooden_crate_01_rug.jpg",
+  "emision": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "fuerza_emision": 1.0
+ },
+ "Roca_inferior__Roca_cueva": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/mina_interior/horneado/mina_interior__Roca_inferior__Roca_cueva.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "Roca_cueva__gris": {
+  "tipo": "estandar",
+  "color": [
+   0.25,
+   0.22,
+   0.2,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.9
+ },
+ "Pozo_escalera__Roca_cueva": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/mina_interior/horneado/mina_interior__Pozo_escalera__Roca_cueva.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "Prop_int_Roca_cueva__Roca_cueva": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/mina_interior/horneado/mina_interior__Prop_int_Roca_cueva__Roca_cueva.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ }
+}

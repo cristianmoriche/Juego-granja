@@ -1,0 +1,42 @@
+[
+  {"mapa": "granja", "marcador": "Salida_Pueblo", "radio": 2.5, "destino": "pueblo", "llegada": "Llegada_Granja", "texto": "Camino a Villaverde"},
+  {"mapa": "pueblo", "marcador": "Salida_Granja", "radio": 2.5, "destino": "granja", "llegada": "Llegada_Pueblo", "texto": "Camino a El Granado"},
+  {"mapa": "pueblo", "marcador": "Salida_Minas", "radio": 2.5, "destino": "mina_exterior", "llegada": "Llegada_Pueblo", "texto": "Camino de las minas"},
+  {"mapa": "mina_exterior", "marcador": "Salida_Pueblo", "radio": 2.5, "destino": "pueblo", "llegada": "Llegada_Minas", "texto": "Camino a Villaverde"},
+  {"mapa": "mina_exterior", "marcador": "Entrada_Mina", "radio": 2.0, "destino": "mina_interior", "llegada": "Llegada_Interior", "texto": "Entrada de la mina"},
+  {"mapa": "mina_interior", "marcador": "Salida_Exterior", "radio": 1.5, "destino": "mina_exterior", "llegada": "Llegada_Exterior", "texto": "Salida de la mina"},
+  {"mapa": "granja", "marcador": "Salida_Bosque", "radio": 2.5, "destino": "bosque_norte", "llegada": "Llegada_Granja", "texto": "Bosque del Norte"},
+  {"mapa": "bosque_norte", "marcador": "Salida_Granja", "radio": 2.5, "destino": "granja", "llegada": "Llegada_Bosque", "texto": "El Granado"},
+  {"mapa": "pueblo", "marcador": "Salida_Bosque", "radio": 2.5, "destino": "bosque_norte", "llegada": "Llegada_Pueblo", "texto": "Bosque del Norte"},
+  {"mapa": "bosque_norte", "marcador": "Salida_Pueblo", "radio": 2.5, "destino": "pueblo", "llegada": "Llegada_Bosque", "texto": "Villaverde de los Rosales"},
+  {"mapa": "pueblo", "marcador": "Salida_Costa", "radio": 2.5, "destino": "costa_lago", "llegada": "Llegada_Pueblo", "texto": "Costa del Lago"},
+  {"mapa": "costa_lago", "marcador": "Salida_Pueblo", "radio": 2.5, "destino": "pueblo", "llegada": "Llegada_Costa", "texto": "Villaverde de los Rosales"},
+  {"mapa": "mina_exterior", "marcador": "Salida_Bosque", "radio": 2.5, "destino": "bosque_norte", "llegada": "Llegada_Minas", "texto": "Bosque del Norte"},
+  {"mapa": "bosque_norte", "marcador": "Salida_Minas", "radio": 2.5, "destino": "mina_exterior", "llegada": "Llegada_Bosque", "texto": "Camino de las minas"},
+  {"mapa": "bosque_norte", "marcador": "Salida_Costa", "radio": 2.5, "destino": "costa_lago", "llegada": "Llegada_Bosque", "texto": "Costa del Lago"},
+  {"mapa": "costa_lago", "marcador": "Salida_Bosque", "radio": 2.5, "destino": "bosque_norte", "llegada": "Llegada_Costa", "texto": "Bosque del Norte"},
+
+  {"mapa": "granja", "marcador": "Puerta_Cabana", "puerta": true, "verbo": "Entrar en", "nombre_objeto": "la cabaña", "malla": "Cabana_puerta", "radio": 1.35, "destino": "casa_leo", "llegada": "Entrada", "texto": "Cabaña de Leo"},
+  {"mapa": "casa_leo", "marcador": "Salida", "puerta": true, "verbo": "Salir a", "nombre_objeto": "la granja", "malla": "Puerta_salida", "radio": 1.25, "destino": "granja", "llegada": "Puerta_Cabana", "texto": "Salir a la granja"},
+
+  {"mapa": "pueblo", "marcador": "Puerta_Tienda", "puerta": true, "verbo": "Entrar en", "nombre_objeto": "la tienda", "malla": "tienda_Puerta", "radio": 1.45, "destino": "tienda", "llegada": "Entrada", "texto": "Tienda de Don Mateo"},
+  {"mapa": "tienda", "marcador": "Salida", "puerta": true, "verbo": "Salir al", "nombre_objeto": "pueblo", "malla": "Puerta_salida", "radio": 1.25, "destino": "pueblo", "llegada": "Puerta_Tienda", "texto": "Salir al pueblo"},
+
+  {"mapa": "pueblo", "marcador": "Puerta_Herreria", "puerta": true, "verbo": "Entrar en", "nombre_objeto": "la herrería", "malla": "herreria_Puerta", "radio": 1.35, "destino": "herreria", "llegada": "Entrada", "texto": "Herrería de Clara"},
+  {"mapa": "herreria", "marcador": "Salida", "puerta": true, "verbo": "Salir al", "nombre_objeto": "pueblo", "malla": "Puerta_salida", "radio": 1.25, "destino": "pueblo", "llegada": "Puerta_Herreria", "texto": "Salir al pueblo"},
+
+  {"mapa": "pueblo", "marcador": "Puerta_Taberna", "puerta": true, "verbo": "Entrar en", "nombre_objeto": "la taberna", "malla": "taberna_Puerta", "radio": 1.35, "destino": "taberna", "llegada": "Entrada", "texto": "Taberna El Candil"},
+  {"mapa": "taberna", "marcador": "Salida", "puerta": true, "verbo": "Salir al", "nombre_objeto": "pueblo", "malla": "Puerta_salida", "radio": 1.25, "destino": "pueblo", "llegada": "Puerta_Taberna", "texto": "Salir al pueblo"},
+
+  {"mapa": "pueblo", "marcador": "Puerta_Alcalde", "puerta": true, "verbo": "Entrar en", "nombre_objeto": "la casa del alcalde", "malla": "alcalde_Puerta", "radio": 1.35, "destino": "casa_alcalde", "llegada": "Entrada", "texto": "Casa del Alcalde"},
+  {"mapa": "casa_alcalde", "marcador": "Salida", "puerta": true, "verbo": "Salir al", "nombre_objeto": "pueblo", "malla": "Puerta_salida", "radio": 1.25, "destino": "pueblo", "llegada": "Puerta_Alcalde", "texto": "Salir al pueblo"},
+
+  {"mapa": "pueblo", "marcador": "Puerta_Capilla", "puerta": true, "verbo": "Entrar en", "nombre_objeto": "la capilla", "malla": "capilla_Puerta", "radio": 1.35, "destino": "capilla", "llegada": "Entrada", "texto": "Capilla"},
+  {"mapa": "capilla", "marcador": "Salida", "puerta": true, "verbo": "Salir al", "nombre_objeto": "pueblo", "malla": "Puerta_salida", "radio": 1.25, "destino": "pueblo", "llegada": "Puerta_Capilla", "texto": "Salir al pueblo"},
+
+  {"mapa": "pueblo", "marcador": "Puerta_CasitaA", "puerta": true, "verbo": "Entrar en", "nombre_objeto": "la casita del oeste", "malla": "casita_a_Puerta", "radio": 1.35, "destino": "casita_a", "llegada": "Entrada", "texto": "Casita del oeste"},
+  {"mapa": "casita_a", "marcador": "Salida", "puerta": true, "verbo": "Salir al", "nombre_objeto": "pueblo", "malla": "Puerta_salida", "radio": 1.25, "destino": "pueblo", "llegada": "Puerta_CasitaA", "texto": "Salir al pueblo"},
+
+  {"mapa": "pueblo", "marcador": "Puerta_CasitaB", "puerta": true, "verbo": "Entrar en", "nombre_objeto": "la casita del este", "malla": "casita_b_Puerta", "radio": 1.35, "destino": "casita_b", "llegada": "Entrada", "texto": "Casita del este"},
+  {"mapa": "casita_b", "marcador": "Salida", "puerta": true, "verbo": "Salir al", "nombre_objeto": "pueblo", "malla": "Puerta_salida", "radio": 1.25, "destino": "pueblo", "llegada": "Puerta_CasitaB", "texto": "Salir al pueblo"}
+]

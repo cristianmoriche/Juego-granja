@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://pruebas/prueba_t13_respuesta.gd" id="1_t13r"]
+
+[node name="PruebaT13Respuesta" type="Node"]
+script = ExtResource("1_t13r")

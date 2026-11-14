@@ -1,0 +1,952 @@
+{
+ "Piedra": {
+  "tipo": "triplanar",
+  "escala": 1.6,
+  "tinte": null,
+  "fuerza_tinte": 0.0,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/mossy_stone_wall/mossy_stone_wall_albedo.jpg",
+  "normal": "res://assets/texturas/mossy_stone_wall/mossy_stone_wall_normal.png",
+  "rugosidad": "res://assets/texturas/mossy_stone_wall/mossy_stone_wall_rug.jpg"
+ },
+ "Pared_verde": {
+  "tipo": "triplanar",
+  "escala": 1.8,
+  "tinte": [
+   0.09000000357627869,
+   0.1899999976158142,
+   0.15000000596046448
+  ],
+  "fuerza_tinte": 0.5,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_albedo.jpg",
+  "normal": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_normal.png",
+  "rugosidad": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_rug.jpg"
+ },
+ "Tablas": {
+  "tipo": "triplanar",
+  "escala": 1.4,
+  "tinte": null,
+  "fuerza_tinte": 0.0,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ },
+ "Vigas": {
+  "tipo": "triplanar",
+  "escala": 1.0,
+  "tinte": [
+   0.09000000357627869,
+   0.05999999865889549,
+   0.03999999910593033
+  ],
+  "fuerza_tinte": 0.62,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ },
+ "Hollin": {
+  "tipo": "estandar",
+  "color": [
+   0.01,
+   0.01,
+   0.01,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.9
+ },
+ "Hierro": {
+  "tipo": "estandar",
+  "color": [
+   0.05,
+   0.05,
+   0.055,
+   1.0
+  ],
+  "metalico": 0.9,
+  "rug": 0.42
+ },
+ "Ventana_tenue": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   0.55,
+   0.22,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "emision": [
+   1.0,
+   0.55,
+   0.22
+  ],
+  "fuerza_emision": 1.8
+ },
+ "Postigos_verdes": {
+  "tipo": "triplanar",
+  "escala": 1.4,
+  "tinte": [
+   0.07999999821186066,
+   0.20000000298023224,
+   0.12999999523162842
+  ],
+  "fuerza_tinte": 0.7,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ },
+ "Cartel_pintado": {
+  "tipo": "triplanar",
+  "escala": 1.4,
+  "tinte": [
+   0.5,
+   0.10000000149011612,
+   0.05999999865889549
+  ],
+  "fuerza_tinte": 0.75,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ },
+ "Saco": {
+  "tipo": "estandar",
+  "color": [
+   0.42,
+   0.34,
+   0.2,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 1.0
+ },
+ "Pared_oscura": {
+  "tipo": "triplanar",
+  "escala": 1.8,
+  "tinte": [
+   0.10000000149011612,
+   0.07500000298023224,
+   0.05999999865889549
+  ],
+  "fuerza_tinte": 0.6,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_albedo.jpg",
+  "normal": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_normal.png",
+  "rugosidad": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_rug.jpg"
+ },
+ "Postigos_rojos": {
+  "tipo": "triplanar",
+  "escala": 1.4,
+  "tinte": [
+   0.25999999046325684,
+   0.03500000014901161,
+   0.029999999329447746
+  ],
+  "fuerza_tinte": 0.85,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/old_planks_02/old_planks_02_albedo.jpg",
+  "normal": "res://assets/texturas/old_planks_02/old_planks_02_normal.png",
+  "rugosidad": "res://assets/texturas/old_planks_02/old_planks_02_rug.jpg"
+ },
+ "Brasas": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   0.32,
+   0.06,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "emision": [
+   1.0,
+   0.32,
+   0.06
+  ],
+  "fuerza_emision": 80.0
+ },
+ "Carbon": {
+  "tipo": "estandar",
+  "color": [
+   0.015,
+   0.014,
+   0.014,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.8
+ },
+ "Troncos": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/pine_bark/pine_bark_albedo.jpg",
+  "normal": "res://assets/texturas/pine_bark/pine_bark_normal.png",
+  "rugosidad": "res://assets/texturas/pine_bark/pine_bark_rug.jpg"
+ },
+ "Agua": {
+  "tipo": "estandar",
+  "color": [
+   0.01,
+   0.02,
+   0.02,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.03
+ },
+ "Cuero": {
+  "tipo": "estandar",
+  "color": [
+   0.18,
+   0.1,
+   0.06,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.7
+ },
+ "Pared_crema": {
+  "tipo": "triplanar",
+  "escala": 1.8,
+  "tinte": [
+   0.7799999713897705,
+   0.699999988079071,
+   0.5
+  ],
+  "fuerza_tinte": 0.55,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_albedo.jpg",
+  "normal": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_normal.png",
+  "rugosidad": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_rug.jpg"
+ },
+ "Ventana_luz": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   0.5,
+   0.17,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "emision": [
+   1.0,
+   0.5,
+   0.17
+  ],
+  "fuerza_emision": 4.5
+ },
+ "Dorado": {
+  "tipo": "estandar",
+  "color": [
+   0.62,
+   0.45,
+   0.1,
+   1.0
+  ],
+  "metalico": 1.0,
+  "rug": 0.45
+ },
+ "Pared_palida": {
+  "tipo": "triplanar",
+  "escala": 1.8,
+  "tinte": [
+   0.7200000286102295,
+   0.6800000071525574,
+   0.6000000238418579
+  ],
+  "fuerza_tinte": 0.5,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_albedo.jpg",
+  "normal": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_normal.png",
+  "rugosidad": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_rug.jpg"
+ },
+ "Bronce": {
+  "tipo": "estandar",
+  "color": [
+   0.5,
+   0.32,
+   0.1,
+   1.0
+  ],
+  "metalico": 1.0,
+  "rug": 0.35
+ },
+ "Tela_roja": {
+  "tipo": "estandar",
+  "color": [
+   0.33,
+   0.05,
+   0.04,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.95
+ },
+ "Pared_roja": {
+  "tipo": "triplanar",
+  "escala": 1.8,
+  "tinte": [
+   0.41999998688697815,
+   0.09000000357627869,
+   0.05999999865889549
+  ],
+  "fuerza_tinte": 0.55,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_albedo.jpg",
+  "normal": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_normal.png",
+  "rugosidad": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_rug.jpg"
+ },
+ "Pared_ocre": {
+  "tipo": "triplanar",
+  "escala": 1.8,
+  "tinte": [
+   0.550000011920929,
+   0.36000001430511475,
+   0.12999999523162842
+  ],
+  "fuerza_tinte": 0.5,
+  "tinte_mult": null,
+  "rug_mult": 1.0,
+  "albedo": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_albedo.jpg",
+  "normal": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_normal.png",
+  "rugosidad": "res://assets/texturas/weathered_plank_siding/weathered_plank_siding_rug.jpg"
+ },
+ "Flor_amarilla": {
+  "tipo": "estandar",
+  "color": [
+   0.85,
+   0.65,
+   0.1,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.6
+ },
+ "Flor_rosa": {
+  "tipo": "estandar",
+  "color": [
+   0.7,
+   0.2,
+   0.3,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.6
+ },
+ "Puerta_madera_l5": {
+  "tipo": "estandar",
+  "color": [
+   0.24,
+   0.14,
+   0.08,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.78
+ },
+ "Texto_cartel": {
+  "tipo": "estandar",
+  "color": [
+   0.06,
+   0.035,
+   0.02,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.6
+ },
+ "Llama": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   0.6,
+   0.2,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "emision": [
+   1.0,
+   0.6,
+   0.2
+  ],
+  "fuerza_emision": 60.0
+ },
+ "wooden_crate_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/wooden_crate_01/wooden_crate_01_albedo.jpg",
+  "normal": "res://assets/texturas/wooden_crate_01/wooden_crate_01_normal.png",
+  "rugosidad": "res://assets/texturas/wooden_crate_01/wooden_crate_01_rug.jpg"
+ },
+ "wooden_barrels_01_barrel01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/wooden_barrels_01_barrel01/wooden_barrels_01_barrel01_albedo.jpg",
+  "normal": "res://assets/texturas/wooden_barrels_01_barrel01/wooden_barrels_01_barrel01_normal.png",
+  "rugosidad": "res://assets/texturas/wooden_barrels_01_barrel01/wooden_barrels_01_barrel01_rug.jpg"
+ },
+ "wooden_bucket_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/wooden_bucket_01/wooden_bucket_01_albedo.jpg",
+  "normal": "res://assets/texturas/wooden_bucket_01/wooden_bucket_01_normal.png",
+  "rugosidad": "res://assets/texturas/wooden_bucket_01/wooden_bucket_01_rug.jpg"
+ },
+ "wooden_barrels_01_barrel02": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/wooden_barrels_01_barrel02/wooden_barrels_01_barrel02_albedo.jpg",
+  "normal": "res://assets/texturas/wooden_barrels_01_barrel02/wooden_barrels_01_barrel02_normal.png",
+  "rugosidad": "res://assets/texturas/wooden_barrels_01_barrel02/wooden_barrels_01_barrel02_rug.jpg"
+ },
+ "Terreno__Suelo": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__Terreno__Suelo.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "tienda_Tejuelas__Tejuelas": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__tienda_Tejuelas__Tejuelas.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "tienda_Tejado_madera__Tejado_madera": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__tienda_Tejado_madera__Tejado_madera.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "herreria_Tejuelas__Tejuelas": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__herreria_Tejuelas__Tejuelas.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "herreria_Tejado_madera__Tejado_madera": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__herreria_Tejado_madera__Tejado_madera.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "taberna_Tejuelas__Tejuelas": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__taberna_Tejuelas__Tejuelas.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "capilla_Tejado_madera__Tejado_madera": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__capilla_Tejado_madera__Tejado_madera.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "alcalde_Piedra_alcalde__Piedra_alcalde": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__alcalde_Piedra_alcalde__Piedra_alcalde.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "alcalde_Tejuelas__Tejuelas": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__alcalde_Tejuelas__Tejuelas.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "casita_a_Tejuelas__Tejuelas": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__casita_a_Tejuelas__Tejuelas.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "casita_b_Tejado_madera__Tejado_madera": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__casita_b_Tejado_madera__Tejado_madera.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "Props_Tejado_madera__Tejado_madera": {
+  "tipo": "estandar",
+  "albedo": "res://assets/mapas/pueblo/horneado/pueblo__Props_Tejado_madera__Tejado_madera.jpg",
+  "color": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "metalico": 0.0,
+  "rug": 0.5
+ },
+ "fir_sapling_branches": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/fir_sapling_branches/fir_sapling_branches_albedo.jpg",
+  "normal": "res://assets/texturas/fir_sapling_branches/fir_sapling_branches_normal.png",
+  "rugosidad": "res://assets/texturas/fir_sapling_branches/fir_sapling_branches_rug.jpg"
+ },
+ "fir_sapling_twigs": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.923,
+  "albedo": "res://assets/texturas/fir_sapling_twigs/fir_sapling_twigs_albedo.png",
+  "normal": "res://assets/texturas/fir_sapling_twigs/fir_sapling_twigs_normal.png",
+  "rugosidad": "res://assets/texturas/fir_sapling_twigs/fir_sapling_twigs_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ },
+ "fir_tree_01_bark": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.769,
+  "albedo": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_albedo.jpg",
+  "normal": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_normal.png",
+  "rugosidad": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_rug.jpg"
+ },
+ "fir_tree_01_twig": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.923,
+  "albedo": "res://assets/texturas/fir_tree_01_twig/fir_tree_01_twig_albedo.png",
+  "normal": "res://assets/texturas/fir_tree_01_twig/fir_tree_01_twig_normal.png",
+  "rugosidad": "res://assets/texturas/fir_tree_01_twig/fir_tree_01_twig_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ },
+ "fir_tree_01_dead_branches": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_albedo.jpg",
+  "normal": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_normal.png",
+  "rugosidad": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_rug.jpg"
+ },
+ "fir_tree_01_trunk_c": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/fir_tree_01_trunk_c/fir_tree_01_trunk_c_albedo.jpg",
+  "normal": "res://assets/texturas/fir_tree_01_trunk_c/fir_tree_01_trunk_c_normal.png",
+  "rugosidad": "res://assets/texturas/fir_tree_01_trunk_c/fir_tree_01_trunk_c_rug.jpg"
+ },
+ "fir_tree_01_trunk_a": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_albedo.jpg",
+  "normal": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_normal.png",
+  "rugosidad": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_rug.jpg"
+ },
+ "fir_tree_01_trunk_b": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_albedo.jpg",
+  "normal": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_normal.png",
+  "rugosidad": "res://assets/texturas/fir_tree_01_bark/fir_tree_01_bark_rug.jpg"
+ },
+ "pine_sapling_small_bark": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.769,
+  "albedo": "res://assets/texturas/pine_sapling_small_bark/pine_sapling_small_bark_albedo.jpg",
+  "normal": "res://assets/texturas/pine_sapling_small_bark/pine_sapling_small_bark_normal.png",
+  "rugosidad": "res://assets/texturas/pine_sapling_small_bark/pine_sapling_small_bark_rug.jpg"
+ },
+ "pine_sapling_small_twig": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.814,
+  "albedo": "res://assets/texturas/pine_sapling_small_twig/pine_sapling_small_twig_albedo.png",
+  "normal": "res://assets/texturas/pine_sapling_small_twig/pine_sapling_small_twig_normal.png",
+  "rugosidad": "res://assets/texturas/pine_sapling_small_twig/pine_sapling_small_twig_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ },
+ "tree_stump_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/tree_stump_01/tree_stump_01_albedo.jpg",
+  "normal": "res://assets/texturas/tree_stump_01/tree_stump_01_normal.png",
+  "rugosidad": "res://assets/texturas/tree_stump_01/tree_stump_01_rug.jpg"
+ },
+ "dead_tree_trunk": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/dead_tree_trunk/dead_tree_trunk_albedo.jpg",
+  "normal": "res://assets/texturas/dead_tree_trunk/dead_tree_trunk_normal.png",
+  "rugosidad": "res://assets/texturas/dead_tree_trunk/dead_tree_trunk_rug.jpg"
+ },
+ "rock_moss_set_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/rock_moss_set_01/rock_moss_set_01_albedo.jpg",
+  "normal": "res://assets/texturas/rock_moss_set_01/rock_moss_set_01_normal.png",
+  "rugosidad": "res://assets/texturas/rock_moss_set_01/rock_moss_set_01_rug.jpg"
+ },
+ "grass_medium_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.8,
+  "albedo": "res://assets/texturas/grass_medium_01/grass_medium_01_albedo.png",
+  "normal": "res://assets/texturas/grass_medium_01/grass_medium_01_normal.png",
+  "rugosidad": "res://assets/texturas/grass_medium_01/grass_medium_01_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ },
+ "fern_02": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/fern_02/fern_02_albedo.png",
+  "normal": "res://assets/texturas/fern_02/fern_02_normal.png",
+  "rugosidad": "res://assets/texturas/fern_02/fern_02_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ },
+ "dandelion_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.8,
+  "albedo": "res://assets/texturas/dandelion_01/dandelion_01_albedo.png",
+  "normal": "res://assets/texturas/dandelion_01/dandelion_01_normal.png",
+  "rugosidad": "res://assets/texturas/dandelion_01/dandelion_01_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ },
+ "shrub_04": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.8,
+  "albedo": "res://assets/texturas/shrub_04/shrub_04_albedo.png",
+  "normal": "res://assets/texturas/shrub_04/shrub_04_normal.png",
+  "rugosidad": "res://assets/texturas/shrub_04/shrub_04_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ },
+ "proto_Trigo": {
+  "tipo": "estandar",
+  "color": [
+   0.5,
+   0.36,
+   0.11,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.55
+ },
+ "weed_plant_02": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.8,
+  "albedo": "res://assets/texturas/weed_plant_02/weed_plant_02_albedo.png",
+  "normal": "res://assets/texturas/weed_plant_02/weed_plant_02_normal.png",
+  "rugosidad": "res://assets/texturas/weed_plant_02/weed_plant_02_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ },
+ "shrub_sorrel_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.39,
+  "albedo": "res://assets/texturas/shrub_sorrel_01/shrub_sorrel_01_albedo.png",
+  "normal": "res://assets/texturas/shrub_sorrel_01/shrub_sorrel_01_normal.png",
+  "rugosidad": "res://assets/texturas/shrub_sorrel_01/shrub_sorrel_01_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ },
+ "dry_branches_medium_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/dry_branches_medium_01/dry_branches_medium_01_albedo.jpg",
+  "normal": "res://assets/texturas/dry_branches_medium_01/dry_branches_medium_01_normal.png",
+  "rugosidad": "res://assets/texturas/dry_branches_medium_01/dry_branches_medium_01_rug.jpg"
+ },
+ "rock_moss_set_02": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/rock_moss_set_02/rock_moss_set_02_albedo.jpg",
+  "normal": "res://assets/texturas/rock_moss_set_02/rock_moss_set_02_normal.png",
+  "rugosidad": "res://assets/texturas/rock_moss_set_02/rock_moss_set_02_rug.jpg"
+ },
+ "wooden_lantern_01": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/wooden_lantern_01/wooden_lantern_01_albedo.jpg",
+  "normal": "res://assets/texturas/wooden_lantern_01/wooden_lantern_01_normal.png",
+  "rugosidad": "res://assets/texturas/wooden_lantern_01/wooden_lantern_01_rug.jpg"
+ },
+ "wooden_lantern_01_glass": {
+  "tipo": "estandar",
+  "color": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "metalico": 0.0,
+  "rug": 0.5,
+  "albedo": "res://assets/texturas/wooden_lantern_01_glass/wooden_lantern_01_glass_albedo.png",
+  "normal": "res://assets/texturas/wooden_lantern_01_glass/wooden_lantern_01_glass_normal.png",
+  "rugosidad": "res://assets/texturas/wooden_lantern_01_glass/wooden_lantern_01_glass_rug.jpg",
+  "alpha": "recorte",
+  "doble_cara": true
+ }
+}

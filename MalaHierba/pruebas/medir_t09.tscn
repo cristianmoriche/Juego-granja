@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://pruebas/medir_t09.gd" id="1"]
+
+[node name="MedirT09" type="Node"]
+script = ExtResource("1")

@@ -1,0 +1,65 @@
+{
+  "titulo": "Mala Hierba",
+  "subtitulo": "Un año para sacar adelante El Granado",
+  "carta": {
+    "titulo": "Una carta escrita a mano",
+    "parrafos": [
+      "Querido {nombre}:",
+      "Te escribo con mi letra de siempre, que ya me tiembla un poco. El médico dice que no puedo seguir sola en El Granado, y tiene razón. Me voy a la residencia en cuanto acabe el mes.",
+      "Pero no quiero que la finca se pierda. Una promotora lleva años rondando con su cheque, y a mí se me parte el alma pensar en un bloque de pisos donde ahora hay bancales y un granado en la puerta.",
+      "Sé que tienes tu vida en la ciudad, tus pantallas y tus doce horas de oficina. Pero también sé que de pequeño eras feliz aquí, con las rodillas manchadas de tierra y el pelo lleno de paja.",
+      "La cabaña aguanta, aunque el techo pedirá arreglo antes de las lluvias de otoño. El establo tiene las vigas rotas, el riego está destrozado y la maleza se ha comido los campos. Pedí un préstamo de 5.000 euros para lo más urgente; hay que devolverlo cuando acabe el año.",
+      "Te dejo 500 euros en el cajón, unas semillas de patata y las herramientas de tu abuelo. En el pueblo, pregunta por Don Mateo, el de la tienda, y por Clara, la herrera. Son buena gente, aunque ahora los veas tristes.",
+      "Te pido un año. Cuatro estaciones. Cuando acabe, volveré a ver lo que has hecho con mi tierra, y sea lo que sea, me hará feliz saber que lo intentaste.",
+      "Con todo mi cariño,",
+      "Rosa"
+    ]
+  },
+  "controles": [
+    "WASD o flechas: moverse (Mayús: correr)",
+    "Espacio: saltar    Ctrl izquierdo: agacharse",
+    "Clic derecho + ratón: girar la cámara    C: recolocarla",
+    "E: hablar o interactuar",
+    "Clic izquierdo: usar lo que llevas en la mano",
+    "Rueda o 1–0: cambiar de objeto",
+    "I o Tab: inventario    M: mapa",
+    "Esc: pausa    F11: pantalla completa"
+  ],
+  "final": {
+    "malo": {
+      "titulo": "El Granado se queda sin futuro",
+      "parrafos": [
+        "Llega el final del año y las cuentas no salen. La deuda pesa más que todo lo que has conseguido sacar de la tierra.",
+        "La abuela Rosa vuelve a El Granado en un coche prestado. Camina despacio entre los bancales, mira la cabaña y no dice nada durante un rato largo.",
+        "«Lo intentaste, Leo», acaba diciendo. Pero los dos saben que el banco no espera, y que la promotora lleva meses esperando junto a la verja.",
+        "En primavera habrá un cartel nuevo en el camino. Villaverde de los Rosales seguirá envejeciendo, y alguien dirá que antes aquí había una finca."
+      ]
+    },
+    "regular": {
+      "titulo": "El Granado sobrevive",
+      "parrafos": [
+        "Has saldado la deuda. La finca sigue en pie, los bancales están limpios y por la chimenea sale humo cada mañana.",
+        "La abuela Rosa vuelve y se sienta en el porche, como antes. Te dice que la tierra huele distinto, que huele a trabajo, y sonríe.",
+        "Pero en el pueblo las cosas siguen casi igual. La tienda abre menos horas, la taberna se queda vacía los sábados y los jóvenes siguen marchándose por el camino.",
+        "El Granado ha salvado su pellejo. Villaverde todavía está esperando a que alguien le dé la mano."
+      ]
+    },
+    "bueno": {
+      "titulo": "Villaverde vuelve a florecer",
+      "parrafos": [
+        "Has saldado la deuda y, lo que es mejor, has dejado de ser el de la ciudad. Hoy eres Leo, el de El Granado, y en el pueblo todos saben tu nombre.",
+        "Cuando la abuela Rosa vuelve, la plaza está llena. Don Mateo ha sacado mesas a la calle, Ramón reparte tortilla, Clara toca el yunque para la ocasión y Pablo corre con los carteles de la feria.",
+        "La abuela te coge las manos, ásperas como las suyas. «Mira lo que has hecho», te dice, y no hace falta que diga nada más.",
+        "El Granado es ahora una finca que da de comer a todo el valle, y Villaverde de los Rosales tiene por fin motivos para quedarse."
+      ]
+    }
+  },
+  "resumen_final": {
+    "dinero": "Dinero al cierre del año",
+    "deuda": "Deuda del préstamo",
+    "saldo": "Saldo final",
+    "amistad": "Amistad media con el pueblo",
+    "cosechas": "Cultivos cosechados",
+    "dias": "Días de trabajo"
+  }
+}

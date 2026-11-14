@@ -1,0 +1,74 @@
+{
+ "Terreno": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Lago_agua": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Muelle_rampa": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_cubierta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_pilote_-1.4_8": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_pilote_1.4_8": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_pilote_-1.4_12": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_pilote_1.4_12": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_pilote_-1.4_16": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_pilote_1.4_16": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_pilote_-1.4_20": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_pilote_1.4_20": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_farol_poste": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_farol_brazo": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_farol_caja": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_farol_cristal": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Muelle_caja_cebo": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Muelle_banco": {
+  "colision": true,
+  "solo_sombra": false
+ }
+}

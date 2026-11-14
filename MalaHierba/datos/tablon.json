@@ -1,0 +1,20 @@
+[
+  {"id": "mateo_patatas", "npc": "mateo", "tipo": "entregar", "estaciones": [0], "texto": "Don Mateo necesita {n} patatas para la despensa de la tienda.", "pide": "patata", "cantidad": 6, "dinero": 90, "amistad": 10},
+  {"id": "pablo_zanahorias", "npc": "pablo", "tipo": "entregar", "estaciones": [0], "texto": "Pablo quiere {n} zanahorias para dar de comer al burro de su tío.", "pide": "zanahoria", "cantidad": 4, "dinero": 70, "amistad": 12},
+  {"id": "ramon_habas", "npc": "ramon", "tipo": "entregar", "estaciones": [0], "texto": "Ramón pide {n} habas frescas para el potaje de El Candil.", "pide": "haba", "cantidad": 6, "dinero": 95, "amistad": 10},
+  {"id": "ramon_tomates", "npc": "ramon", "tipo": "entregar", "estaciones": [1], "texto": "Ramón compra {n} tomates para la salsa de los domingos.", "pide": "tomate", "cantidad": 6, "dinero": 85, "amistad": 10},
+  {"id": "ramon_pimientos", "npc": "ramon", "tipo": "entregar", "estaciones": [1], "texto": "Ramón necesita {n} pimientos para las tapas de la barra.", "pide": "pimiento", "cantidad": 4, "dinero": 75, "amistad": 10},
+  {"id": "mateo_melones", "npc": "mateo", "tipo": "entregar", "estaciones": [1], "texto": "Don Mateo busca {n} melones dulces para el puesto de la plaza.", "pide": "melon", "cantidad": 2, "dinero": 135, "amistad": 12},
+  {"id": "mateo_calabazas", "npc": "mateo", "tipo": "entregar", "estaciones": [2], "texto": "Don Mateo quiere {n} calabazas para la mesa de otoño del escaparate.", "pide": "calabaza", "cantidad": 2, "dinero": 130, "amistad": 12},
+  {"id": "mateo_coles", "npc": "mateo", "tipo": "entregar", "estaciones": [2], "texto": "Don Mateo busca {n} coles para el caldo del jueves.", "pide": "col", "cantidad": 5, "dinero": 85, "amistad": 8},
+  {"id": "anselmo_boniatos", "npc": "anselmo", "tipo": "entregar", "estaciones": [2], "texto": "Don Anselmo encarga {n} boniatos asados para la reunión del concejo.", "pide": "boniato", "cantidad": 4, "dinero": 90, "amistad": 10},
+  {"id": "mateo_ajos", "npc": "mateo", "tipo": "entregar", "estaciones": [3], "texto": "Don Mateo necesita {n} cabezas de ajo para las conservas de invierno.", "pide": "ajo", "cantidad": 5, "dinero": 90, "amistad": 10},
+  {"id": "ramon_espinacas", "npc": "ramon", "tipo": "entregar", "estaciones": [3], "texto": "Ramón compra {n} manojos de espinacas para los guisos calientes.", "pide": "espinaca", "cantidad": 5, "dinero": 95, "amistad": 10},
+  {"id": "tomas_nabos", "npc": "tomas", "tipo": "entregar", "estaciones": [3], "texto": "Tomás quiere {n} nabos de invierno para la olla de la mina.", "pide": "nabo", "cantidad": 4, "dinero": 105, "amistad": 12},
+  {"id": "clara_cobre", "npc": "clara", "tipo": "entregar", "texto": "Clara necesita {n} piezas de cobre para un encargo del pueblo.", "pide": "cobre", "cantidad": 4, "dinero": 45, "amistad": 10},
+  {"id": "clara_hierro", "npc": "clara", "tipo": "entregar", "texto": "Clara pide {n} piezas de hierro para forjar herraduras.", "pide": "hierro", "cantidad": 3, "dinero": 45, "amistad": 10},
+  {"id": "anselmo_madera", "npc": "anselmo", "tipo": "entregar", "texto": "El ayuntamiento necesita {n} piezas de madera para arreglar el tejado.", "pide": "madera", "cantidad": 10, "dinero": 35, "amistad": 10},
+  {"id": "anselmo_piedra", "npc": "anselmo", "tipo": "entregar", "texto": "El alcalde busca {n} piedras para reparar el empedrado de la plaza.", "pide": "piedra", "cantidad": 10, "dinero": 30, "amistad": 10},
+  {"id": "tomas_cuarzo", "npc": "tomas", "tipo": "entregar", "texto": "Tomás pide {n} cuarzos para un coleccionista que pasa por la mina.", "pide": "cuarzo", "cantidad": 2, "dinero": 55, "amistad": 12},
+  {"id": "tomas_hierro", "npc": "tomas", "tipo": "entregar", "texto": "Tomás necesita {n} piezas de hierro para reforzar los apeos de la galería.", "pide": "hierro", "cantidad": 5, "dinero": 65, "amistad": 12}
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "murcielago_roca",
+    "tipo": "volador",
+    "nombre": "Murciélago de cueva",
+    "vida": 25.0,
+    "dano": 8.0,
+    "velocidad": 4.2,
+    "alcance_deteccion": 10.0,
+    "alcance_ataque": 1.4,
+    "cadencia_ataque": 1.1,
+    "niveles": [1, 10],
+    "modelo": ""
+  },
+  {
+    "id": "babosa_humeda",
+    "tipo": "babosa",
+    "nombre": "Babosa musgosa",
+    "vida": 40.0,
+    "dano": 12.0,
+    "velocidad": 2.4,
+    "alcance_deteccion": 9.0,
+    "alcance_ataque": 1.5,
+    "cadencia_ataque": 1.4,
+    "niveles": [6, 15],
+    "modelo": ""
+  },
+  {
+    "id": "centinela_cristal",
+    "tipo": "golem",
+    "nombre": "Centinela de cristal",
+    "vida": 65.0,
+    "dano": 16.0,
+    "velocidad": 3.2,
+    "alcance_deteccion": 11.0,
+    "alcance_ataque": 1.65,
+    "cadencia_ataque": 1.25,
+    "niveles": [11, 20],
+    "modelo": ""
+  },
+  {
+    "id": "brasa_errante",
+    "tipo": "magma",
+    "nombre": "Brasa errante",
+    "vida": 90.0,
+    "dano": 22.0,
+    "velocidad": 3.8,
+    "alcance_deteccion": 12.0,
+    "alcance_ataque": 1.75,
+    "cadencia_ataque": 1.15,
+    "niveles": [16, 20],
+    "modelo": ""
+  }
+]

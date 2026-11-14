@@ -1,0 +1,258 @@
+[
+  {
+    "id": "mateo",
+    "nombre": "Don Mateo",
+    "rol": "Tendero",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Tendera",
+    "horario_interior": [{"desde": 540, "hasta": 1140, "mapa": "tienda", "marcador": "Puesto_Mateo"}],
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1380, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-2.8, -5.0], "radio": 3.5},
+      {"lluvia": true, "desde": 360, "hasta": 540, "mapa": "pueblo", "marcador": "Spawn_Tendera", "desplazar": [0.8, 0.2], "radio": 0.8},
+      {"lluvia": true, "desde": 1140, "hasta": 1260, "mapa": "taberna", "marcador": "Entrada", "desplazar": [-2.2, -0.8], "radio": 1.2},
+      {"dias": [4], "desde": 1140, "hasta": 1260, "se_va": 1380, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.8, 1.4], "radio": 2.2},
+      {"dias": [4], "desde": 1260, "hasta": 1380, "se_va": 1380, "mapa": "taberna", "marcador": "Entrada", "desplazar": [-2.2, -0.8], "radio": 1.2},
+      {"dias": [6], "desde": 840, "hasta": 1200, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-3.0, 1.2], "radio": 2.8},
+      {"estaciones": [1], "desde": 1170, "hasta": 1320, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-1.5, -2.5], "radio": 3.0}
+    ],
+    "modelo": "herrero",
+    "tienda": "tienda_mateo",
+    "gusta": ["patata", "col", "calabaza"],
+    "no_gusta": ["fibra", "piedra"],
+    "dialogos": {
+      "0": [
+        "Vaya, tú debes de ser el nieto de Rosa. Bienvenido a Villaverde. Por aquí ya no entra mucha gente nueva.",
+        "La tienda abre todos los días: semillas, pan y lo que haga falta. Eso sí, cada año vendo menos.",
+        "Antes esta plaza estaba llena a estas horas. Ahora, ya ves, solo el viento y Don Anselmo haciendo cuentas.",
+        "Tu abuela me compraba las semillas de patata cada primavera. Sin faltar un solo año.",
+        "Anselmo me dijo lo de los cinco mil euros que pesan sobre El Granado. Véndeme lo que coseches, que te doy buen precio."
+      ],
+      "1": [
+        "Mira, Leo, te voy a ser sincero: si el pueblo no se mueve, cierro la tienda el año que viene.",
+        "Se han ido los jóvenes, ha cerrado la panadería y Ramón apenas llena dos mesas. Pero la tierra sigue ahí.",
+        "Tu abuela decía que una finca bien llevada da de comer a todo un pueblo. Marisol y yo aún la creemos.",
+        "Guárdame unas patatas del primer año, que quiero probarlas. Si salen como las suyas, te invito a un café en El Candil.",
+        "He visto luz en El Granado por las noches. Hasta Eusebio comentaba ayer lo bien que sienta volver a ver vida en la loma."
+      ],
+      "2": [
+        "Leo, desde que estás tú la gente vuelve a pararse en la plaza a charlar. No es poca cosa.",
+        "Anoche soñé que la tienda tenía cola hasta la puerta. Luego me desperté, claro. Pero ya no me parece imposible.",
+        "Tu abuela estaría orgullosa, y lo digo yo, que la conocí cuarenta años junto a Don Anselmo y Clara.",
+        "Si necesitas fiado para la próxima siembra o para ir quitando esa deuda, dímelo. Esto ya es cosa de todos.",
+        "Eres de los nuestros. Lo de Rosa lo hemos heredado entre todos, y tú estás levantando el pueblo entero."
+      ]
+    }
+  },
+  {
+    "id": "clara",
+    "nombre": "Clara",
+    "rol": "Herrera",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Herrero",
+    "horario_interior": [{"desde": 480, "hasta": 1080, "mapa": "herreria", "marcador": "Puesto_Clara"}],
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1380, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [7.0, -5.5], "radio": 3.5},
+      {"lluvia": true, "desde": 360, "hasta": 480, "mapa": "pueblo", "marcador": "Spawn_Herrero", "desplazar": [-1.2, 0.2], "radio": 0.8},
+      {"lluvia": true, "desde": 1080, "hasta": 1260, "mapa": "taberna", "marcador": "Entrada", "desplazar": [1.8, -0.5], "radio": 1.2},
+      {"dias": [4], "desde": 1110, "hasta": 1260, "se_va": 1380, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [1.6, 1.5], "radio": 2.2},
+      {"dias": [4], "desde": 1260, "hasta": 1380, "se_va": 1380, "mapa": "taberna", "marcador": "Entrada", "desplazar": [1.8, -0.5], "radio": 1.2},
+      {"dias": [6], "desde": 840, "hasta": 1200, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [1.8, 1.8], "radio": 3.0},
+      {"estaciones": [2], "desde": 720, "hasta": 840, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Herrero", "desplazar": [-2.2, 1.5], "radio": 2.2}
+    ],
+    "modelo": "tendera",
+    "tienda": "",
+    "gusta": ["hierro", "cuarzo", "cobre"],
+    "no_gusta": ["fibra", "haba"],
+    "dialogos": {
+      "0": [
+        "Ah, el de la ciudad. Soy Clara, la herrera. Si algo se te rompe o quieres mejorarlo, ven a verme.",
+        "Para mejorar una herramienta necesito metal: cobre, hierro y, si hay suerte, cuarzo. Todo sale de donde pica Tomás.",
+        "No te hagas ilusiones: una buena azada no hace al labrador ni paga sola una deuda de cinco mil euros. Pero ayuda.",
+        "La fragua gasta leña y paciencia. Bernardo me trae buen roble, y yo pongo el hierro.",
+        "Tu abuela me encargó una hoz hace años. Aún la usa, o la usaba. Estaba hecha para durar."
+      ],
+      "1": [
+        "Así me gusta, con callos en las manos. Se nota que trabajas la tierra y no dejas que la finca se pierda.",
+        "Hay que ser terco para dejarlo todo y venirte aquí con semejante deuda encima. Reconozco que me cae bien tu terquedad.",
+        "El pueblo se vacía, Leo. Mi taller era de mi padre y cada año hay menos que arreglar, aunque Don Mateo aún me manda encargos.",
+        "Si me traes cuarzo, te hago algo especial. Gema dice que en el fondo de la mina hay buena veta.",
+        "A veces pienso en irme a la ciudad. Luego veo a Pablo e Irene reír en la plaza y se me pasa."
+      ],
+      "2": [
+        "No sé si lo sabes, pero desde que llegaste hay más trabajo en la fragua. Quien tiene cosecha, quiere herramientas.",
+        "Te voy a confesar una cosa: este pueblo me daba igual. Ahora me importa. Hasta Tomás lo ha notado.",
+        "Pásate cuando puedas: tengo en mente algo mejor que una hoz de hierro para que termines de soltar lastre.",
+        "Las manos de tu abuela eran como las tuyas ahora. Ásperas y honradas.",
+        "Si el pueblo sale adelante será porque cada uno puso algo. Don Anselmo pone los papeles, y yo pongo el hierro."
+      ]
+    }
+  },
+  {
+    "id": "ramon",
+    "nombre": "Ramón",
+    "rol": "Tabernero",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Tabernero",
+    "se_va": 1440,
+    "horario_interior": [{"desde": 720, "hasta": 1440, "mapa": "taberna", "marcador": "Puesto_Ramon"}],
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1380, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.5, 3.8], "radio": 3.2},
+      {"lluvia": true, "desde": 360, "hasta": 720, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-1.2, 0.5], "radio": 0.6}
+    ],
+    "modelo": "tabernero",
+    "tienda": "taberna",
+    "gusta": ["tomate", "pimiento", "patata", "melon"],
+    "no_gusta": ["piedra", "madera"],
+    "dialogos": {
+      "0": [
+        "¡Bienvenido a la taberna! Aquí hay caldo caliente, tortilla y poco más.",
+        "Los de fuera siempre piden café con leche. Don Anselmo me dice que compre máquina moderna, pero no tengo presupuesto.",
+        "Ponte cómodo. Si vienes cansado de limpiar maleza para cubrir esa deuda, un plato de guiso te devuelve las fuerzas.",
+        "Antes llenaba el local los sábados con los chicos de la mina. Ahora lleno una mesa, con suerte.",
+        "Conocía bien a tu abuela Rosa. Se tomaba un chocolate caliente cada domingo aquí mismo con Marisol."
+      ],
+      "1": [
+        "Sabes lo que te digo: un pueblo sin taberna es un pueblo sin conversación. Por eso sigo abriendo.",
+        "Si cultivas algo bueno, avísame. Un guiso con verdura de El Granado sabe distinto.",
+        "Tomás baja de la mina cada tarde y pide lo mismo: un caldo y silencio. Clara es la única que le saca conversación.",
+        "Estoy pensando en organizar una cena para todo el pueblo los domingos, como cuando estaban las familias enteras.",
+        "Con la Feria de la Siembra y la Fiesta de la Cosecha esto era una alegría. A ver si vuelven con fuerza."
+      ],
+      "2": [
+        "Leo, ya eres de los de la barra de siempre. Hoy el café lo invita la casa.",
+        "¿Sabes qué me gusta de ti? Que preguntas por Mateo, por Pablo y por los demás. Aquí hacía falta alguien así.",
+        "Si me traes buena verdura, la tortilla del domingo será legendaria.",
+        "El otro día vi la plaza con gente y casi me emociono. Hasta Eusebio se echó una partida de cartas.",
+        "Cuando remates la deuda y todo esto salga bien, la primera ronda corre de mi cuenta."
+      ]
+    }
+  },
+  {
+    "id": "anselmo",
+    "nombre": "Don Anselmo",
+    "rol": "Alcalde",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Alcalde",
+    "horario": [{"desde": 780, "hasta": 900, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.0, 2.5]}],
+    "horario_interior": [{"desde": 480, "hasta": 780, "mapa": "casa_alcalde", "marcador": "Puesto_Anselmo"}],
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1380, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [2.2, -5.8], "radio": 3.5},
+      {"lluvia": true, "desde": 360, "hasta": 480, "mapa": "pueblo", "marcador": "Spawn_Alcalde", "desplazar": [-1.2, -0.4], "radio": 0.6},
+      {"lluvia": true, "desde": 780, "hasta": 960, "mapa": "taberna", "marcador": "Entrada", "desplazar": [-2.5, 0.2], "radio": 1.0},
+      {"dias": [5, 6], "desde": 480, "hasta": 780, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [3.0, -3.5], "radio": 3.2},
+      {"dias": [5, 6], "desde": 780, "hasta": 960, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.0, 2.4], "radio": 2.4}
+    ],
+    "modelo": "alcalde",
+    "tienda": "",
+    "gusta": ["melon", "calabaza", "tortilla"],
+    "no_gusta": ["fibra", "cobre"],
+    "dialogos": {
+      "0": [
+        "Anselmo Cabrera, alcalde de Villaverde de los Rosales. Es un honor. Pocas veces recibimos vecinos nuevos.",
+        "Disculpe el estado del pueblo. El ayuntamiento tiene más goteras que presupuesto, y Don Mateo bastante hace con aguantar.",
+        "Hay una promotora que lleva años rondando las tierras y esperando que nadie cubra esos cinco mil euros de deuda.",
+        "Su abuela Rosa siempre ha sido mujer de palabra. Cuando quiera abonar algún plazo de la deuda, hable conmigo.",
+        "Si necesita algún permiso, mi puerta está abierta. Aunque la puerta también necesita arreglo."
+      ],
+      "1": [
+        "El padrón baja cada año: somos menos de doscientos. Lucía hace milagros con cuatro alumnos en la escuela.",
+        "La promotora ofreció comprar El Granado. Rosa dijo que no, y no fue fácil para ella con tanta deuda encima.",
+        "Llevo años pidiendo ayudas. Aquí lo que falta no es dinero, sino alguien que se atreva primero como usted.",
+        "Que haya vuelto a sembrar la finca da ánimos a Ramón, a Clara y a todo el valle.",
+        "Con gente dispuesta, nuestras fiestas de primavera y otoño recuperarán el lustre de antaño."
+      ],
+      "2": [
+        "Leo, creo que podemos hacerlo. Te lo digo como alcalde y como vecino.",
+        "Ayer firmé los bandos de la plaza. Ya hay quien pregunta por reabrir puestos si el pueblo despega.",
+        "Tu abuela me dijo una vez: «Anselmo, un pueblo no se muere hasta que se rinde». Aquí nadie se rinde.",
+        "Cuando termine de liquidarse el año quiero verte tranquilo en esta plaza junto a Mateo, Pablo y Clara.",
+        "Gracias. De parte de todo Villaverde y de la mía."
+      ]
+    }
+  },
+  {
+    "id": "tomas",
+    "nombre": "Tomás",
+    "rol": "Minero",
+    "mapa": "mina_exterior",
+    "marcador": "Spawn_Minero",
+    "horario": [{"desde": 1080, "hasta": 1260, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.5, 1.5]}],
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1380, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [6.0, -1.5], "radio": 3.8},
+      {"lluvia": true, "desde": 1080, "hasta": 1260, "mapa": "taberna", "marcador": "Entrada", "desplazar": [2.2, 0.4], "radio": 1.2},
+      {"dias": [4], "desde": 1080, "hasta": 1260, "se_va": 1380, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-1.8, 2.2], "radio": 2.4},
+      {"dias": [4], "desde": 1260, "hasta": 1380, "se_va": 1380, "mapa": "taberna", "marcador": "Entrada", "desplazar": [2.2, 0.4], "radio": 1.2},
+      {"dias": [6], "desde": 900, "hasta": 1260, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.2, 2.0], "radio": 2.8},
+      {"estaciones": [3], "desde": 1020, "hasta": 1260, "mapa": "taberna", "marcador": "Interaccion_chimenea", "desplazar": [1.8, 0.5], "radio": 1.2}
+    ],
+    "modelo": "minero",
+    "tienda": "",
+    "gusta": ["bocadillo", "cuarzo", "pan"],
+    "no_gusta": ["fibra", "haba"],
+    "dialogos": {
+      "0": [
+        "Mm. Tomás. Trabajo aquí, en la mina.",
+        "No bajes sin pico y sin comer algo de lo de Ramón o Mateo. Ahí abajo no hay quien te oiga si te desmayas.",
+        "Hay cobre en la primera galería, hierro algo más abajo y, con suerte, cuarzo en lo hondo. Yo te compro el mineral bien pagado.",
+        "La mina estuvo cerrada años. La abrimos de nuevo porque en el pueblo ya no había de qué vivir.",
+        "Si andas apurado por esa deuda de cinco mil euros, tráeme mineral; te doy mejor precio que nadie."
+      ],
+      "1": [
+        "Tu abuela subía a veces a ver cómo íbamos. Le gustaba el olor a piedra mojada. Decía que olía a verdad.",
+        "Cuando cerró la cantera perdimos treinta empleos de golpe. Rufino todavía sueña con aquellos turnos.",
+        "El cuarzo no se pica así como así: apunta bien al filo de la veta. Gema te lo puede explicar arriba.",
+        "Si bajas al segundo nivel, ve despacio y cuida las herramientas que templa Clara.",
+        "No hablo mucho, pero se agradece que subas a saludar."
+      ],
+      "2": [
+        "Antes, por este camino había cola de camiones. Y ahora vienes tú con tu pico. Me hace gracia.",
+        "Clara me pregunta siempre por ti. Le gusta el cobre que sacas y dice que tu finca parece otra.",
+        "Cuando bajes, lleva comida de sobra. Y vuelve entero, que Clara me mata si no.",
+        "Si todo sale bien y vences a la promotora, a lo mejor la mina vuelve a dar trabajo.",
+        "Eres de los pocos que suben hasta aquí a charlar con Rufino y conmigo. Gracias."
+      ]
+    }
+  },
+  {
+    "id": "pablo",
+    "nombre": "Pablo",
+    "rol": "Niño",
+    "mapa": "pueblo",
+    "marcador": "Spawn_Nino",
+    "se_va": 1140,
+    "reglas_horario": [
+      {"festividad": true, "llega": 480, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [0.8, 1.0], "radio": 4.5},
+      {"lluvia": true, "desde": 360, "hasta": 1140, "mapa": "pueblo", "marcador": "Spawn_Tendera", "desplazar": [0.6, 1.0], "radio": 0.9},
+      {"dias": [2], "desde": 960, "hasta": 1200, "se_va": 1200, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [0.5, -1.8], "radio": 2.4},
+      {"dias": [6], "desde": 960, "hasta": 1140, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-1.2, 3.2], "radio": 2.5},
+      {"estaciones": [3], "llega": 420, "se_va": 1080, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [1.5, -2.5], "radio": 3.0}
+    ],
+    "modelo": "nino",
+    "tienda": "",
+    "gusta": ["zanahoria", "melon", "boniato"],
+    "no_gusta": ["ajo", "col"],
+    "dialogos": {
+      "0": [
+        "¡Hola! Tú eres el señor de la finca de la abuela Rosa, ¿verdad? Mi madre dice que estás loco por volver.",
+        "Yo me llamo Pablo. Estoy en la plaza jugando con Irene porque no hay otros niños.",
+        "¿Tienes gallinas? Me encantaría ver una gallina de verdad.",
+        "Antes había más niños en el pueblo. Ahora la profe Lucía nos da clase casi para nosotros solos.",
+        "La abuela Rosa me daba galletas cuando pasaba por su casa. Las echo de menos."
+      ],
+      "1": [
+        "Cuando sea mayor quiero tener una granja como la tuya. O ser futbolista, aún no lo sé.",
+        "El otro día vi un zorro cerca de tu valla. No se lo digas a Bernardo ni a nadie, pero me cayó bien.",
+        "Mi mejor amigo se fue a la ciudad. Dice que allí hay un parque enorme, pero que no conoce a nadie.",
+        "Dice Don Anselmo que si pagas toda la deuda te quedas la granja para siempre. ¡Ojalá lo consigas!",
+        "El señor Tomás me enseñó una piedra brillante que saca de la mina. Dijo que se llama cuarzo."
+      ],
+      "2": [
+        "¡Leo! Mi madre dice que ya no estás tan loco. Que lo de El Granado va en serio.",
+        "He dibujado tu granja en el cole. La profe Lucía dice que el cielo me ha quedado muy bonito.",
+        "Ahora, cuando paso por tu camino con Irene, siempre huele a tierra mojada. Me gusta.",
+        "¿Sabes qué? Ya no quiero irme a la ciudad. Quiero quedarme en Villaverde.",
+        "Si organizas la fiesta en grande, yo ayudo a Ramón y a Don Mateo a llevar los cestos."
+      ]
+    }
+  }
+]

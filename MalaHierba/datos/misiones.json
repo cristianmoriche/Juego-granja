@@ -1,0 +1,230 @@
+[
+  {
+    "id": "p1_papel_el_granado",
+    "titulo": "El primer pagaré",
+    "quien": "anselmo",
+    "estacion": 0,
+    "requiere": "",
+    "descripcion": "Don Anselmo guarda el libro de cuentas de El Granado. Demuestra que la finca vuelve a dar fruto y acércate a ver a Don Mateo.",
+    "dialogo_fin": "Rosa estaría orgullosa al ver patatas tan sanas saliendo otra vez de su tierra. Sigue así y esa deuda caerá.",
+    "pasos": [
+      {"tipo": "hablar", "objetivo": "anselmo", "cantidad": 1, "texto": "Habla con Don Anselmo en el pueblo"},
+      {"tipo": "cultivar", "objetivo": "patata", "cantidad": 3, "texto": "Cosecha 3 patatas de primavera"},
+      {"tipo": "entregar", "objetivo": "patata", "destino": "mateo", "cantidad": 2, "texto": "Entrega 2 patatas a Don Mateo"}
+    ],
+    "recompensa": {"dinero": 25, "amistad": 20, "objetos": [{"id": "semilla_zanahoria", "cantidad": 4}]}
+  },
+  {
+    "id": "p2_semillas_rosa",
+    "titulo": "Las semillas de la abuela",
+    "quien": "mateo",
+    "estacion": 0,
+    "requiere": "",
+    "descripcion": "Don Mateo quiere ver si el huerto responde como en tiempos de Rosa y anima a Leo a pagar los primeros plazos de la deuda.",
+    "dialogo_fin": "Buen estreno en la libreta, muchacho. Cada euro que quitas del debe da respiro al pueblo entero.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "zanahoria", "cantidad": 4, "texto": "Cosecha 4 zanahorias"},
+      {"tipo": "pagar_deuda", "objetivo": "deuda", "cantidad": 200, "texto": "Paga tus primeros 200 € de la deuda"}
+    ],
+    "recompensa": {"dinero": 30, "amistad": 25, "objetos": [{"id": "pan", "cantidad": 2}]}
+  },
+  {
+    "id": "p3_luz_en_la_mina",
+    "titulo": "La veta olvidada",
+    "quien": "tomas",
+    "estacion": 0,
+    "requiere": "p1_papel_el_granado",
+    "descripcion": "Tomás asegura que en el primer nivel de la mina aún queda buen cobre para reparar los aperos de la fragua.",
+    "dialogo_fin": "Este cobre suena limpio bajo el martillo. Cuando quieras templar herramientas mejores, vuelve por la fragua.",
+    "pasos": [
+      {"tipo": "mina_nivel", "objetivo": "mina", "cantidad": 1, "texto": "Desciende al nivel 1 de la mina"},
+      {"tipo": "entregar", "objetivo": "cobre", "destino": "clara", "cantidad": 3, "texto": "Entrega 3 piezas de cobre a Clara"}
+    ],
+    "recompensa": {"dinero": 35, "amistad": 25, "objetos": [{"id": "bocadillo", "cantidad": 2}]}
+  },
+  {
+    "id": "p4_mesa_en_el_candil",
+    "titulo": "El primer guiso del año",
+    "quien": "ramon",
+    "estacion": 0,
+    "requiere": "",
+    "descripcion": "Ramón quiere volver a servir olla caliente en El Candil con habas frescas recién recogidas de tu finca.",
+    "dialogo_fin": "Con estas habas huele a vida otra vez en la taberna. Pásate cuando caiga la tarde.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "haba", "cantidad": 4, "texto": "Cosecha 4 habas en la granja"},
+      {"tipo": "entregar", "objetivo": "haba", "destino": "ramon", "cantidad": 3, "texto": "Entrega 3 habas a Ramón"}
+    ],
+    "recompensa": {"dinero": 30, "amistad": 20, "objetos": [{"id": "cafe", "cantidad": 2}]}
+  },
+  {
+    "id": "v1_tomates_sol",
+    "titulo": "Salsa para la plaza",
+    "quien": "ramon",
+    "estacion": 1,
+    "requiere": "",
+    "descripcion": "El calor del verano pide tomates maduros en El Candil para animar las comidas de Villaverde.",
+    "dialogo_fin": "Tomates así no se ven en la ciudad ni por encargo. Ya tienes medio pueblo ganado.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "tomate", "cantidad": 5, "texto": "Cosecha 5 tomates de verano"},
+      {"tipo": "entregar", "objetivo": "tomate", "destino": "ramon", "cantidad": 4, "texto": "Entrega 4 tomates a Ramón"}
+    ],
+    "recompensa": {"dinero": 40, "amistad": 25, "objetos": [{"id": "caldo", "cantidad": 2}]}
+  },
+  {
+    "id": "v2_fuelle_fragua",
+    "titulo": "La grieta del fuelle",
+    "quien": "clara",
+    "estacion": 1,
+    "requiere": "",
+    "descripcion": "Clara necesita hierro de la galería honda de la mina para reforzar el aro del fuelle antes de que acabe el verano.",
+    "dialogo_fin": "Hierro recio y sin escoria. Con el fuelle sano podré forjar hasta el invierno sin parar.",
+    "pasos": [
+      {"tipo": "mina_nivel", "objetivo": "mina", "cantidad": 2, "texto": "Alcanza el nivel 2 de la mina"},
+      {"tipo": "entregar", "objetivo": "hierro", "destino": "clara", "cantidad": 3, "texto": "Entrega 3 piezas de hierro a Clara"}
+    ],
+    "recompensa": {"dinero": 45, "amistad": 30, "objetos": [{"id": "cobre", "cantidad": 3}]}
+  },
+  {
+    "id": "v3_dulce_feria",
+    "titulo": "El melón más dulce",
+    "quien": "pablo",
+    "estacion": 1,
+    "requiere": "",
+    "descripcion": "Pablo sueña con partir un melón de El Granado en la plaza del pueblo mientras Don Mateo abre el puesto.",
+    "dialogo_fin": "¡Sabe a gloria, Leo! El año que viene quiero ayudarte a regar el melonar.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "melon", "cantidad": 2, "texto": "Cosecha 2 melones de verano"},
+      {"tipo": "entregar", "objetivo": "melon", "destino": "pablo", "cantidad": 1, "texto": "Lleva 1 melón a Pablo"},
+      {"tipo": "hablar", "objetivo": "mateo", "cantidad": 1, "texto": "Comenta la cosecha con Don Mateo"}
+    ],
+    "recompensa": {"dinero": 40, "amistad": 25, "objetos": [{"id": "semilla_pimiento", "cantidad": 3}]}
+  },
+  {
+    "id": "v4_segundo_plazo",
+    "titulo": "Mitad del camino",
+    "quien": "anselmo",
+    "estacion": 1,
+    "requiere": "",
+    "descripcion": "Don Anselmo quiere cuadrar las cuentas de verano: vende pimientos al puesto de Mateo y reduce la deuda acumulada.",
+    "dialogo_fin": "Más de mil euros liquidados en menos de dos estaciones. La gente vuelve a mirar hacia El Granado.",
+    "pasos": [
+      {"tipo": "entregar", "objetivo": "pimiento", "destino": "mateo", "cantidad": 3, "texto": "Entrega 3 pimientos a Don Mateo"},
+      {"tipo": "pagar_deuda", "objetivo": "deuda", "cantidad": 1200, "texto": "Alcanza 1.200 € pagados de la deuda"}
+    ],
+    "recompensa": {"dinero": 55, "amistad": 30, "objetos": [{"id": "tortilla", "cantidad": 2}]}
+  },
+  {
+    "id": "o1_calabazas_feria",
+    "titulo": "Calabazas para el otoño",
+    "quien": "mateo",
+    "estacion": 2,
+    "requiere": "",
+    "descripcion": "Llegan los días cortos y Don Mateo quiere adornar el mostrador con buenas calabazas cultivadas en Villaverde.",
+    "dialogo_fin": "Menudas piezas has sacado. Hasta los vecinos que apenas salían se han acercado a mirar.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "calabaza", "cantidad": 3, "texto": "Cosecha 3 calabazas de otoño"},
+      {"tipo": "entregar", "objetivo": "calabaza", "destino": "mateo", "cantidad": 2, "texto": "Entrega 2 calabazas a Don Mateo"}
+    ],
+    "recompensa": {"dinero": 50, "amistad": 25, "objetos": [{"id": "semilla_col", "cantidad": 4}]}
+  },
+  {
+    "id": "o2_espejo_cuarzo",
+    "titulo": "El espejo de cuarzo",
+    "quien": "tomas",
+    "estacion": 2,
+    "requiere": "",
+    "descripcion": "Tomás recuerda que en las vetas bajas de la mina brilla el cuarzo blanco que Clara necesita para pulir el filo.",
+    "dialogo_fin": "Puro cuarzo de galería profunda. Ahora sí que vuelve a merecer la pena bajar con el farol.",
+    "pasos": [
+      {"tipo": "mina_nivel", "objetivo": "mina", "cantidad": 2, "texto": "Explora hasta el nivel 2 de la mina"},
+      {"tipo": "entregar", "objetivo": "cuarzo", "destino": "clara", "cantidad": 2, "texto": "Entrega 2 cristales de cuarzo a Clara"}
+    ],
+    "recompensa": {"dinero": 55, "amistad": 30, "objetos": [{"id": "hierro", "cantidad": 3}]}
+  },
+  {
+    "id": "o3_caldo_col",
+    "titulo": "Olla de coles y boniatos",
+    "quien": "ramon",
+    "estacion": 2,
+    "requiere": "",
+    "descripcion": "Ramón prepara los guisos de otoño y busca coles firmes y boniatos dulces para volver a juntar mesas.",
+    "dialogo_fin": "Hoy han cenado seis mesas seguidas en El Candil. Todo gracias a tu cosecha.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "col", "cantidad": 4, "texto": "Cosecha 4 coles de otoño"},
+      {"tipo": "entregar", "objetivo": "col", "destino": "ramon", "cantidad": 3, "texto": "Entrega 3 coles a Ramón"}
+    ],
+    "recompensa": {"dinero": 50, "amistad": 25, "objetos": [{"id": "guiso", "cantidad": 2}]}
+  },
+  {
+    "id": "o4_fianza_ayuntamiento",
+    "titulo": "Las cuentas claras",
+    "quien": "anselmo",
+    "estacion": 2,
+    "requiere": "",
+    "descripcion": "El alcalde prepara la memoria de otoño: cosecha boniatos y supera la barrera de la mitad de la deuda.",
+    "dialogo_fin": "Más de media finca ya es tuya limpia de cargas. El Granado vuelve a tener futuro.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "boniato", "cantidad": 3, "texto": "Cosecha 3 boniatos"},
+      {"tipo": "pagar_deuda", "objetivo": "deuda", "cantidad": 2800, "texto": "Alcanza 2.800 € pagados de la deuda"},
+      {"tipo": "hablar", "objetivo": "anselmo", "cantidad": 1, "texto": "Firma el recibo con Don Anselmo"}
+    ],
+    "recompensa": {"dinero": 65, "amistad": 35, "objetos": [{"id": "pan", "cantidad": 3}]}
+  },
+  {
+    "id": "i1_ajos_helada",
+    "titulo": "Raíces contra el frío",
+    "quien": "mateo",
+    "estacion": 3,
+    "requiere": "",
+    "descripcion": "Incluso bajo la escarcha invernal el huerto resiste: Don Mateo necesita ajos frescos para pasar diciembre.",
+    "dialogo_fin": "Ajos recios y apretados. Con esto nadie coge frío este invierno en Villaverde.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "ajo", "cantidad": 4, "texto": "Cosecha 4 cabezas de ajo"},
+      {"tipo": "entregar", "objetivo": "ajo", "destino": "mateo", "cantidad": 3, "texto": "Entrega 3 ajos a Don Mateo"}
+    ],
+    "recompensa": {"dinero": 55, "amistad": 25, "objetos": [{"id": "semilla_nabo", "cantidad": 4}]}
+  },
+  {
+    "id": "i2_guiso_espinaca",
+    "titulo": "Calor en El Candil",
+    "quien": "ramon",
+    "estacion": 3,
+    "requiere": "",
+    "descripcion": "Cuando nieva en la sierra, toda la plaza busca los pucheros de nabos y espinacas en El Candil.",
+    "dialogo_fin": "No queda una silla vacía ni en los peores días de frío. Salud, Leo.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "espinaca", "cantidad": 4, "texto": "Cosecha 4 espinacas de invierno"},
+      {"tipo": "entregar", "objetivo": "nabo", "destino": "ramon", "cantidad": 3, "texto": "Entrega 3 nabos a Ramón"}
+    ],
+    "recompensa": {"dinero": 60, "amistad": 30, "objetos": [{"id": "elixir_sierra", "cantidad": 1}]}
+  },
+  {
+    "id": "i3_oro_rojo_rosa",
+    "titulo": "El azafrán de Rosa",
+    "quien": "pablo",
+    "estacion": 3,
+    "requiere": "",
+    "descripcion": "La abuela Rosa siempre guardaba los mejores bulbos de azafrán para los meses fríos. Hazlos florecer y compártelos.",
+    "dialogo_fin": "¡Huele igual que la cocina de la abuela Rosa! Hasta Clara y Tomás han sonreído al verlo.",
+    "pasos": [
+      {"tipo": "cultivar", "objetivo": "azafran", "cantidad": 2, "texto": "Cosecha 2 flores de azafrán"},
+      {"tipo": "entregar", "objetivo": "azafran", "destino": "clara", "cantidad": 1, "texto": "Entrega 1 azafrán a Clara"},
+      {"tipo": "hablar", "objetivo": "tomas", "cantidad": 1, "texto": "Comparte la buena noticia con Tomás"}
+    ],
+    "recompensa": {"dinero": 75, "amistad": 35, "objetos": [{"id": "cuarzo", "cantidad": 2}]}
+  },
+  {
+    "id": "i4_el_granado_libre",
+    "titulo": "El Granado libre de deudas",
+    "quien": "anselmo",
+    "estacion": 3,
+    "requiere": "",
+    "descripcion": "Salda los cinco mil euros completos de la deuda con el Ayuntamiento y cierra para siempre el libro viejo de Don Anselmo.",
+    "dialogo_fin": "Cero euros pendientes. La escritura de El Granado es tuya para siempre, Leo. Has salvado Villaverde.",
+    "pasos": [
+      {"tipo": "pagar_deuda", "objetivo": "deuda", "cantidad": 5000, "texto": "Salda por completo los 5.000 € de la deuda"},
+      {"tipo": "hablar", "objetivo": "anselmo", "cantidad": 1, "texto": "Recoge la escritura de Don Anselmo"}
+    ],
+    "recompensa": {"dinero": 100, "amistad": 50, "objetos": [{"id": "elixir_sierra", "cantidad": 2}]}
+  }
+]

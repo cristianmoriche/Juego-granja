@@ -1,0 +1,13 @@
+* text=auto
+*.cmd text eol=crlf
+*.glb binary
+*.blend binary
+*.jpg binary
+*.png binary
+*.wav binary
+*.ogg binary
+*.hdr binary
+*.exr binary
+*.ico binary
+*.res binary
+*.scn binary

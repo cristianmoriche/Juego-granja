@@ -1,0 +1,594 @@
+{
+ "Terreno": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Pared_verde": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Tejuelas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Hollin": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "tienda_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Ventana_tenue": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "tienda_Postigos_verdes": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Tejado_madera": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Cartel_pintado": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Saco": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Tejuelas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Pared_oscura": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Ventana_tenue": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "herreria_Postigos_rojos": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Tejado_madera": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Brasas": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "herreria_Carbon": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Hollin": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "herreria_Troncos": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Agua": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "herreria_Cuero": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Saco": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "taberna_Piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "taberna_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "taberna_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "taberna_Pared_crema": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "taberna_Tejuelas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "taberna_Hollin": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "taberna_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "taberna_Ventana_luz": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "taberna_Postigos_rojos": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "taberna_Dorado": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "capilla_Piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "capilla_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "capilla_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "capilla_Pared_palida": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "capilla_Tejado_madera": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "capilla_Bronce": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "capilla_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "capilla_Ventana_tenue": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "alcalde_Piedra_alcalde": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "alcalde_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "alcalde_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "alcalde_Piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "alcalde_Tejuelas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "alcalde_Hollin": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "alcalde_Ventana_tenue": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "alcalde_Postigos_verdes": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "alcalde_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "alcalde_Tela_roja": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "alcalde_Dorado": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_a_Troncos": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_a_Piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_a_Tejuelas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_a_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_a_Pared_roja": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_a_Hollin": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "casita_a_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_a_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_a_Ventana_tenue": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "casita_a_Postigos_rojos": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_b_Piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_b_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_b_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_b_Pared_ocre": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_b_Tejado_madera": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_b_Hollin": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "casita_b_Postigos_verdes": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_b_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_b_Ventana_tenue": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "casita_b_Flor_amarilla": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "casita_b_Flor_rosa": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "casita_a_Puerta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "casita_b_Puerta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "tienda_Puerta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "herreria_Puerta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "taberna_Puerta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "alcalde_Puerta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "capilla_Puerta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "txt_Granja": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Granja_001": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Minas": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Minas_001": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Minas_002": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Minas_003": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Props_Piedra": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Props_Tablas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Props_Vigas": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Props_Agua": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Props_Cuero": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Props_Tejado_madera": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Props_Hierro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Props_Saco": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Props_Llama": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_handle_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel02_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel02_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_5": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_5": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_5": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel02_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_6": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_6": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_6": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_handle_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_i_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_handle_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_i_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_handle_i_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_i_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "txt_Granja_i": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Granja_001_i": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Minas_i": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Minas_001_i": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Minas_002_i": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "txt_Minas_003_i": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_7": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_7": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_7": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i_8": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i_8": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i_8": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_handle_i_5": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_i_5": {
+  "colision": true,
+  "solo_sombra": false
+ }
+}

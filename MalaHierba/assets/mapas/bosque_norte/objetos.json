@@ -1,0 +1,66 @@
+{
+ "Terreno": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Rio_agua": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Puente_rampa_sur": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_tablero": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_rampa_norte": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_baranda_o": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_baranda_e": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_estribo_s": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_estribo_n": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_pilar_1": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_pilar_2": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_pilar_3": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_pilar_4": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_farol_poste": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_farol_caja": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Puente_farol_cristal": {
+  "colision": false,
+  "solo_sombra": false
+ }
+}

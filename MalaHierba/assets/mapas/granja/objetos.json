@@ -1,0 +1,98 @@
+{
+ "Cabana_troncos": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cabana_hastiales": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cabana_cimiento": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cabana_tejado": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cabana_chimenea": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cabana_puerta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cabana_marco": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Cabana_cristal": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Cabana_ventana_hastial": {
+  "colision": false,
+  "solo_sombra": false
+ },
+ "Cabana_escalon": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Silo_muro": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Silo_alero": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Silo_tejado": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Silo_remate": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Silo_puerta": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Bancales_marcos": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Terreno": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_lid_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_latch_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_crate_01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel02_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_handle_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_bucket_01_i": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "wooden_barrels_01_barrel01_i": {
+  "colision": true,
+  "solo_sombra": false
+ }
+}
