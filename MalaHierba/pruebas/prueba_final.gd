@@ -30,6 +30,9 @@ func _ready() -> void:
 			_fase = argumento.trim_prefix("--fase=")
 		elif argumento.begins_with("--sesion="):
 			_sesion = argumento.trim_prefix("--sesion=")
+		elif argumento in ["--vista=0", "--vista=1"]:
+			Ajustes.valores["vista"] = int(argumento.get_slice("=", 1))
+			Ajustes.cambiado.emit("vista")
 	if _carpeta.is_empty():
 		_carpeta = ProjectSettings.globalize_path("res://../gestion/noche-codex/datos/T04-recorrido/directa")
 	DirAccess.make_dir_recursive_absolute(_carpeta)
@@ -199,8 +202,9 @@ func _usar_cultivo(objeto: String) -> void:
 	j.colocar(pos - Vector3(0, -0.05, 1.2), 0.0, j.camara.yaw)
 	_seleccionar(objeto)
 	await get_tree().create_timer(0.65).timeout
-	# El punto delante de Leo y el despachador de herramientas son los del jugador.
+	# El rayo de la mira y el despachador de herramientas son los del jugador.
 	j.colocar(pos - Vector3(0, -0.05, 1.2), 0.0, j.camara.yaw)
+	j.camara.mirar_hacia(pos + Vector3.UP * 0.015)
 	j._usar()
 	await get_tree().process_frame
 
@@ -264,6 +268,7 @@ func _agricultura() -> bool:
 	# La captura de la cosecha debe encuadrar el cultivo, no la puerta donde Leo despierta.
 	var j := Escenas.jugador() as Jugador
 	j.colocar(_parcelas().posicion_de(_clave_cultivo) - Vector3(0, -0.05, 1.2), 0.0, j.camara.yaw)
+	j.camara.mirar_hacia(_parcelas().posicion_de(_clave_cultivo) + Vector3.UP * 0.35)
 	await get_tree().create_timer(0.7).timeout
 	await _capturar("02_cosecha_lista")
 	var cantidad := Juego.cantidad("patata")

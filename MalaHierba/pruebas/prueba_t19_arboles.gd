@@ -104,9 +104,16 @@ func _ejecutar() -> void:
 				if cfg.load(dir_import) == OK and not bool(cfg.get_value("params", "meshes/generate_lods", false)):
 					fallos.append("%s %s sin meshes/generate_lods=true" % [id_m, proto])
 			for i in mi.mesh.get_surface_count():
-				var sm := mi.mesh.surface_get_material(i) as StandardMaterial3D
+				var material := mi.mesh.surface_get_material(i)
+				if material is ShaderMaterial and material.shader.resource_path == "res://shaders/follaje_h03.gdshader":
+					if material.get_shader_parameter("albedo_tex") == null:
+						fallos.append("%s %s sup %d sin textura albedo" % [id_m, proto, i])
+					if "ALPHA_SCISSOR_THRESHOLD" not in material.shader.code or "cull_disabled" not in material.shader.code:
+						fallos.append("%s %s sup %d sin recorte de doble cara" % [id_m, proto, i])
+					continue
+				var sm := material as StandardMaterial3D
 				if sm == null:
-					fallos.append("%s %s sup %d sin StandardMaterial3D" % [id_m, proto, i])
+					fallos.append("%s %s sup %d tiene un material inesperado" % [id_m, proto, i])
 					continue
 				if sm.albedo_texture == null:
 					fallos.append("%s %s sup %d sin textura albedo" % [id_m, proto, i])

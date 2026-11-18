@@ -5,6 +5,8 @@ extends RefCounted
 ## `await FotoCenital.generar(mapa, id, rect)` devuelve una Texture2D (arriba de la imagen = −Z, derecha = +X).
 ## Sin ventana gráfica (--headless) devuelve un esquema dibujado con el polígono de límites.
 
+const CAPA_TECHOS := 1 << 19
+
 static var _cache: Dictionary = {}
 static var ultimo_ms: int = 0
 static var ultimo_real: bool = false     # true si la última era una foto de verdad y no un esquema
@@ -42,7 +44,7 @@ static func _fotografiar(mapa: Node3D, rect: Rect2, max_lado: int, y_alto: float
 	sv.size = tam
 	sv.own_world_3d = false          # mira el mismo mundo 3D que la ventana
 	sv.transparent_bg = false
-	sv.msaa_3d = Viewport.MSAA_2X
+	sv.msaa_3d = Viewport.MSAA_DISABLED
 	sv.render_target_update_mode = SubViewport.UPDATE_ONCE
 	sv.positional_shadow_atlas_size = 0
 
@@ -60,6 +62,7 @@ static func _fotografiar(mapa: Node3D, rect: Rect2, max_lado: int, y_alto: float
 
 	var cam := Camera3D.new()
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
+	cam.cull_mask &= ~CAPA_TECHOS
 	cam.keep_aspect = Camera3D.KEEP_HEIGHT
 	cam.size = rect.size.y
 	cam.near = 0.5

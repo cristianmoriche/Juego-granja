@@ -83,6 +83,18 @@ usar={
 "events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":0,"position":Vector2(0, 0),"global_position":Vector2(0, 0),"factor":1.0,"button_index":1,"canceled":false,"pressed":false,"double_click":false,"script":null)
 ]
 }
+bloquear={
+"deadzone": 0.3,
+"events": [Object(InputEventMouseButton,"button_index":2)]
+}
+esquivar={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":81)]
+}
+fijar_objetivo={
+"deadzone": 0.2,
+"events": [Object(InputEventMouseButton,"button_index":3)]
+}
 saltar={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":32,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
@@ -108,6 +120,14 @@ pantalla_completa={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194342,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
+}
+alternar_vista={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":86)]
+}
+decorar={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":66)]
 }
 camara_reiniciar={
 "deadzone": 0.2,
@@ -189,6 +209,8 @@ cerrar_tutorial={
 3d_physics/layer_5="npc"
 3d_physics/layer_6="limites"
 3d_physics/layer_7="solo_jugador"
+3d_physics/layer_8="solo_camara"
+3d_render/layer_20="techos_interiores"
 
 [physics]
 
@@ -209,4 +231,20 @@ nieve_estacion={
 calidez_otono={
 "type": "float",
 "value": 0.0
+}
+humedad_h03={
+"type": "float",
+"value": 0.0
+}
+viento_h03={
+"type": "float",
+"value": 0.25
+}
+luz_agua_h03={
+"type": "float",
+"value": 1.0
+}
+calidad_h03={
+"type": "int",
+"value": 2
 }

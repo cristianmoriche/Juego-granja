@@ -77,13 +77,13 @@ func _ejecutar() -> void:
 				_comprobar(AudioServer.is_bus_mute(indice) == (volumen == 0.0), "silencio " + par[0])
 				if volumen > 0.0:
 					_comprobar(is_equal_approx(db_to_linear(AudioServer.get_bus_volume_db(indice)), volumen), "volumen aplicado " + par[0])
-		for calidad in 3:
+		for calidad in 4:
 			Ajustes.poner("calidad", calidad)
-			_comprobar(is_equal_approx(get_viewport().scaling_3d_scale, [0.75, 0.9, 1.0][calidad]), "escala de render " + str(calidad))
+			_comprobar(is_equal_approx(get_viewport().scaling_3d_scale, [0.75, 0.80, 0.83, 1.0][calidad]), "escala de render " + str(calidad))
 			_comprobar(entorno.environment.ssao_enabled == (calidad > 0), "SSAO " + str(calidad))
-			_comprobar(entorno.environment.ssr_enabled == (calidad == 2), "SSR " + str(calidad))
-			_comprobar(jugador.camara.camara.far == [100.0, 300.0, 700.0][calidad], "distancia de cámara " + str(calidad))
-			_comprobar(malla.visibility_range_end == [90.0, 180.0, 250.0][calidad], "restauración de distancia de malla " + str(calidad))
+			_comprobar(entorno.environment.ssr_enabled == (calidad >= 2), "SSR " + str(calidad))
+			_comprobar(jugador.camara.camara.far == [100.0, 300.0, 700.0, 700.0][calidad], "distancia de cámara " + str(calidad))
+			_comprobar(malla.visibility_range_end == [90.0, 180.0, 250.0, 250.0][calidad], "restauración de distancia de malla " + str(calidad))
 		for resolucion in 5:
 			Ajustes.poner("resolucion", resolucion)
 			var esperada: Vector2i = DisplayServer.screen_get_size() if resolucion == 4 else Ajustes.RESOLUCIONES[resolucion]
@@ -112,7 +112,7 @@ func _ejecutar() -> void:
 		_comprobar(is_equal_approx(angle_difference(yaw, jugador.camara.yaw), -0.5), "sensibilidad aplicada a la cámara del mando")
 		Ajustes.poner("reducir_movimiento", true)
 		jugador.camara.reiniciar_vista()
-		_comprobar(not jugador.camara._volviendo and jugador.camara.pitch == CamaraJuego.PITCH_JUEGO, "reducción de movimiento evita el barrido al centrar")
+		_comprobar(not jugador.camara._volviendo and jugador.camara.pitch == jugador.camara._pitch_inicial(), "reducción de movimiento evita el barrido al centrar")
 		Ajustes.poner("reducir_movimiento", false)
 		jugador.camara.reiniciar_vista()
 		_comprobar(jugador.camara._volviendo, "movimiento de cámara restaurado")
@@ -123,10 +123,10 @@ func _ejecutar() -> void:
 			_comprobar(Ajustes.texto_tecla(accion) == "F7", "se aplica " + accion)
 			Ajustes.restaurar_teclas()
 		_comprobar(Ajustes.texto_tecla("mover_arriba").contains("W"), "restaura teclado")
-		for accion: String in ["interactuar", "saltar", "usar", "inventario", "correr", "agachar", "pausa", "mapa", "camara_reiniciar"]:
+		for accion: String in ["interactuar", "saltar", "usar", "inventario", "correr", "agachar", "pausa", "mapa", "bloquear", "esquivar", "fijar_objetivo"]:
 			var tiene := false
 			for evento: InputEvent in InputMap.action_get_events(accion):
-				tiene = tiene or evento is InputEventJoypadButton
+				tiene = tiene or evento is InputEventJoypadButton or evento is InputEventJoypadMotion
 			_comprobar(tiene, "mando conserva " + accion)
 		_eje(JOY_AXIS_LEFT_X, 1.0)
 		await _fotogramas()
@@ -211,7 +211,7 @@ func _ejecutar() -> void:
 		Interfaz.alternar_mapa()
 		await _pulsar(JOY_BUTTON_B)
 		_comprobar(not Interfaz._mapa_grande.visible, "B cierra mapa")
-		for par: Array in [["interactuar", JOY_BUTTON_A], ["saltar", JOY_BUTTON_B], ["usar", JOY_BUTTON_X], ["correr", JOY_BUTTON_LEFT_STICK], ["agachar", JOY_BUTTON_LEFT_SHOULDER]]:
+		for par: Array in [["interactuar", JOY_BUTTON_A], ["esquivar", JOY_BUTTON_B], ["fijar_objetivo", JOY_BUTTON_RIGHT_STICK], ["usar", JOY_BUTTON_X], ["correr", JOY_BUTTON_LEFT_STICK], ["agachar", JOY_BUTTON_LEFT_SHOULDER]]:
 			_boton(par[1])
 			await _fotogramas()
 			_comprobar(Input.is_action_pressed(par[0]), "entrada real del mando: " + par[0])

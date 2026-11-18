@@ -8,6 +8,9 @@ signal dia_nuevo()
 signal dinero_cambiado(dinero: int)
 signal energia_cambiada(energia: float, maximo: float)
 signal vida_cambiada(vida: float, maximo: float)
+signal dano_recibido(cantidad: float)
+signal resistencia_cambiada(actual: float, maximo: float)
+signal equipo_cambiado()
 signal inventario_cambiado()
 signal ranura_cambiada(ranura: int)
 signal mensaje(texto: String)
@@ -50,6 +53,12 @@ var energia: float = ENERGIA_INICIAL
 var energia_max: float = ENERGIA_INICIAL
 var vida: float = VIDA_INICIAL
 var vida_max: float = VIDA_INICIAL
+const RESISTENCIA_MAX := 100.0
+const RANURAS_EQUIPO := ["escudo", "casco", "peto", "botas"]
+var resistencia: float = RESISTENCIA_MAX
+var equipo: Dictionary = {}
+var _pausa_resistencia: float = 0.0
+var _desmayo_pendiente: bool = false
 var dia: int = 1
 var estacion: int = 0:          # 0 primavera, 1 verano, 2 otoño, 3 invierno
 	set(v):
@@ -160,6 +169,10 @@ func nueva_partida(nombre: String) -> void:
 	energia = energia_max
 	vida_max = VIDA_INICIAL
 	vida = vida_max
+	resistencia = RESISTENCIA_MAX
+	equipo = {}
+	_pausa_resistencia = 0.0
+	_desmayo_pendiente = false
 	dia = 1
 	estacion = 0
 	anio = 1
@@ -196,6 +209,8 @@ func _emitir_todo() -> void:
 	deuda_cambiada.emit(deuda)
 	energia_cambiada.emit(energia, energia_max)
 	vida_cambiada.emit(vida, vida_max)
+	resistencia_cambiada.emit(resistencia, RESISTENCIA_MAX)
+	equipo_cambiado.emit()
 	inventario_cambiado.emit()
 	ranura_cambiada.emit(ranura)
 	hora_cambiada.emit(minutos)
@@ -210,7 +225,7 @@ func avanzar_minutos(n: int) -> void:
 		elif minutos == 1500:
 			mensaje.emit("Es la una de la madrugada. Estás agotado.")
 		if minutos >= HORA_FIN:
-			_desmayar("Dan las dos de la madrugada y te rindes al sueño.")
+			_solicitar_desmayo("Dan las dos de la madrugada y te rindes al sueño.", false, false)
 			return
 
 
@@ -223,12 +238,22 @@ func dormir() -> void:
 		terminar_dia(false)
 
 
-func _desmayar(motivo: String) -> void:
-	if not partida_activa:
+func _solicitar_desmayo(motivo: String, por_heridas: bool = false, diferir: bool = true) -> void:
+	if not partida_activa or _desmayo_pendiente:
+		return
+	_desmayo_pendiente = true
+	if diferir:
+		_desmayar.call_deferred(motivo, por_heridas)
+	else:
+		_desmayar(motivo, por_heridas)
+
+
+func _desmayar(motivo: String, por_heridas: bool) -> void:
+	if not partida_activa or not _desmayo_pendiente:
 		return
 	mensaje.emit(motivo)
 	if Escenas.jugador() != null:
-		Escenas.secuencia_dormir(true)
+		Escenas.secuencia_dormir(true, por_heridas)
 	else:
 		terminar_dia(true)
 
@@ -240,12 +265,16 @@ func terminar_dia(desmayo: bool = false, guardar_al_terminar: bool = true) -> bo
 	var perdido := 0
 	if desmayo:
 		energia = energia_max * 0.5
-		vida = maxf(vida_max * 0.75, 25.0)
+		vida = vida_max * 0.75
 		perdido = mini(dinero, clampi(dinero / 10, 10, 150))
 		dinero -= perdido
 	else:
 		energia = energia_max
 		vida = vida_max
+	_fijar_resistencia(RESISTENCIA_MAX)
+	_pausa_resistencia = 0.0
+	_desmayo_pendiente = false
+	vida_cambiada.emit(vida, vida_max)
 	_aviso_cansancio = false
 	if estacion == 3 and dia >= DIAS_ESTACION:
 		banderas["fin_anio"] = true
@@ -264,7 +293,6 @@ func terminar_dia(desmayo: bool = false, guardar_al_terminar: bool = true) -> bo
 	_sortear_clima()
 	_aplicar_evento_del_dia()
 	energia_cambiada.emit(energia, energia_max)
-	vida_cambiada.emit(vida, vida_max)
 	if perdido > 0:
 		dinero_cambiado.emit(dinero)
 		mensaje.emit("Te despiertas en casa con un dolor de cabeza. Te falta dinero: %s." % Estilo.euros(perdido))
@@ -294,6 +322,18 @@ func esta_nevando() -> bool:
 	return estacion == 3
 
 
+## Bancos matinales en días despejados. El tiempo de cultivo sigue siendo el de un día de sol.
+func intensidad_neblina(amanecer: float) -> float:
+	if esta_lloviendo() or esta_nevando():
+		return 0.0
+	if clima == "niebla":
+		return 0.92
+	if (dia + estacion * 7 + anio * 3) % 4 != 3:
+		return 0.0
+	var desde_alba := float(minutos) - amanecer
+	return 0.67 * smoothstep(-50.0, -4.0, desde_alba) * (1.0 - smoothstep(46.0, 183.0, desde_alba))
+
+
 func nombre_clima() -> String:
 	if clima == "tormenta":
 		return "Tormenta"
@@ -301,6 +341,9 @@ func nombre_clima() -> String:
 		return "Lluvia"
 	if estacion == 3:
 		return "Nevando"
+	var amanecer: float = CicloDia.AMANECER[clampi(estacion, 0, 3)]
+	if intensidad_neblina(amanecer) > 0.38:
+		return "Niebla"
 	return "Soleado" if estacion == 1 else "Despejado"
 
 
@@ -590,7 +633,7 @@ func gastar_energia(n: float) -> bool:
 	energia = maxf(energia - n, 0.0)
 	energia_cambiada.emit(energia, energia_max)
 	if energia <= 0.01:
-		_desmayar.call_deferred("Te quedas sin fuerzas y te desplomas.")
+		_solicitar_desmayo("Te quedas sin fuerzas y te desplomas.")
 	elif energia <= 12.0 and not _aviso_cansancio:
 		_aviso_cansancio = true
 		mensaje.emit("Te estás quedando sin fuerzas. Come algo o vete a dormir.")
@@ -605,19 +648,49 @@ func recuperar_energia(n: float) -> void:
 
 
 func recibir_dano(n: float) -> void:
-	if n <= 0.0 or not partida_activa:
+	if n <= 0.0 or not partida_activa or _desmayo_pendiente:
 		return
+	var anterior := vida
 	vida = maxf(vida - n, 0.0)
 	vida_cambiada.emit(vida, vida_max)
+	dano_recibido.emit(anterior - vida)
 	if vida <= 0.01:
-		_desmayar.call_deferred("Te quedas sin fuerzas en la mina y pierdes el conocimiento.")
+		_solicitar_desmayo("Los golpes te hacen perder el conocimiento.", true)
 
 
 func curar_vida(n: float) -> void:
-	if n <= 0.0:
+	if n <= 0.0 or _desmayo_pendiente:
 		return
 	vida = minf(vida + n, vida_max)
 	vida_cambiada.emit(vida, vida_max)
+
+
+func _fijar_resistencia(n: float) -> void:
+	var v := clampf(n, 0.0, RESISTENCIA_MAX)
+	if not is_equal_approx(resistencia, v):
+		resistencia = v
+		resistencia_cambiada.emit(resistencia, RESISTENCIA_MAX)
+
+
+func gastar_resistencia(n: float) -> bool:
+	if n <= 0.0:
+		return true
+	if resistencia + 0.001 < n or _desmayo_pendiente:
+		return false
+	_fijar_resistencia(resistencia - n)
+	_pausa_resistencia = 0.75
+	return true
+
+
+func agotar_resistencia() -> void:
+	_fijar_resistencia(0.0)
+	_pausa_resistencia = 1.15
+
+
+func recuperar_resistencia(delta: float) -> void:
+	_pausa_resistencia = maxf(0.0, _pausa_resistencia - delta)
+	if _pausa_resistencia <= 0.0 and not _desmayo_pendiente:
+		_fijar_resistencia(resistencia + 22.0 * delta)
 
 
 func cobrar(n: int) -> bool:
@@ -692,6 +765,12 @@ func quitar_objeto(id: String, n: int = 1, calidad: String = "*") -> bool:
 		return true
 	if cantidad(id, calidad) < n:
 		return false
+	_quitar_del_inventario(id, n, calidad)
+	inventario_cambiado.emit()
+	return true
+
+
+func _quitar_del_inventario(id: String, n: int, calidad: String = "*") -> void:
 	var falta := n
 	for i in range(HUECOS - 1, -1, -1):
 		var h: Dictionary = inventario[i]
@@ -703,8 +782,73 @@ func quitar_objeto(id: String, n: int = 1, calidad: String = "*") -> bool:
 			falta -= quita
 			if int(h["cantidad"]) <= 0:
 				inventario[i] = {}
+
+
+## Fabrica una pieza. Cierra la transacción antes de avisar a la interfaz.
+func forjar_equipo(id: String) -> bool:
+	var receta := Datos.objeto(id).get("forja", {}) as Dictionary
+	if receta.is_empty():
+		return false
+	var material := str(receta["material"])
+	var unidades := int(receta["cantidad"])
+	var precio := int(receta["dinero"])
+	if cantidad(material) < unidades or dinero < precio:
+		return false
+	var anterior := inventario.duplicate(true)
+	_quitar_del_inventario(material, unidades)
+	if _poner(id, 1) != 0:
+		inventario = anterior
+		mensaje.emit("El inventario está lleno. Haz sitio para la pieza forjada.")
+		return false
+	cobrar(precio)
 	inventario_cambiado.emit()
+	mensaje_objeto.emit("+1 %s" % Datos.nombre_objeto(id), id)
 	return true
+
+
+func equipar(indice: int) -> bool:
+	if not partida_activa or indice < 0 or indice >= inventario.size():
+		return false
+	var h: Dictionary = inventario[indice]
+	var id := str(h.get("id", ""))
+	var sitio := str(Datos.objeto(id).get("ranura_equipo", ""))
+	if not sitio in RANURAS_EQUIPO:
+		return false
+	var previo := str(equipo.get(sitio, ""))
+	if previo == id:
+		return false
+	if int(h["cantidad"]) == 1:
+		inventario[indice] = {} if previo.is_empty() else {"id": previo, "cantidad": 1}
+	else:
+		if not previo.is_empty() and _poner(previo, 1) != 0:
+			mensaje.emit("Haz sitio en el inventario para la pieza que llevabas.")
+			return false
+		h["cantidad"] = int(h["cantidad"]) - 1
+	equipo[sitio] = id
+	inventario_cambiado.emit()
+	equipo_cambiado.emit()
+	mensaje.emit("Equipas %s." % Datos.nombre_objeto(id))
+	return true
+
+
+func desequipar(sitio: String) -> bool:
+	var id := str(equipo.get(sitio, ""))
+	if id.is_empty():
+		return false
+	if _poner(id, 1) != 0:
+		mensaje.emit("Haz sitio en el inventario para quitarte la pieza.")
+		return false
+	equipo.erase(sitio)
+	inventario_cambiado.emit()
+	equipo_cambiado.emit()
+	return true
+
+
+func defensa_equipo() -> float:
+	var defensa := 0.0
+	for sitio: String in ["casco", "peto", "botas"]:
+		defensa += float(Datos.objeto(str(equipo.get(sitio, ""))).get("defensa", 0))
+	return defensa
 
 
 func quitar_de_hueco(indice: int, n: int = 1) -> bool:
@@ -772,10 +916,10 @@ func mover_huecos(a: int, b: int) -> void:
 	inventario_cambiado.emit()
 
 
-## Se come un objeto del inventario (comida): recupera su energía. Devuelve true si se comió.
+## Se come un objeto del inventario: recupera energía y salud.
 func comer(id: String) -> bool:
 	var o := Datos.objeto(id)
-	if o.is_empty() or o.get("tipo", "") != "comida":
+	if o.is_empty() or o.get("tipo", "") != "comida" or _desmayo_pendiente:
 		return false
 	if energia >= energia_max - 0.01 and vida >= vida_max - 0.01:
 		mensaje.emit("No tienes hambre ahora mismo.")
@@ -784,9 +928,11 @@ func comer(id: String) -> bool:
 		return false
 	var e: float = float(o.get("energia", 0))
 	recuperar_energia(e)
-	if e > 0.0 and vida < vida_max - 0.01:
-		curar_vida(e * 0.5)
-	mensaje.emit("%s: recuperas %d de energía." % [Datos.nombre_objeto(id), int(e)])
+	var salud_anterior := vida
+	curar_vida(e * 0.5)
+	var salud_curada := roundi(vida - salud_anterior)
+	var texto_salud := " y %d de salud" % salud_curada if salud_curada > 0 else ""
+	mensaje.emit("%s: recuperas %d de energía%s." % [Datos.nombre_objeto(id), int(e), texto_salud])
 	return true
 
 
@@ -861,8 +1007,8 @@ func resumen_final() -> Dictionary:
 # la partida; la partida anterior (si era válida) queda en `<ruta>.bak` como copia de seguridad. Si el juego se cierra a
 # medias, siempre queda en disco una partida entera: la nueva, la anterior o las dos.
 
-## Versión del formato de guardado. 1: prototipo (sin copia ni fecha). 2: añade «guardado_el» y «version_juego».
-const VERSION_GUARDADO := 2
+## Versión 3: añade el equipo que lleva puesto Leo.
+const VERSION_GUARDADO := 3
 const SUFIJO_TEMPORAL := ".tmp"
 const SUFIJO_COPIA := ".bak"
 const SUFIJO_DANADA := ".danada"
@@ -932,6 +1078,7 @@ func _datos_de_guardado() -> Dictionary:
 		"energia_max": energia_max,
 		"vida": vida,
 		"vida_max": vida_max,
+		"equipo": equipo.duplicate(),
 		"dia": dia,
 		"estacion": estacion,
 		"anio": anio,
@@ -1040,6 +1187,9 @@ func _migrar(d: Dictionary) -> Dictionary:
 				est[clave] = 0
 		d["estadisticas"] = est
 		v = 2
+	if v < 3:
+		d["equipo"] = {}
+		v = 3
 	d["version"] = v
 	return d
 
@@ -1067,6 +1217,17 @@ func cargar() -> bool:
 	energia = clampf(float(d.get("energia", ENERGIA_INICIAL)), 0.0, energia_max)
 	vida_max = maxf(float(d.get("vida_max", VIDA_INICIAL)), 1.0)
 	vida = clampf(float(d.get("vida", vida_max)), 0.0, vida_max)
+	if vida <= 0.0:
+		vida = vida_max * 0.75
+	resistencia = RESISTENCIA_MAX
+	_pausa_resistencia = 0.0
+	_desmayo_pendiente = false
+	equipo = {}
+	var equipo_guardado := _diccionario(d.get("equipo", {}))
+	for sitio: String in RANURAS_EQUIPO:
+		var id := str(equipo_guardado.get(sitio, ""))
+		if Datos.objeto(id).get("ranura_equipo", "") == sitio:
+			equipo[sitio] = id
 	dia = clampi(int(d.get("dia", 1)), 1, DIAS_ESTACION)
 	estacion = clampi(int(d.get("estacion", 0)), 0, 3)
 	anio = int(d.get("anio", 1))

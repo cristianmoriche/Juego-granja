@@ -17,6 +17,9 @@ var _l_precio: Label
 var _l_dinero: Label
 var _b_comer: Button
 var _b_cerrar: Button
+var _b_equipo: Button
+var _puestos: Dictionary = {}
+const NOMBRES_EQUIPO := {"escudo": "Escudo", "casco": "Casco", "peto": "Peto", "botas": "Botas"}
 
 
 func _init() -> void:
@@ -93,12 +96,26 @@ func _ready() -> void:
 	_b_comer = Estilo.boton("Comer", 200)
 	_b_comer.pressed.connect(_comer)
 	der.add_child(_b_comer)
+	_b_equipo = Estilo.boton("Equipar", 200)
+	_b_equipo.pressed.connect(_equipar)
+	der.add_child(_b_equipo)
 	var cerrar := Estilo.boton("Cerrar  (I)", 200)
 	_b_cerrar = cerrar
 	cerrar.pressed.connect(cerrar_panel)
 	der.add_child(cerrar)
+	var fila_equipo := HBoxContainer.new()
+	fila_equipo.add_theme_constant_override("separation", 8)
+	v.add_child(fila_equipo)
+	for puesto: String in Juego.RANURAS_EQUIPO:
+		var boton := Estilo.boton("", 150)
+		boton.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		boton.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		boton.pressed.connect(_desequipar.bind(puesto))
+		fila_equipo.add_child(boton)
+		_puestos[puesto] = boton
 
 	Juego.inventario_cambiado.connect(refrescar)
+	Juego.equipo_cambiado.connect(refrescar)
 	Juego.ranura_cambiada.connect(func(_r: int) -> void: refrescar())
 	Juego.dinero_cambiado.connect(func(_d: int) -> void: refrescar())
 
@@ -110,7 +127,6 @@ func abrir() -> void:
 	visible = true
 	refrescar()
 	_huecos[_sel].grab_focus.call_deferred()
-	Interfaz.limitar_foco.call_deferred(self)
 
 
 func cerrar_panel() -> void:
@@ -130,17 +146,33 @@ func refrescar() -> void:
 		h.marcado = (i == _origen)
 		h.poner(Juego.inventario[i])
 	_l_dinero.text = "Dinero: %s\nDeuda: %s" % [Estilo.euros(Juego.dinero), Estilo.euros(Juego.deuda)]
+	for sitio: String in _puestos:
+		var b := _puestos[sitio] as Button
+		var id := str(Juego.equipo.get(sitio, ""))
+		var material := str((Datos.objeto(id).get("forja", {}) as Dictionary).get("material", ""))
+		b.text = "%s —" % NOMBRES_EQUIPO[sitio] if id.is_empty() else "%s · %s" % [NOMBRES_EQUIPO[sitio], Datos.nombre_objeto(material)]
+		b.icon = null if id.is_empty() else Datos.icono(id)
+		b.add_theme_constant_override("icon_max_width", 28)
+		b.tooltip_text = "" if id.is_empty() else "Quitar %s" % Datos.nombre_objeto(id).to_lower()
+		b.disabled = id.is_empty()
 	_mostrar_info(_sel)
+	if visible:
+		Interfaz.limitar_foco.call_deferred(self)
 
 
 func _señalar(i: int) -> void:
 	_sel = i
+	var comer_visible := _b_comer.visible
+	var equipo_visible := _b_equipo.visible
 	_mostrar_info(i)
+	if comer_visible != _b_comer.visible or equipo_visible != _b_equipo.visible:
+		Interfaz.limitar_foco.call_deferred(self)
 
 
 func _mostrar_info(i: int) -> void:
 	var d: Dictionary = Juego.inventario[i]
 	_b_comer.visible = false
+	_b_equipo.visible = false
 	if d.is_empty():
 		_l_nombre.text = "Hueco vacío"
 		_l_desc.text = "Aquí no hay nada."
@@ -155,6 +187,10 @@ func _mostrar_info(i: int) -> void:
 	_l_desc.text = str(o.get("descripcion", ""))
 	var venta := Juego.precio_venta_item(id, cal)
 	var partes: Array[String] = []
+	var detalle := Datos.detalle_equipo(o)
+	if not detalle.is_empty():
+		partes.append(detalle)
+	_b_equipo.visible = o.has("ranura_equipo")
 	if venta > 0:
 		var msg_v := "Se vende por %s" % Estilo.euros(venta)
 		if Juego.cultivo_mercado_especial() == id:
@@ -163,7 +199,8 @@ func _mostrar_info(i: int) -> void:
 			msg_v += " (−50 % por plaga)"
 		partes.append(msg_v)
 	if o.get("tipo", "") == "comida":
-		partes.append("Recupera %d de energía" % int(o.get("energia", 0)))
+		var energia := int(o.get("energia", 0))
+		partes.append("Recupera %d de energía y hasta %d de salud" % [energia, roundi(energia * 0.5)])
 		_b_comer.visible = true
 	elif o.get("tipo", "") == "herramienta":
 		partes.append("Gasta %d de energía por uso" % int(o.get("energia", 0)))
@@ -174,10 +211,12 @@ func _al_pulsar(h: Hueco, boton: int) -> void:
 	var i := h.indice
 	_sel = i
 	if boton == MOUSE_BUTTON_RIGHT:
-		# Clic derecho: si es comida, se come; si no, se elige como objeto activo (barra rápida).
 		var d: Dictionary = Juego.inventario[i]
-		if not d.is_empty() and Datos.objeto(str(d["id"])).get("tipo", "") == "comida":
+		var tipo := str(Datos.objeto(str(d.get("id", ""))).get("tipo", ""))
+		if tipo == "comida":
 			Juego.comer(str(d["id"]))
+		elif tipo == "equipo":
+			_equipar()
 		elif i < 10:
 			Juego.elegir_ranura(i)
 		return
@@ -196,6 +235,18 @@ func _comer() -> void:
 	var d: Dictionary = Juego.inventario[_sel]
 	if not d.is_empty():
 		Juego.comer(str(d["id"]))
+
+
+func _equipar() -> void:
+	if Juego.equipar(_sel):
+		_origen = -1
+		_huecos[_sel].grab_focus()
+		refrescar()
+
+
+func _desequipar(sitio: String) -> void:
+	if Juego.desequipar(sitio):
+		_huecos[_sel].grab_focus()
 
 
 func _unhandled_input(event: InputEvent) -> void:

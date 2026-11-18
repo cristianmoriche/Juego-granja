@@ -32,7 +32,7 @@ func _ready() -> void:
 	add_child(p)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 12)
-	v.custom_minimum_size = Vector2(440, 0)
+	v.custom_minimum_size = Vector2(580, 0)
 	p.add_child(v)
 	var t := Estilo.etiqueta("Pausa", Estilo.TAM_TITULO, Estilo.COLOR_ACENTO)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -58,14 +58,17 @@ func _ready() -> void:
 	var salir := Estilo.boton("Salir del juego")
 	salir.pressed.connect(_pedir_salir_del_juego)
 	v.add_child(salir)
-	_controles = Estilo.etiqueta("Controles y mando: consulta Ajustes → Controles", Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO_SUAVE)
+	_controles = Estilo.etiqueta("", Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO_SUAVE)
 	_controles.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_controles.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(HSeparator.new())
 	v.add_child(_controles)
 
 
 func abrir() -> void:
 	Audio.reproducir("ui_menu")
+	var lineas := PackedStringArray(Datos.texto("controles", []))
+	_controles.text = "\n".join(lineas)
 	_resumen.text = "%s  ·  %s  ·  %s" % [Juego.texto_fecha(), Juego.texto_hora(), Estilo.euros(Juego.dinero)]
 	visible = true
 	_b_continuar.grab_focus.call_deferred()

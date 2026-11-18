@@ -9,6 +9,7 @@ const BRILLO_BAJO := 0.10
 const BRILLO_ALTO := 0.26
 
 var objetivo: Node3D = null
+var primera_persona: bool = false
 
 var _anillo: MeshInstance3D
 var _flecha: Sprite3D
@@ -47,7 +48,7 @@ func _ready() -> void:
 	_flecha.pixel_size = 0.0058
 	_flecha.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_flecha.shaded = false
-	_flecha.no_depth_test = true
+	_flecha.no_depth_test = false
 	_flecha.render_priority = 10
 	_flecha.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_flecha)
@@ -61,7 +62,7 @@ func _ready() -> void:
 	_nombre.modulate = Color(1.0, 0.96, 0.85)
 	_nombre.outline_modulate = Color(0, 0, 0, 0.9)
 	_nombre.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_nombre.no_depth_test = true
+	_nombre.no_depth_test = false
 	_nombre.render_priority = 11
 	add_child(_nombre)
 
@@ -127,13 +128,17 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(objetivo) or not objetivo.is_inside_tree():
 		apuntar(null)
 		return
-	_t += delta
+	if not Ajustes.valores.reducir_movimiento:
+		_t += delta
 	_colocar(_t)
 
 
 func _colocar(t: float) -> void:
 	var base := objetivo.global_position
 	global_position = base
+	_anillo.visible = not primera_persona
+	_flecha.visible = not primera_persona
+	_nombre.visible = not primera_persona and not _nombre.text.is_empty()
 	_anillo.position = Vector3(0, 0.2, 0)
 	var pulso := 0.5 + 0.5 * sin(t * 4.0)
 	_mat_anillo.albedo_color.a = 0.55 + 0.35 * pulso

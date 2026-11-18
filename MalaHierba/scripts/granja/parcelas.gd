@@ -63,6 +63,7 @@ var _etapas_vistas: Dictionary = {}   # clave -> [id_cultivo, etapa]
 func _ready() -> void:
 	top_level = true           # sus coordenadas son siempre las del mundo
 	add_to_group("usable")
+	add_to_group("parcelas_apuntables")
 	_crear_nodos()
 	Cultivos.parcela_cambiada.connect(func(_k: String) -> void: _sucio = true)
 	Cultivos.parcelas_cambiadas.connect(func() -> void: _sucio = true)
@@ -207,6 +208,19 @@ func posicion_de(k: String) -> Vector3:
 	return info.get("pos", Vector3.ZERO)
 
 
+func celda_apuntada(apuntado: Dictionary) -> Dictionary:
+	if not apuntado.has("punto"):
+		return {}
+	var punto: Vector3 = apuntado.punto
+	var celda := celda_en(punto)
+	if celda.is_empty() or apuntado.get("colision") == _cuerpo:
+		return celda
+	var normal: Vector3 = apuntado.get("normal", Vector3.ZERO)
+	if normal.y < 0.3 or absf(punto.y - posicion_de(celda.clave).y) > 0.40:
+		return {}
+	return celda
+
+
 func claves() -> Array:
 	return _celdas.keys()
 
@@ -216,13 +230,15 @@ func esta_construida() -> bool:
 
 
 ## Hasta tres casillas en línea desde `celda`, hacia donde mira el jugador (en los ejes de la zona).
-func _linea(celda: Dictionary, jugador: Node3D) -> Array:
+func _linea(celda: Dictionary, jugador: Node3D, rumbo: Vector3 = Vector3.ZERO) -> Array:
 	var res: Array = [celda["clave"]]
 	var z: Dictionary = _zonas[int(celda["zona"])]
 	var dir := Vector3(0, 0, 1)
 	var d: Variant = jugador.get("direccion") if jugador != null else null
 	if d is Vector3:
 		dir = d
+	if not rumbo.is_zero_approx():
+		dir = rumbo
 	var local := Basis(Vector3.UP, float(z["yaw"])).inverse() * dir
 	var paso := Vector2i(int(signf(local.x)), 0) if absf(local.x) >= absf(local.z) else Vector2i(0, int(signf(local.z)))
 	for s in range(1, 3):
@@ -655,24 +671,22 @@ func cosechables() -> int:
 # --- Recuadro del cursor --------------------------------------------------------------------------------------------
 
 func _actualizar_marcas() -> void:
-	var activo := false
 	var punto := Vector3.ZERO
+	var celda: Dictionary = {}
 	var j := Escenas.jugador()
-	if _listo and j != null and not Interfaz.ocupada() and not Escenas.en_transicion:
+	if _listo and j is Jugador and not Interfaz.ocupada() and not Escenas.en_transicion:
 		var obj := Juego.objeto_activo()
 		var tipo := str(Datos.objeto(str(obj.get("id", ""))).get("tipo", "")) if not obj.is_empty() else ""
-		if tipo == "herramienta" or tipo == "semilla":
-			activo = true
-			punto = j.call("punto_delante") if j.has_method("punto_delante") else j.global_position
+		if tipo in ["herramienta", "semilla", "tratamiento"]:
+			var objetivo: Dictionary = j.apuntado_actual()
+			celda = celda_apuntada(objetivo) if objetivo.get("interactuable") == null else {}
+			punto = objetivo.get("punto", Vector3.ZERO)
 	var lista: Array = []
-	var celda: Dictionary = {}
-	if activo:
-		celda = celda_en(punto)
-		if not celda.is_empty():
-			var id := str(Juego.objeto_activo().get("id", ""))
-			lista = [celda["clave"]]
-			if (id == "azada" or id == "regadera") and Juego.nivel(id) >= 1:
-				lista = _linea(celda, j)
+	if not celda.is_empty():
+		var id := str(Juego.objeto_activo().get("id", ""))
+		lista = [celda["clave"]]
+		if (id == "azada" or id == "regadera") and Juego.nivel(id) >= 1:
+			lista = _linea(celda, j, j.direccion_de_uso(punto))
 	for i in _marcas.size():
 		var m := _marcas[i]
 		if i < lista.size() and _celdas.has(lista[i]):

@@ -39,6 +39,7 @@ func _ejecutar() -> void:
 	get_tree().current_scene = null
 	Juego.ruta_partida = "user://partida_prueba_m1.json"
 	Juego.nueva_partida("Leo")
+	Ajustes.valores["vista"] = 1
 
 	_prueba_iconos()
 	await _ir("granja")
@@ -111,6 +112,7 @@ func _boton(indice: MouseButton, pulsado: bool, ctrl: bool = false) -> void:
 func _raton(rel: Vector2) -> void:
 	var ev := InputEventMouseMotion.new()
 	ev.relative = rel
+	ev.screen_relative = rel
 	ev.position = Vector2(400, 300)
 	ev.global_position = ev.position
 	get_viewport().push_input(ev)
@@ -185,16 +187,16 @@ func _prueba_camara() -> void:
 		cam.call("_aplicar", 0.0)
 		var pivote: Vector3 = cam.global_position
 		var h := Vector2(cam.camara.global_position.x - pivote.x, cam.camara.global_position.z - pivote.z)
-		_comprobar(absf(angle_difference(atan2(h.x, h.y), yaw)) < 0.03, "la cámara queda detrás de Leo con giro %d°" % int(rad_to_deg(yaw)))
+		_comprobar(absf(angle_difference(atan2(h.x, h.y), yaw)) < 0.30, "la cámara queda tras el hombro con giro %d°" % int(rad_to_deg(yaw)))
 		_comprobar(cam.camara.global_position.y > pivote.y, "la cámara está por encima del punto de mira (giro %d°)" % int(rad_to_deg(yaw)))
 
-	# Inclinación limitada a 8°–80°.
+	# Rango de mirada libre hacia arriba y abajo.
 	cam.inclinar(10.0)
-	_comprobar(is_equal_approx(cam.pitch, CamaraJuego.PITCH_MAX), "la inclinación máxima es de 80°")
+	_comprobar(is_equal_approx(cam.pitch, CamaraJuego.PITCH_MAX), "límite al mirar hacia abajo")
 	cam.inclinar(-10.0)
-	_comprobar(is_equal_approx(cam.pitch, CamaraJuego.PITCH_MIN), "la inclinación mínima es de 8°")
+	_comprobar(is_equal_approx(cam.pitch, CamaraJuego.PITCH_MIN), "límite al mirar hacia arriba")
 
-	# Zoom de 2,5 a 22 m con suavidad.
+	# Distancia de hombro con suavidad.
 	cam.pitch = deg_to_rad(35.0)
 	for _i in 80:
 		cam.zoom_rueda(-1)
@@ -203,7 +205,7 @@ func _prueba_camara() -> void:
 	for _i in 80:
 		cam.zoom_rueda(1)
 	await _esperar(1.5)
-	_comprobar(absf(cam.distancia - CamaraJuego.DIST_MAX) < 0.2, "zoom máximo 22 m (da %.2f)" % cam.distancia)
+	_comprobar(absf(cam.distancia - CamaraJuego.DIST_MAX) < 0.2, "distancia máxima (da %.2f m)" % cam.distancia)
 
 	# No atraviesa paredes: Leo pegado a la pared oeste de la cabaña y la cámara detrás, dentro de la cabaña.
 	var yp := _suelo(-9.0, -3.0)
@@ -258,7 +260,7 @@ func _prueba_camara() -> void:
 	var delta := _j.global_position - antes
 	_comprobar(delta.x < -1.0 and absf(delta.z) < 0.5, "W lleva hacia donde mira la cámara (dx %.2f, dz %.2f)" % [delta.x, delta.z])
 
-	# Clic derecho + ratón gira; la rueda cambia de ranura sin hacer zoom ni mover cámara; clic central vuelve a la vista de juego.
+	# El ratón gira libremente, la rueda selecciona objetos y C centra la vista.
 	_poner_a_leo(Vector3(-5.8, y0 + 0.05, 1.8), 0.0)
 	cam.pitch = deg_to_rad(40.0)
 	cam._dist_obj = 12.0
@@ -266,22 +268,12 @@ func _prueba_camara() -> void:
 	await _fisica(4)
 	var yaw_antes := cam.yaw
 	var pitch_antes := cam.pitch
-	_boton(MOUSE_BUTTON_RIGHT, true)
-	await get_tree().process_frame
-	_comprobar(_j._girando, "el clic derecho empieza el giro")
+	_comprobar(Interfaz.cursor_de_juego, "el cursor queda capturado durante el juego")
 	if DisplayServer.get_name() != "headless":
-		_comprobar(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED, "el cursor se oculta mientras se gira")
+		_comprobar(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED, "el cursor está oculto")
 	_raton(Vector2(120, 30))
-	_comprobar(absf(angle_difference(cam.yaw, yaw_antes)) > 0.5, "mover el ratón con el clic derecho gira la cámara")
+	_comprobar(absf(angle_difference(cam.yaw, yaw_antes)) > 0.5, "mover el ratón gira la cámara")
 	_comprobar(cam.pitch > pitch_antes + 0.1, "y la inclina")
-	_boton(MOUSE_BUTTON_RIGHT, false)
-	await get_tree().process_frame
-	_comprobar(not _j._girando, "soltar el clic derecho termina el giro")
-	if DisplayServer.get_name() != "headless":
-		_comprobar(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "el cursor vuelve al soltar")
-	var yaw_quieto := cam.yaw
-	_raton(Vector2(200, 0))
-	_comprobar(is_equal_approx(cam.yaw, yaw_quieto), "sin clic derecho el ratón no gira la cámara")
 
 	var d0: float = cam._dist_obj
 	var yaw_r := cam.yaw
@@ -299,19 +291,19 @@ func _prueba_camara() -> void:
 	_comprobar(is_equal_approx(cam._dist_obj, d0), "la rueda repetida tampoco altera el zoom")
 	Juego.elegir_ranura(0)
 
-	_boton(MOUSE_BUTTON_MIDDLE, true)
-	_comprobar(cam._volviendo, "el clic central empieza a volver a la vista de juego")
-	await _esperar(2.5)
-	_comprobar(absf(cam.pitch - CamaraJuego.PITCH_JUEGO) < 0.03 and absf(cam._dist_obj - CamaraJuego.DIST_JUEGO) < 0.01, "vista de juego restaurada (inclinación %.1f°)" % rad_to_deg(cam.pitch))
 	_tecla(KEY_C)
-	_tecla(KEY_C, false)
-	_comprobar(cam._volviendo or absf(angle_difference(cam.yaw, cam._yaw_juego)) < 0.05, "la tecla C también vuelve a la vista de juego")
+	_comprobar(cam._volviendo, "C empieza a volver a la vista de juego")
+	await _esperar(2.5)
+	_comprobar(absf(cam.pitch - CamaraJuego.PITCH_JUEGO) < 0.03 and absf(cam._dist_obj - float(Ajustes.valores.distancia_tercera)) < 0.01, "vista de juego restaurada (inclinación %.1f°)" % rad_to_deg(cam.pitch))
 
 
 # --- Interacciones --------------------------------------------------------------------------------------------------------
 
 func _prueba_interacciones() -> void:
 	print("[interacciones]")
+	Ajustes.valores["vista"] = 0
+	Ajustes.cambiado.emit("vista")
+	Ajustes.ultimo_mando = false
 	var y0 := _suelo(-5.8, 1.8)
 	# L5: la puerta de la cabaña lleva a casa_leo («Entrar en la cabaña»); «Dormir» vive dentro de casa_leo.
 	var puerta := _mapa.call("marcador", "Puerta_Cabana") as Marker3D
@@ -324,6 +316,7 @@ func _prueba_interacciones() -> void:
 	var en_puerta := puerta.global_position + Vector3(0, 0.05, 0.6)
 	_poner_a_leo(en_puerta, 0.0)    # mira hacia −Z, hacia la puerta (la cabaña queda al norte)
 	await _fisica(4)
+	_j.camara.mirar_hacia(puerta.global_position + Vector3.UP * 0.8)
 	_j._actualizar_interactuable()
 	_comprobar(_j._objetivo != null and str(_j._objetivo.call("texto_interaccion")) == "Entrar en la cabaña", "junto a la puerta se puede entrar en la cabaña")
 	_comprobar(Interfaz.texto_accion() == "E  ·  Entrar en la cabaña", "el cartel dice «E · Entrar en la cabaña» (dice «%s»)" % Interfaz.texto_accion())
@@ -347,27 +340,28 @@ func _prueba_interacciones() -> void:
 	c.global_position = _j.global_position + adelante * 1.0
 	_usos = 0
 	c.usado.connect(func(_jug: Node3D) -> void: _usos += 1)
-	await get_tree().process_frame
+	await _fisica(3)
+	_j.camara.mirar_hacia(c.global_position + Vector3.UP * 0.75)
 	_j._actualizar_interactuable()
 	_comprobar(c.texto_interaccion() == "Leer el cartel", "texto del interactuable: verbo + objeto")
 	_comprobar(_j._objetivo == c, "Leo elige el interactuable que tiene delante")
 	_comprobar(Interfaz.texto_accion() == "E  ·  Leer el cartel", "cartel de acción «E · Leer el cartel» (dice «%s»)" % Interfaz.texto_accion())
 	_comprobar(_j._resaltador.objetivo == c and _j._resaltador.visible, "el objetivo elegido se resalta")
 	_comprobar(c.is_in_group("interactuable") and c.collision_layer == 4, "el interactuable está en la capa 3 y en su grupo")
-	# El más de frente gana.
+	# El centro de la cámara decide qué objeto se elige.
 	var atras := Interactuable.new()
 	atras.verbo = "Mirar"
 	atras.nombre_objeto = "lo de atrás"
 	atras.radio = 0.8
 	_mapa.objetos.add_child(atras)
 	atras.global_position = _j.global_position - adelante * 1.0
-	await get_tree().process_frame
+	await _fisica(3)
 	_j._actualizar_interactuable()
 	_comprobar(_j._objetivo == c, "con dos cerca gana el de delante")
-	_j.direccion = -adelante
+	_j.camara.mirar_hacia(atras.global_position + Vector3.UP * 0.75)
 	_j._actualizar_interactuable()
 	_comprobar(_j._objetivo == atras, "al girar gana el otro")
-	_j.direccion = adelante
+	_j.camara.mirar_hacia(c.global_position + Vector3.UP * 0.75)
 	atras.queue_free()
 	# Usarlo.
 	_j._actualizar_interactuable()
@@ -392,12 +386,13 @@ func _prueba_cartel_no_se_queda() -> void:
 	var puerta := _mapa.call("marcador", "Puerta_Cabana") as Marker3D
 	_poner_a_leo(puerta.global_position + Vector3(0, 0.05, 0.6), 0.0)
 	await _fisica(4)
+	_j.camara.mirar_hacia(puerta.global_position + Vector3.UP * 0.8)
 	_j._actualizar_interactuable()
 	_comprobar(Interfaz.texto_accion().contains("cabaña"), "antes de salir se ve «Entrar en la cabaña» junto a la puerta")
 	await _ir("pueblo")
 	await _esperar(0.5)
 	_comprobar(not Interfaz.texto_accion().contains("Dormir"), "en el pueblo no sale «Dormir» (dice «%s»)" % Interfaz.texto_accion())
-	_comprobar(Interfaz.texto_accion().is_empty(), "en el pueblo, al aparecer, no hay cartel (dice «%s»)" % Interfaz.texto_accion())
+	_comprobar(not Interfaz.texto_accion().contains("cabaña"), "en el pueblo no queda el cartel de la cabaña")
 
 
 # --- Mapa grande ------------------------------------------------------------------------------------------------------------
@@ -516,12 +511,14 @@ func _prueba_mapa(id: String) -> void:
 		_comprobar(p.is_in_group("interactuable") and not p.texto_interaccion().is_empty() and not p.descripcion.is_empty(), "%s: %s tiene verbo, objeto y texto" % [id, p.name])
 		_comprobar(_mapa.punto_dentro(p.global_position, 0.5), "%s: %s está dentro de los límites" % [id, p.name])
 
-	# Cuevas: la cámara no choca con el techo invisible y no se queda pegada a Leo.
+	# Cuevas: la cámara respeta techo y maderas en ambas vistas.
 	if bool(_mapa.get("interior")):
 		await _esperar(0.8)
-		_comprobar(_j.camara.distancia_real > 3.5, "%s: la cámara no se queda pegada a Leo (%.2f m)" % [id, _j.camara.distancia_real])
+		var cam := _j.camara
+		_comprobar(cam.rayo_entre(cam.global_position, cam.camara.global_position, CamaraJuego.MASCARA_SOLIDA).is_empty(),
+			"%s: los ojos quedan delante del techo y las maderas" % id)
 		var aparte := _mapa.get_node_or_null("ColisionSoloJugador") as StaticBody3D
-		_comprobar(aparte != null and aparte.collision_layer == 64 and aparte.get_child_count() > 0, "%s: techo y maderas están en la capa 7 (solo Leo choca)" % id)
+		_comprobar(aparte != null and aparte.collision_layer == 64 and aparte.get_child_count() > 0, "%s: techo y maderas están en la capa 7" % id)
 		var restos := 0
 		var rocas := 0
 		for h: Node in (_mapa.cargador.get("colisiones") as Node).get_children():
@@ -676,6 +673,7 @@ func _prueba_aviso_herramienta() -> void:
 	_comprobar(Jugador.motivo_sin_efecto("pico") == "Aquí no hay nada que picar.", "aviso del pico")
 	await _ir("pueblo")
 	Juego.elegir_ranura(0)
+	_j.camara.pitch = deg_to_rad(-50.0)
 	await _fisica(4)
 	var antes := Interfaz.avisos_emitidos
 	_j._usar()

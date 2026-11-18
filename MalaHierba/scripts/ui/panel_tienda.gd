@@ -15,6 +15,8 @@ var _titulo: Label
 var _l_dinero: Label
 var _b_comprar_tab: Button
 var _b_vender_tab: Button
+var _b_forjar_tab: Button
+var _b_salir: Button
 var _lista: VBoxContainer
 var _nota: Label
 var _icono: Hueco
@@ -68,6 +70,9 @@ func _ready() -> void:
 	_b_vender_tab = Estilo.boton("Vender", 150)
 	_b_vender_tab.pressed.connect(_cambiar_modo.bind("vender"))
 	cab.add_child(_b_vender_tab)
+	_b_forjar_tab = Estilo.boton("Forjar", 150)
+	_b_forjar_tab.pressed.connect(_cambiar_modo.bind("forjar"))
+	cab.add_child(_b_forjar_tab)
 	_l_dinero = Estilo.etiqueta("", Estilo.TAM_GRANDE, Estilo.COLOR_ACENTO)
 	_l_dinero.custom_minimum_size = Vector2(170, 0)
 	_l_dinero.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -99,6 +104,7 @@ func _ready() -> void:
 	_icono = Hueco.new(96.0, false)
 	det.add_child(_icono)
 	_l_nombre = Estilo.etiqueta("", Estilo.TAM_GRANDE, Estilo.COLOR_TEXTO)
+	_l_nombre.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	det.add_child(_l_nombre)
 	_l_desc = Estilo.etiqueta("", Estilo.TAM_TEXTO, Estilo.COLOR_TEXTO_SUAVE)
 	_l_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -136,9 +142,9 @@ func _ready() -> void:
 	var pie := HBoxContainer.new()
 	pie.alignment = BoxContainer.ALIGNMENT_END
 	v.add_child(pie)
-	var salir := Estilo.boton("Salir  (Esc)", 200)
-	salir.pressed.connect(cerrar_panel)
-	pie.add_child(salir)
+	_b_salir = Estilo.boton("Salir  (Esc)", 200)
+	_b_salir.pressed.connect(cerrar_panel)
+	pie.add_child(_b_salir)
 
 	Juego.dinero_cambiado.connect(func(_d: int) -> void: _actualizar_dinero())
 
@@ -151,6 +157,7 @@ func abrir(id_tienda: String) -> void:
 	_titulo.text = str(_tienda.get("nombre", "Tienda"))
 	var compra: Array = _tienda.get("compra_tipos", [])
 	_b_vender_tab.visible = not compra.is_empty()
+	_b_forjar_tab.visible = _tienda.has("forja")
 	_modo = "comprar"
 	_sel = ""
 	_cantidad = 1
@@ -158,8 +165,7 @@ func abrir(id_tienda: String) -> void:
 	visible = true
 	_actualizar_dinero()
 	_reconstruir()
-	_b_comprar_tab.grab_focus.call_deferred()
-	Interfaz.limitar_foco.call_deferred(self)
+	_enfocar_lista.call_deferred()
 
 
 func cerrar_panel() -> void:
@@ -180,6 +186,34 @@ func _cambiar_modo(m: String) -> void:
 	_cantidad = 1
 	_l_aviso.text = ""
 	_reconstruir()
+	_enfocar_lista.call_deferred()
+
+
+func _enfocar_lista() -> void:
+	if not visible:
+		return
+	var fila := _fila_seleccionada()
+	if fila != null:
+		fila.grab_focus()
+	else:
+		_b_salir.grab_focus()
+
+
+func _fila_seleccionada() -> Button:
+	var indice := _ids_visibles().find(_sel)
+	return _lista.get_child(indice) as Button if indice >= 0 else null
+
+
+func _actualizar_foco() -> void:
+	if not visible:
+		return
+	Interfaz.limitar_foco(self)
+	if _modo != "forjar" or _b_confirmar.disabled:
+		return
+	var fila := _fila_seleccionada()
+	if fila != null:
+		fila.focus_neighbor_right = fila.get_path_to(_b_confirmar)
+		_b_confirmar.focus_neighbor_left = _b_confirmar.get_path_to(fila)
 
 
 func _parse_clave(clave: String) -> Array[String]:
@@ -191,6 +225,9 @@ func _parse_clave(clave: String) -> Array[String]:
 ## Claves de los objetos que se pueden comprar o vender ahora mismo.
 func _ids_visibles() -> Array[String]:
 	var r: Array[String] = []
+	if _modo == "forjar":
+		r.assign(_tienda.get("forja", []))
+		return r
 	if _modo == "comprar":
 		var vende: Array = _tienda.get("vende", [])
 		for v: Variant in vende:
@@ -228,12 +265,15 @@ func _precio(clave: String) -> int:
 	var cal := partes[1]
 	if _modo == "comprar":
 		return int(Datos.objeto(id).get("precio_compra", 0))
+	if _modo == "forjar":
+		return int(_receta(id).get("dinero", 0))
 	return Juego.precio_venta_item(id, cal)
 
 
 func _reconstruir() -> void:
 	_b_comprar_tab.disabled = (_modo == "comprar")
 	_b_vender_tab.disabled = (_modo == "vender")
+	_b_forjar_tab.disabled = (_modo == "forjar")
 	for c in _lista.get_children():
 		_lista.remove_child(c)
 		c.queue_free()
@@ -245,6 +285,8 @@ func _reconstruir() -> void:
 		_lista.add_child(_fila(clave))
 	if _modo == "comprar":
 		_nota.text = "Las semillas que ves son las de esta estación (%s)." % Juego.nombre_estacion().to_lower() if _tienda_tiene_semillas() else ""
+	elif _modo == "forjar":
+		_nota.text = "Trae el mineral y paga el trabajo de Clara."
 	else:
 		var esp := Juego.cultivo_mercado_especial()
 		_nota.text = "¡Mercado especial! Hoy se paga al doble: %s." % Datos.nombre_objeto(esp) if not esp.is_empty() else "Aquí se compra lo que cosechas y sacas de la mina."
@@ -252,7 +294,7 @@ func _reconstruir() -> void:
 		_sel = ids[0] if not ids.is_empty() else ""
 		_cantidad = 1
 	_actualizar_detalle()
-	Interfaz.limitar_foco.call_deferred(self)
+	_actualizar_foco.call_deferred()
 
 
 func _tienda_tiene_semillas() -> bool:
@@ -314,6 +356,8 @@ func _elegir(id: String) -> void:
 			(c as Button).button_pressed = false
 	_reconstruir_seleccion_visual()
 	_actualizar_detalle()
+	if _modo == "forjar":
+		_actualizar_foco.call_deferred()
 
 
 func _reconstruir_seleccion_visual() -> void:
@@ -335,7 +379,14 @@ func _maximo() -> int:
 	if _modo == "comprar":
 		var por_dinero := Juego.dinero / maxi(pr, 1)
 		return clampi(mini(por_dinero, Juego.espacio_para(id)), 0, Juego.PILA_MAX)
+	if _modo == "forjar":
+		var receta := _receta(id)
+		return int(not receta.is_empty() and Juego.dinero >= pr and Juego.cantidad(str(receta["material"])) >= int(receta["cantidad"]))
 	return Juego.cantidad(id, cal)
+
+
+func _receta(id: String) -> Dictionary:
+	return Datos.objeto(id).get("forja", {})
 
 
 func _actualizar_detalle() -> void:
@@ -345,6 +396,10 @@ func _actualizar_detalle() -> void:
 	_b_mas.disabled = not hay
 	_b_max.disabled = not hay
 	_b_confirmar.disabled = not hay
+	_b_menos.visible = _modo != "forjar"
+	_b_mas.visible = _modo != "forjar"
+	_b_max.visible = _modo != "forjar"
+	_l_cantidad.visible = _modo != "forjar"
 	if not hay:
 		_l_nombre.text = ""
 		_l_desc.text = ""
@@ -359,6 +414,9 @@ func _actualizar_detalle() -> void:
 	_icono.poner({"id": id, "cantidad": 1, "calidad": cal})
 	_l_nombre.text = str(o.get("nombre", id)) + (" (calidad baja)" if cal == "baja" else "")
 	var desc := str(o.get("descripcion", ""))
+	var detalle := Datos.detalle_equipo(o)
+	if not detalle.is_empty():
+		desc += "\n" + detalle
 	if _modo == "vender":
 		if cal == "baja":
 			desc += "\nCalidad reducida por la plaga (−50 % de valor)."
@@ -366,6 +424,18 @@ func _actualizar_detalle() -> void:
 			desc += "\n¡Mercado especial! Hoy se paga al doble."
 	_l_desc.text = desc
 	var pr := _precio(_sel)
+	if _modo == "forjar":
+		var receta := _receta(id)
+		var mineral := str(receta["material"])
+		var cantidad_mineral := int(receta["cantidad"])
+		_l_precio.text = "%s y %d × %s" % [Estilo.euros(pr), cantidad_mineral, Datos.nombre_objeto(mineral)]
+		_l_total.text = "En la mochila: %d × %s" % [Juego.cantidad(mineral), Datos.nombre_objeto(mineral)]
+		_b_confirmar.text = "Forjar"
+		_b_confirmar.disabled = _maximo() == 0
+		if _b_confirmar.disabled:
+			_l_aviso.add_theme_color_override("font_color", Estilo.COLOR_MALO)
+			_l_aviso.text = "Falta mineral o dinero."
+		return
 	_l_precio.text = "%s: %s cada uno" % ["Precio" if _modo == "comprar" else "Te lo pagan a", Estilo.euros(pr)]
 	var mx := _maximo()
 	_cantidad = clampi(_cantidad, 1 if mx > 0 else 0, maxi(mx, 1))
@@ -399,7 +469,12 @@ func _confirmar() -> void:
 	var pr := _precio(_sel)
 	var n := _cantidad
 	var nombre := Datos.nombre_objeto(id)
-	if _modo == "comprar":
+	if _modo == "forjar":
+		if not Juego.forjar_equipo(id):
+			_aviso_malo("No se pudo forjar. Comprueba el mineral, el dinero y el espacio.")
+			return
+		_aviso_bueno("Clara ha forjado %s." % nombre.to_lower())
+	elif _modo == "comprar":
 		if n <= 0 or not Juego.cobrar(n * pr):
 			_aviso_malo("No tienes bastante dinero.")
 			return
@@ -416,6 +491,8 @@ func _confirmar() -> void:
 		_aviso_bueno("Has vendido %d × %s por %s." % [n, nombre, Estilo.euros(n * pr)])
 	_cantidad = 1
 	_reconstruir()
+	if _modo == "forjar":
+		_enfocar_lista.call_deferred()
 
 
 func _aviso_bueno(t: String) -> void:

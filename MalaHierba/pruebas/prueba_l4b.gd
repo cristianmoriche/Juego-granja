@@ -111,9 +111,24 @@ func _vecino(vecinos: Vecinos, id: String) -> Npc:
 
 
 func _poner_a_leo(pos: Vector3, mira: Vector3) -> void:
-	_j.colocar(pos + Vector3(0, 0.05, 0), 0.0, 0.0)
+	_j.colocar(pos + Vector3(0, 0.05, 0), 0.0, atan2(-mira.x, -mira.z))
 	_j._pos_segura = pos
 	_j.direccion = mira.normalized()
+
+
+func _apuntar_interaccion(punto: Interactuable) -> bool:
+	var centro := punto.global_position + Vector3.UP * minf(punto.altura_marca * 0.5, 1.0)
+	for dir in [Vector3.BACK, Vector3.FORWARD, Vector3.RIGHT, Vector3.LEFT]:
+		var pos := AyudasL4b.suelo(_mapa, punto.global_position + dir * 1.55, 1.2, 3.0)
+		if pos == Vector3.INF or not _mapa.punto_dentro(pos, 0.15):
+			continue
+		_poner_a_leo(pos, -dir)
+		await _fisica(4)
+		_j.camara.mirar_hacia(centro)
+		_j._actualizar_interactuable()
+		if _j._objetivo == punto:
+			return true
+	return false
 
 
 ## Espera a que acabe el fundido de un cambio de mapa (Escenas lo marca con en_transicion).
@@ -247,6 +262,7 @@ func _prueba_pueblo() -> void:
 	# Cartel de acción al acercarse a Clara.
 	var clara := _vecino(vecinos, "clara")
 	_poner_a_leo(clara.global_position + Vector3(0, 0, 1.3), Vector3(0, 0, -1))
+	_j.camara.mirar_hacia(clara.punto_ojos())
 	_j._actualizar_interactuable()
 	_comprobar(_j._objetivo != null and Interfaz.texto_accion().contains("Hablar con Clara"), "junto a Clara sale «E · Hablar con Clara» (sale «%s»)" % Interfaz.texto_accion())
 	# «Dormir» solo existe en la casa de Leo.
@@ -285,6 +301,7 @@ func _prueba_conversacion() -> void:
 	_cerrar_todo()
 	# Menú de Clara por la vía real: E sobre su Interactuable.
 	_poner_a_leo(clara.global_position + Vector3(0, 0, 1.3), Vector3(0, 0, -1))
+	_j.camara.mirar_hacia(clara.punto_ojos())
 	_j._actualizar_interactuable()
 	_j._interactuar()
 	_comprobar(Interfaz.ocupada() and _pregunta().visible, "E sobre Clara abre su menú")
@@ -412,7 +429,8 @@ func _prueba_tienda_herreria_taberna() -> void:
 	_pulsar("Mejorar herramientas")
 	_comprobar(_pregunta().visible, "«Mejorar herramientas» abre la lista de mejoras")
 	var opciones := _textos_pregunta()
-	_comprobar(opciones.size() == 6 and "Azada de cobre" in opciones[0] and "Pico de cobre" in opciones[4], "la lista ofrece el siguiente nivel de cada herramienta (%s)" % str(opciones))
+	_comprobar(opciones.size() == 7 and "Azada de cobre" in opciones[0] and "Pico de cobre" in opciones[4]
+		and "Comprar o forjar armas y armaduras" in opciones[5], "la lista ofrece mejoras y equipo de combate (%s)" % str(opciones))
 	_pulsar("Pico de cobre")
 	_pasar_dialogo()
 	_comprobar(Juego.nivel("pico") == 1 and Juego.cantidad("cobre") == 0 and Juego.dinero == 350, "mejorar el pico: nivel 1, sin cobre y −150 € (nivel %d, cobre %d, dinero %d)" % [Juego.nivel("pico"), Juego.cantidad("cobre"), Juego.dinero])
@@ -471,6 +489,8 @@ func _prueba_objetos_del_pueblo() -> void:
 		if pos == Vector3.INF:
 			pos = dir * 2.8
 		_poner_a_leo(pos, -dir)
+		var punto := obj.pozo[roundi(a / 90.0)]
+		_j.camara.mirar_hacia(punto.global_position + Vector3.UP * 0.8)
 		_j._actualizar_interactuable()
 		_comprobar(Interfaz.texto_accion().contains("Sacar agua del pozo"), "al acercarse al pozo por el lado %d° sale «Sacar agua del pozo» (sale «%s»)" % [int(a), Interfaz.texto_accion()])
 	Juego.energia = 50.0
@@ -505,8 +525,7 @@ func _prueba_objetos_del_pueblo() -> void:
 	_pulsar("Cerrar")
 	_comprobar(not Interfaz.ocupada(), "«Cerrar» cierra el tablón")
 	# Por la vía real: junto al tablón sale su cartel.
-	_poner_a_leo(obj.tablon.global_position, Vector3(0, 0, 1))
-	_j._actualizar_interactuable()
+	await _apuntar_interaccion(obj.tablon)
 	_comprobar(Interfaz.texto_accion().contains("Leer el tablón"), "junto al tablón sale «E · Leer el tablón de anuncios» (sale «%s»)" % Interfaz.texto_accion())
 	_cerrar_todo()
 
@@ -588,6 +607,7 @@ func _prueba_mina_exterior() -> void:
 	var minero := _mapa.call("marcador", "Spawn_Minero") as Marker3D
 	_comprobar(tomas != null and tomas.global_position.distance_to(minero.global_position) < 3.0, "Tomás está en Spawn_Minero")
 	_poner_a_leo(tomas.global_position + Vector3(0, 0, 1.3), Vector3(0, 0, -1))
+	_j.camara.mirar_hacia(tomas.punto_ojos())
 	_j._actualizar_interactuable()
 	_comprobar(Interfaz.texto_accion().contains("Hablar con Tomás"), "junto a Tomás sale «E · Hablar con Tomás» (sale «%s»)" % Interfaz.texto_accion())
 	# Tomás compra minerales un 15 % más caros que Don Mateo.
@@ -724,14 +744,19 @@ func _prueba_mina_interior() -> void:
 	_comprobar(rocas.golpes_necesarios(cobre) == 2 and is_equal_approx(RocasMina.energia_por_golpe(), 1.5), "con el pico de nivel 1: 2 golpes y 1,5 de energía")
 	Juego.nivel_herramientas["pico"] = 2
 	_comprobar(is_equal_approx(RocasMina.energia_por_golpe(), 1.0) and rocas.golpes_necesarios(cobre) == 1, "con el pico de nivel 2: 1 golpe y 1 de energía")
-	# Por la vía de la interacción: «E · Picar la roca de cobre», con el pico del inventario.
+	# Por la vía de la mira y el pico equipado.
 	_poner_a_leo(cobre.pos + Vector3(1.3, 0, 0), Vector3(-1, 0, 0))
+	_j.camara.mirar_hacia(cobre.cuerpo.global_position + Vector3.UP * (cobre.radio * 0.4))
+	for i in 10:
+		if Juego.inventario[i].get("id", "") == "pico":
+			Juego.elegir_ranura(i)
+			break
 	_j._actualizar_interactuable()
-	_comprobar(Interfaz.texto_accion().contains("Picar la roca de cobre"), "junto a la roca sale «E · Picar la roca de cobre» (sale «%s»)" % Interfaz.texto_accion())
+	_comprobar(Interfaz.texto_accion().contains("Picar la roca de cobre"), "al apuntar sale «Clic · Picar la roca de cobre» (sale «%s»)" % Interfaz.texto_accion())
 	var cobre0 := Juego.cantidad("cobre")
 	var e0 := Juego.energia
-	_j._interactuar()
-	_comprobar(cobre.rota and Juego.cantidad("cobre") > cobre0 and Juego.energia < e0, "pulsar E sobre la roca la pica y suelta cobre (cobre +%d)" % (Juego.cantidad("cobre") - cobre0))
+	_j._usar()
+	_comprobar(cobre.rota and Juego.cantidad("cobre") > cobre0 and Juego.energia < e0, "usar el pico contra la roca suelta cobre (cobre +%d)" % (Juego.cantidad("cobre") - cobre0))
 	Juego.nivel_herramientas["pico"] = 0
 	# Sin energía no se pica.
 	var otra := rocas.rocas_en_pie()[0]
@@ -754,8 +779,7 @@ func _prueba_mina_interior() -> void:
 	print("[mina interior, nivel 2]")
 	_comprobar(bajada.punto.activo and bajada.punto.texto_interaccion() == "Bajar al nivel 2", "la escalera dice «Bajar al nivel 2» (dice «%s»)" % bajada.punto.texto_interaccion())
 	_comprobar(bajada.punto.global_position.distance_to(escalera.global_position) < 0.1, "la escalera está en Bajada_Nivel_2")
-	_poner_a_leo(escalera.global_position + Vector3(1.2, 0, 0), Vector3(-1, 0, 0))
-	_j._actualizar_interactuable()
+	await _apuntar_interaccion(bajada.punto)
 	_comprobar(Interfaz.texto_accion().contains("Bajar al nivel 2"), "junto a la escalera sale «E · Bajar al nivel 2» (sale «%s»)" % Interfaz.texto_accion())
 	var env1 := (_mapa.get_node("WorldEnvironment") as WorldEnvironment).environment
 	var azul1 := env1.ambient_light_color.b - env1.ambient_light_color.r
@@ -850,7 +874,7 @@ func _prueba_mina_interior() -> void:
 	_comprobar(_j.dentro_de_limites(), "nivel 2: Leo sigue dentro de los límites")
 
 	# Subir otra vez al nivel 1 y salir por la boca: el nivel vuelve a 1.
-	_poner_a_leo(escalera2.global_position + Vector3(1.2, 0, 0), Vector3(-1, 0, 0))
+	await _apuntar_interaccion(bajada.punto)
 	bajada.preguntar()
 	_comprobar(_pregunta().visible and "Subir al nivel 1" in _textos_pregunta()[0], "abajo, la escalera pregunta si subir")
 	_pulsar("Subir al nivel 1")

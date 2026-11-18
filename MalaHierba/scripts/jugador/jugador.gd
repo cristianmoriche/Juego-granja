@@ -1,11 +1,9 @@
 class_name Jugador
 extends CharacterBody3D
 ## Leo: se mueve con WASD relativo a la cámara, interactúa con E y usa lo que lleva en la mano con el clic izquierdo.
-## Cámara: clic derecho mantenido + ratón gira alrededor de Leo (el cursor se oculta),
-## clic central o C = vista de juego por defecto. La rueda cambia de objeto en la barra (ver Interfaz).
-## Interactuables: grupo «interactuable» con texto_interaccion() -> String e interactuar(jugador) (ver Interactuable);
-## el elegido (el más de frente dentro de su alcance) se resalta con un Resaltador.
-## Usables: grupo «usable» con usar(id_objeto, punto, jugador) -> bool (el receptor gasta la energía).
+## V alterna los ojos y el hombro. El ratón y la palanca derecha orientan la mira.
+## El Interactuable bajo la mira se resalta. Los receptores «usable» reciben
+## usar(id_objeto, punto, jugador) -> bool y deciden el gasto de energía.
 ## M2: tamaño de Leo = el del `.glb` × EscalaPersonaje.ESCALA (1,75 m); saltar con Espacio (acción «saltar»: desde el suelo,
 ## sin doble salto, ~1 m, con algo de control en el aire) y agacharse con Ctrl izquierdo (acción «agachar», mantenido: la
 ## cápsula baja, anda más despacio, no corre y no se levanta si hay techo encima).
@@ -34,7 +32,8 @@ const TIEMPO_ATASCO_AIRE := 1.0  # segundos colgado en el aire sin moverse antes
 const RUTA_MODELO := "res://assets/personajes/leo/leo.glb"
 const RUTA_HERRAMIENTAS := "res://assets/herramientas/%s.glb"
 const DIST_USAR := 1.2
-const ALCANCE_INTERACTUAR := 2.0
+const VISTA_LEO := preload("res://scripts/jugador/vista_leo.gd")
+const APUNTADO := preload("res://scripts/jugador/apuntado_jugador.gd")
 const DURACION_HERRAMIENTA := 0.6
 const GIRO_CAMARA_RATON := 0.0055
 const PAUSA_AVISO_USO := 0.7
@@ -45,20 +44,21 @@ const CAPA_SOLO_JUGADOR := 64 # capa 7 «solo_jugador»: techo y maderas de las 
 @onready var _farol: OmniLight3D = $Farol
 
 var camara: CamaraJuego = null
+var combate: CombateJugador
 var direccion: Vector3 = Vector3(0, 0, 1)     # hacia dónde mira (plano XZ, normalizado)
 var _activo: bool = false
 var _anim: AnimationPlayer = null
 var _anim_actual: String = ""
+var _anim_en_pausa := false
+var _correr_sin_aire := false
 var _t_herramienta: float = 0.0
-var _t_busqueda: float = 0.0
 var _hay_cartel: bool = false
 var _objetivo: Node3D = null
+var _apuntado: Dictionary = {}
 var _pos_segura: Vector3 = Vector3.ZERO
 var _t_segura: float = 0.0
 var _modelo_visual: Node3D = null
 var _resaltador: Resaltador = null
-var _girando: bool = false
-var _pos_cursor: Vector2 = Vector2.ZERO
 var _t_aviso_uso: float = 0.0
 var _mapa: Node = null          # mapa en el que está (para la red de seguridad de los límites)
 
@@ -88,13 +88,23 @@ var _anim_propia: bool = false   # el estado actual usa una animación propia (n
 var _altura_cam: float = 1.0     # altura relativa de la mira de la cámara (1 de pie, menos agachado), suavizada
 var _t_paso: float = 0.0         # temporizador para el sonido de pisadas
 var _mano_soporte: Node3D = null
+var _izquierda_soporte: Node3D = null
+var _escudo_nodo: Node3D
+var _escudo_actual := ""
 var _herramienta_nodo: Node3D = null
 var _objeto_en_mano: String = ""
 var _nivel_en_mano: int = -1
 var _modelos_mano: Dictionary = {}
+var _vista_leo := VISTA_LEO.new()
+var _farol_soporte_cadera: Node3D = null
+var _farol_primera: Node3D = null
+var _farol_tercera: Node3D = null
+var _farol_energia_base: float = 2.5
+var _farol_tiempo: float = 0.0
 
 
 func _ready() -> void:
+	combate = CombateJugador.new(self)
 	floor_snap_length = 0.5
 	floor_max_angle = deg_to_rad(55.0)
 	collision_mask |= CAPA_LIMITES | CAPA_SOLO_JUGADOR
@@ -111,18 +121,24 @@ func _ready() -> void:
 	camara = CamaraJuego.new()
 	camara.name = "CamaraRig"
 	camara.objetivo = self
+	camara.ancla_ojos = _vista_leo.ancla_ojos
 	add_child(camara)
 	_resaltador = Resaltador.new()
 	_resaltador.name = "Resaltador"
 	add_child(_resaltador)
+	camara.vista_actualizada.connect(_al_actualizar_vista)
+	_farol.set_meta("sombra_h03", true)
 	_farol.visible = false
+	_preparar_modelos_farol()
 	if not Juego.ranura_cambiada.is_connected(_on_mano_cambiada):
 		Juego.ranura_cambiada.connect(_on_mano_cambiada)
 	if not Juego.inventario_cambiado.is_connected(_actualizar_objeto_en_mano):
 		Juego.inventario_cambiado.connect(_actualizar_objeto_en_mano)
 	if not Juego.partida_cambiada.is_connected(_actualizar_objeto_en_mano):
 		Juego.partida_cambiada.connect(_actualizar_objeto_en_mano)
+	Juego.equipo_cambiado.connect(_actualizar_escudo)
 	_actualizar_objeto_en_mano()
+	_actualizar_escudo()
 
 
 ## La activa Escenas cuando ya está colocado y con suelo debajo.
@@ -130,8 +146,7 @@ func activar() -> void:
 	_activo = true
 
 
-## Coloca a Leo de golpe: posición y giro de la cámara. Mira hacia delante de la cámara (el giro del marcador
-## de aparición no se usa: así se le ve siempre de espaldas al entrar).
+## Coloca a Leo de golpe y orienta el cuerpo y la cámara al aparecer.
 func colocar(pos: Vector3, _giro_cuerpo: float, giro_camara: float) -> void:
 	global_position = pos
 	velocity = Vector3.ZERO
@@ -140,20 +155,34 @@ func colocar(pos: Vector3, _giro_cuerpo: float, giro_camara: float) -> void:
 	_t_atasco_aire = 0.0
 	_pos_ant = pos
 	_pos_segura = pos
-	if not is_nan(_giro_cuerpo):
+	if not camara.primera_persona and not is_nan(_giro_cuerpo):
 		direccion = Vector3(sin(_giro_cuerpo), 0.0, cos(_giro_cuerpo)).normalized()
 	else:
 		direccion = Vector3(0, 0, -1).rotated(Vector3.UP, giro_camara)
 	_modelo.rotation.y = atan2(direccion.x, direccion.z)
 	camara.fijar(pos, giro_camara)
+	_vista_leo.mostrar_primera(camara.cabeza_oculta)
 
 
 ## Luz de farol en interiores (la mina) y nada más; la cámara no se aleja tanto dentro.
 func configurar_para_mapa(mapa: Node) -> void:
 	_mapa = mapa
 	var interior: bool = bool(mapa.get("interior"))
+	var es_mina := str(mapa.get("id_mapa")) == "mina_interior"
 	_farol.visible = interior
+	_farol.light_color = Color(1.0, 0.80, 0.50) if es_mina else Color(1.0, 0.85, 0.6)
+	_farol_energia_base = 2.55 if es_mina else 1.85
+	_farol.light_energy = _farol_energia_base
+	_farol.omni_range = 15.5 if es_mina else 11.5
+	_farol.omni_attenuation = 1.25 if es_mina else 1.4
+	GraficaH03.ajustar_luz(_farol, int(Ajustes.valores.calidad))
+	_actualizar_visibilidad_farol()
 	camara.poner_interior(interior)
+
+
+func fijar_energia_base_farol(energia: float) -> void:
+	_farol_energia_base = energia
+	_farol.light_energy = energia
 
 
 ## ¿Está Leo dentro del área jugable del mapa (datos/limites.json)? Sin límites o sin mapa, sí.
@@ -248,6 +277,10 @@ func _animar_estado(rapidez: float, corriendo: bool) -> void:
 		var mezcla := 0.2 if estado_mov == "agachado" else 0.15
 		_reproducir(propia, mezcla, 1.0)
 		return
+	if estado_mov == "suelo" and rapidez <= 0.4 and _anim != null and _anim.has_animation("combate_reposo") \
+		and (_escudo_nodo != null or Datos.objeto(_objeto_en_mano).get("tipo") == "arma"):
+		_reproducir("combate_reposo", 0.12)
+		return
 	var con_herramienta := not _objeto_en_mano.is_empty()
 	var nom_andar := "andar_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("andar_herramienta")) else "andar"
 	var nom_reposo := "reposo_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("reposo_herramienta")) else "reposo"
@@ -313,10 +346,12 @@ func _actualizar_pose(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if not _activo:
 		return
-	var libre_ui := not Interfaz.ocupada() and not Escenas.en_transicion
+	var libre_ui: bool = not Interfaz.ocupada() and not Escenas.en_transicion
 	if libre_ui:
 		camara.entrada_mando(Input.get_vector("camara_izquierda", "camara_derecha", "camara_arriba", "camara_abajo"), delta)
-	var libre := libre_ui and _t_herramienta <= 0.0
+	var libre_combate: bool = libre_ui and not Interfaz.apuntando_decoracion and Juego.vida > 0.0
+	combate.actualizar(delta, libre_combate and _t_herramienta <= 0.0, Input.is_action_pressed("bloquear"))
+	var libre: bool = libre_ui and Juego.vida > 0.0 and _t_herramienta <= 0.0 and not combate.ocupado() and not combate.bloqueando
 	_t_herramienta = maxf(_t_herramienta - delta, 0.0)
 	_t_bufer_salto = maxf(_t_bufer_salto - delta, 0.0)
 	_t_aterrizaje = maxf(_t_aterrizaje - delta, 0.0)
@@ -329,13 +364,25 @@ func _physics_process(delta: float) -> void:
 		entrada = Input.get_vector("mover_izquierda", "mover_derecha", "mover_arriba", "mover_abajo")
 	var objetivo_vel := Vector3.ZERO
 	var corriendo := false
+	if _correr_sin_aire and Juego.resistencia >= 17.0:
+		_correr_sin_aire = false
 	if entrada.length() > 0.01:
 		# Relativo a la cámara: W va hacia donde ella mira, aunque esté girada del todo.
 		var dir3 := Vector3(entrada.x, 0.0, entrada.y).rotated(Vector3.UP, camara.yaw)
-		corriendo = Input.is_action_pressed("correr") and not agachado
+		if Input.is_action_pressed("correr") and not agachado and not _correr_sin_aire:
+			corriendo = Juego.gastar_resistencia(16.0 * delta)
+			_correr_sin_aire = not corriendo
 		var vel := VEL_AGACHADO if agachado else (VEL_CORRER if corriendo else VEL_ANDAR)
 		objetivo_vel = dir3 * vel
-		direccion = dir3.normalized()
+		if not combate.bloqueando and not is_instance_valid(combate.objetivo_fijado):
+			direccion = dir3.normalized()
+	if libre_ui and not corriendo and not combate.bloqueando:
+		Juego.recuperar_resistencia(delta)
+	if camara.primera_persona and not combate.ocupado():
+		direccion = Vector3.FORWARD.rotated(Vector3.UP, camara.yaw)
+	if combate.tiempo_esquiva > 0.0:
+		objetivo_vel = combate.velocidad_esquiva()
+	objetivo_vel += combate.retroceso
 	var en_suelo := is_on_floor()
 	if not en_suelo and is_on_wall():
 		# En el aire contra una pared no se empuja hacia ella: si no, en una grieta de la roca Leo se queda colgado
@@ -348,8 +395,14 @@ func _physics_process(delta: float) -> void:
 			if hacia > 0.0:
 				objetivo_vel -= hacia_pared * hacia
 	var acel := ACELERACION if en_suelo else ACELERACION_AIRE
-	velocity.x = move_toward(velocity.x, objetivo_vel.x, acel * delta)
-	velocity.z = move_toward(velocity.z, objetivo_vel.z, acel * delta)
+	if combate.tiempo_esquiva > 0.0:
+		velocity.x = objetivo_vel.x
+		velocity.z = objetivo_vel.z
+	else:
+		if combate.ocupado() or combate.bloqueando:
+			acel = maxf(acel, 48.0)
+		velocity.x = move_toward(velocity.x, objetivo_vel.x, acel * delta)
+		velocity.z = move_toward(velocity.z, objetivo_vel.z, acel * delta)
 
 	# Saltar: solo desde el suelo (con un margen mínimo al pisar un borde), sin doble salto, y no agachado ni con la
 	# interfaz abierta o usando una herramienta. El Espacio pulsado un instante antes de aterrizar también cuenta.
@@ -402,81 +455,92 @@ func _physics_process(delta: float) -> void:
 
 	# Animación según lo que hace.
 	var rapidez := Vector2(velocity.x, velocity.z).length()
-	if _t_herramienta > 0.0:
+	if _anim != null:
+		if combate.pausa_de_impacto() and not _anim_en_pausa:
+			_anim.pause()
+			_anim_en_pausa = true
+		elif not combate.pausa_de_impacto() and _anim_en_pausa:
+			_anim_en_pausa = false
+			if combate.ocupado():
+				_anim.play()
+	if _t_herramienta > 0.0 or combate.ocupado() or combate.bloqueando or Juego.vida <= 0.0:
 		pass
 	else:
 		_animar_estado(rapidez, corriendo)
 		_actualizar_pasos(rapidez, corriendo, delta)
 	_actualizar_pose(delta)
+	_actualizar_farol(delta, rapidez, ahora_en_suelo)
 
 	# La cámara baja la mira al agacharse y la sube al levantarse, sin tirones.
 	_altura_cam = lerpf(_altura_cam, _forma.height / EscalaPersonaje.ALTURA_PIE, 1.0 - exp(-9.0 * delta))
 	camara.altura_relativa = _altura_cam
+	camara.rapidez = rapidez if ahora_en_suelo else 0.0
+	camara.aterrizaje = _t_aterrizaje / TIEMPO_ATERRIZAJE
 
-	# Red de seguridad: si cae por un agujero del mapa o acaba fuera del polígono de límites (los muros de Mapa lo
+	# Red de seguridad: si cae por una sima o acaba fuera del polígono de límites (los muros de Mapa lo
 	# impiden; esto es por si algo falla), vuelve al último sitio firme dentro.
 	_t_segura -= delta
 	var dentro := dentro_de_limites()
 	if is_on_floor() and _t_segura <= 0.0 and dentro:
 		_pos_segura = global_position
 		_t_segura = 0.5
-	if not dentro or global_position.y < _pos_segura.y - 40.0:
+	if not dentro or global_position.y < _pos_segura.y - 11.0:
 		global_position = _pos_segura + Vector3(0, 0.5, 0)
 		velocity = Vector3.ZERO
 
 
-func _process(delta: float) -> void:
-	if not _activo:
-		return
-	_t_aviso_uso = maxf(_t_aviso_uso - delta, 0.0)
-	if _girando and (Interfaz.ocupada() or Escenas.en_transicion):
-		_terminar_giro()
-	_t_busqueda -= delta
-	if _t_busqueda <= 0.0:
-		_t_busqueda = 0.1
+# --- Interacción ---------------------------------------------------------------------------
+
+func _al_actualizar_vista() -> void:
+	_vista_leo.mostrar_primera(camara.cabeza_oculta)
+	_resaltador.primera_persona = camara.cabeza_oculta
+	_actualizar_visibilidad_farol()
+	if _activo:
+		_t_aviso_uso = maxf(_t_aviso_uso - get_physics_process_delta_time(), 0.0)
 		_actualizar_interactuable()
 
 
-# --- Interacción ---------------------------------------------------------------------------
+## Impacto de la mira. Puede incluir punto, normal, colisión e interactuable a alcance.
+func apuntar() -> Dictionary:
+	return APUNTADO.calcular(camara)
 
-## Elige el interactuable más de frente dentro de su alcance, lo resalta y pone su cartel.
+
+## Impacto de la última actualización de la cámara, para marcas y vistas previas.
+func apuntado_actual() -> Dictionary:
+	return _apuntado
+
+
+func encuadrar_interlocutor(vecino: Node3D) -> void:
+	camara.interlocutor = vecino
+
+
 func _actualizar_interactuable() -> void:
-	var anterior := _objetivo
-	_objetivo = null
-	if not Interfaz.ocupada() and not Escenas.en_transicion:
-		var mejor := -INF
-		for n: Node in get_tree().get_nodes_in_group("interactuable"):
-			var n3 := n as Node3D
-			if n3 == null or not n3.is_inside_tree() or not n3.has_method("interactuar") or not n3.has_method("texto_interaccion"):
-				continue
-			var d := n3.global_position - global_position
-			if absf(d.y) > 3.5:
-				continue
-			d.y = 0.0
-			var dist := d.length()
-			var alcance := ALCANCE_INTERACTUAR
-			if n3.has_method("alcance_interaccion"):
-				alcance = float(n3.call("alcance_interaccion"))
-			if dist > alcance:
-				continue
-			var frente := 1.0
-			if dist > 0.05:
-				frente = d.normalized().dot(direccion)
-			if dist > alcance * 0.4 and frente < 0.15:
-				continue   # por detrás
-			if str(n3.call("texto_interaccion")).is_empty():
-				continue
-			# El más de frente; a igualdad, el más cercano. El que ya estaba elegido tiene una pequeña ventaja
-			# para que el cartel no parpadee entre dos objetos parecidos.
-			var puntos := frente - 0.5 * dist / maxf(alcance, 0.1)
-			if n3 == anterior:
-				puntos += 0.12
-			if puntos > mejor:
-				mejor = puntos
-				_objetivo = n3
+	var libre: bool = not Interfaz.ocupada() and not Escenas.en_transicion
+	_apuntado = apuntar() if libre else {}
+	var deco := get_tree().get_first_node_in_group("decoracion_casa")
+	var decorando := deco != null and bool(deco.call("esta_decorando"))
+	_objetivo = _apuntado.get("interactuable") as Interactuable if not decorando else null
+	if _objetivo is Interactuable and not (_objetivo as Interactuable).herramienta.is_empty() \
+		and Datos.objeto(str(Juego.objeto_activo().get("id", ""))).get("tipo") == "arma":
+		_objetivo = null
 	_resaltador.apuntar(_objetivo)
-	if _objetivo != null:
-		Interfaz.mostrar_accion(Ajustes.pista("interactuar") + "  ·  " + str(_objetivo.call("texto_interaccion")))
+	var texto := ""
+	if _objetivo is Interactuable:
+		var zona := _objetivo as Interactuable
+		texto = Ajustes.pista("interactuar" if zona.herramienta.is_empty() else "usar") + "  ·  " + zona.texto_interaccion()
+	elif libre and not decorando and _apuntado.has("punto"):
+		var parcelas := get_tree().get_first_node_in_group("parcelas_apuntables") as Parcelas
+		if parcelas != null and not parcelas.celda_apuntada(_apuntado).is_empty():
+			var id := str(Juego.objeto_activo().get("id", ""))
+			var verbo := str({"azada": "Cavar", "regadera": "Regar", "hoz": "Segar", "hacha": "Talar", "pico": "Picar"}.get(id, ""))
+			if Datos.objeto(id).get("tipo", "") == "semilla":
+				verbo = "Sembrar"
+			if not verbo.is_empty():
+				texto = Ajustes.pista("usar") + "  ·  " + verbo
+	Interfaz.enfocar_mira(not texto.is_empty())
+	if not texto.is_empty():
+		if Interfaz.texto_accion() != texto:
+			Interfaz.mostrar_accion(texto)
 		_hay_cartel = true
 	elif _hay_cartel:
 		Interfaz.ocultar_accion()
@@ -484,128 +548,114 @@ func _actualizar_interactuable() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Soltar el clic derecho siempre cuenta, aunque se haya abierto algo mientras tanto.
-	if event is InputEventMouseButton:
-		var b := event as InputEventMouseButton
-		if b.button_index == MOUSE_BUTTON_RIGHT and not b.pressed and _girando:
-			_terminar_giro()
-			get_viewport().set_input_as_handled()
-			return
 	if not _activo or Interfaz.ocupada() or Escenas.en_transicion:
 		return
-	if event is InputEventMouseButton:
-		var e := event as InputEventMouseButton
-		if e.pressed:
-			match e.button_index:
-				MOUSE_BUTTON_RIGHT:
-					_empezar_giro()
-					get_viewport().set_input_as_handled()
-					return
-				MOUSE_BUTTON_MIDDLE:
-					camara.reiniciar_vista()
-					get_viewport().set_input_as_handled()
-					return
-	if event is InputEventMouseMotion and _girando:
+	if event is InputEventMouseMotion:
 		var m := event as InputEventMouseMotion
-		camara.girar(-m.relative.x * GIRO_CAMARA_RATON * float(Ajustes.valores.sensibilidad))
-		camara.inclinar(m.relative.y * GIRO_CAMARA_RATON * float(Ajustes.valores.sensibilidad))
+		var arrastre: bool = Interfaz.apuntando_decoracion and bool(m.button_mask & MOUSE_BUTTON_MASK_RIGHT)
+		if Interfaz.cursor_de_juego or arrastre:
+			var factor := GIRO_CAMARA_RATON * float(Ajustes.valores.sensibilidad)
+			camara.girar(-m.screen_relative.x * factor)
+			camara.inclinar(m.screen_relative.y * factor)
+			get_viewport().set_input_as_handled()
+		return
+	if event.is_action_released("usar") and combate.soltar_ataque():
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("alternar_vista"):
+		Ajustes.poner("vista", 1 if camara.primera_persona else 0)
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("camara_reiniciar"):
 		camara.reiniciar_vista()
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed("saltar"):
+	var deco := get_tree().get_first_node_in_group("decoracion_casa")
+	if deco != null and bool(deco.call("esta_decorando")):
+		if event.is_action_pressed("ui_cancel"):
+			deco.call("salir_modo_decorar")
+		elif event.is_action_pressed("usar") and event is InputEventJoypadButton:
+			deco.call("girar_mueble")
+		elif event.is_action_pressed("interactuar") or event.is_action_pressed("usar"):
+			deco.call("accion_principal")
+		else:
+			return
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("esquivar"):
+		combate.esquivar(Input.get_vector("mover_izquierda", "mover_derecha", "mover_arriba", "mover_abajo"))
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("fijar_objetivo"):
+		combate.cambiar_objetivo()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("saltar") and (not event is InputEventJoypadMotion or Input.is_action_just_pressed_by_event("saltar", event)):
 		solicitar_salto()
 		get_viewport().set_input_as_handled()
-		return
-	var deco := get_tree().get_first_node_in_group("decoracion_casa") if get_tree() != null else null
-	if deco != null and bool(deco.call("esta_decorando")):
-		if event.is_action_pressed("interactuar"):
-			deco.call("accion_principal")
-			get_viewport().set_input_as_handled()
-			return
-		elif event.is_action_pressed("usar") and not _girando:
-			deco.call("accion_principal")
-			get_viewport().set_input_as_handled()
-			return
-	if event.is_action_pressed("interactuar"):
+	elif event.is_action_pressed("interactuar"):
 		_interactuar()
 		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("usar") and not _girando:
-		if event is InputEventMouseButton:
-			_mirar_al_punto((event as InputEventMouseButton).position)
-		_usar()
+	elif event.is_action_pressed("usar"):
+		_usar(true)
 		get_viewport().set_input_as_handled()
-
-
-## Clic derecho: el cursor se oculta y el ratón gira la cámara.
-func _empezar_giro() -> void:
-	if _girando:
-		return
-	_girando = true
-	_pos_cursor = get_viewport().get_mouse_position()
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
-
-## Al soltar, el cursor vuelve a aparecer donde estaba.
-func _terminar_giro() -> void:
-	if not _girando:
-		return
-	_girando = false
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	get_viewport().warp_mouse(_pos_cursor)
-
-
-func _exit_tree() -> void:
-	if _girando:
-		_girando = false
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
-		_terminar_giro()
 
 
 func _interactuar() -> void:
 	_actualizar_interactuable()
-	if _objetivo != null and is_instance_valid(_objetivo):
-		# Mira hacia lo que va a tocar.
-		var d := _objetivo.global_position - global_position
-		d.y = 0.0
-		if d.length() > 0.2:
-			direccion = d.normalized()
-		_objetivo.call("interactuar", self)
+	var zona := _objetivo as Interactuable
+	if zona != null and zona.herramienta.is_empty():
+		_activar_interactuable(zona)
 
 
-## Gira hacia el punto del suelo bajo el cursor (el punto de uso sigue siendo 1,2 m por delante).
-func _mirar_al_punto(pantalla: Vector2) -> void:
-	var cam := camara.camara
-	if cam == null:
+func _activar_interactuable(zona: Interactuable) -> void:
+	_orientar_uso(zona.global_position)
+	zona.interactuar(self)
+
+
+func _orientar_uso(punto: Vector3) -> void:
+	direccion = direccion_de_uso(punto)
+
+
+func direccion_de_uso(punto: Vector3) -> Vector3:
+	var d := (punto - global_position).slide(Vector3.UP)
+	if camara.primera_persona:
+		return Vector3.FORWARD.rotated(Vector3.UP, camara.yaw)
+	return d.normalized() if d.length_squared() > 0.04 else direccion
+
+
+func _usar(desde_entrada: bool = false) -> void:
+	if Juego.vida <= 0.0:
 		return
-	var origen := cam.project_ray_origin(pantalla)
-	var rayo := cam.project_ray_normal(pantalla)
-	if rayo.y >= -0.01:
+	var objetivo_mira := apuntar()
+	var zona := objetivo_mira.get("interactuable") as Interactuable
+	# Con un enemigo en la mira se ataca aunque haya un punto interactuable detrás (raíles, carteles…).
+	if zona != null and objetivo_mira.get("colision") is Enemigo:
+		zona = null
+	if zona != null and zona.herramienta.is_empty():
+		_activar_interactuable(zona)
 		return
-	var t := (global_position.y - origen.y) / rayo.y
-	if t <= 0.0:
-		return
-	var p := origen + rayo * t
-	var d := p - global_position
-	d.y = 0.0
-	if d.length() > 0.25:
-		direccion = d.normalized()
-
-
-func _usar() -> void:
 	if _t_herramienta > 0.0:
 		return
 	var obj := Juego.objeto_activo()
-	if obj.is_empty():
-		return
-	var id := str(obj["id"])
+	var id := str(obj.get("id", ""))
 	var datos := Datos.objeto(id)
+	var impacto := objetivo_mira.get("colision") as Node
+	if desde_entrada and datos.get("tipo") == "arma":
+		combate.preparar_ataque(id, impacto)
+		return
+	if zona != null:
+		if id == zona.herramienta:
+			_activar_interactuable(zona)
+		elif _t_aviso_uso <= 0.0:
+			_t_aviso_uso = PAUSA_AVISO_USO
+			Interfaz.mensaje("Necesitas usar %s." % Datos.nombre_objeto(zona.herramienta))
+		return
+	if id.is_empty():
+		return
+	if datos.get("tipo") == "equipo":
+		Juego.equipar(Juego.ranura)
+		return
+	if desde_entrada and combate.preparar_ataque(id, impacto):
+		return
 	if datos.get("tipo", "") == "comida":
 		Juego.comer(id)
 		return
@@ -616,23 +666,44 @@ func _usar() -> void:
 			return
 		Interfaz.mensaje(motivo_sin_efecto(id))
 		return
-	var punto := punto_delante(DIST_USAR)
-	var candidatos: Array[Node3D] = []
-	for n: Node in get_tree().get_nodes_in_group("usable"):
-		var n3 := n as Node3D
-		if n3 != null and n3.is_inside_tree() and n3.has_method("usar"):
-			candidatos.append(n3)
-	candidatos.sort_custom(func(a: Node3D, b: Node3D) -> bool:
-		return a.global_position.distance_squared_to(punto) < b.global_position.distance_squared_to(punto))
-	var avisos_antes := Interfaz.avisos_emitidos
-	for n3 in candidatos:
-		if bool(n3.call("usar", id, punto, self)):
+	var punto: Vector3 = objetivo_mira.get("punto", Vector3.INF)
+	var destino := objetivo_mira.get("colision") as Node
+	while destino != null and not destino.is_in_group("usable"):
+		destino = destino.get_parent()
+	if destino == null and punto.is_finite():
+		var parcelas := get_tree().get_first_node_in_group("parcelas_apuntables") as Parcelas
+		if parcelas != null and not parcelas.celda_apuntada(objetivo_mira).is_empty():
+			destino = parcelas
+	if id == "cana" and destino == null:
+		destino = get_tree().get_first_node_in_group("zona_pesca")
+		if destino != null:
+			punto = _lance_de_pesca()
+	var avisos_antes: int = Interfaz.avisos_emitidos
+	if destino != null and punto.is_finite():
+		_orientar_uso(punto)
+		if bool(destino.call("usar", id, punto, self)):
 			animar_herramienta()
 			return
 	# Nadie ha hecho nada: si tampoco ha avisado de por qué, lo decimos nosotros (sin repetirlo en cada clic).
 	if Interfaz.avisos_emitidos == avisos_antes and _t_aviso_uso <= 0.0:
 		_t_aviso_uso = PAUSA_AVISO_USO
 		Interfaz.mensaje(motivo_sin_efecto(id))
+
+
+func _lance_de_pesca() -> Vector3:
+	# El agua no tiene cuerpo físico. Se toma un punto de la mira a corta distancia por delante de Leo.
+	var origen := camara.camara.global_position
+	var frente := camara.direccion_mira()
+	var distancia := maxf(0.0, (camara.posicion_mano() - origen).dot(frente)) + APUNTADO.ALCANCE
+	var impacto := camara.rayo_central(CamaraJuego.MASCARA_SOLIDA, distancia)
+	var normal: Vector3 = impacto.get("normal", Vector3.UP)
+	if normal.y < 0.25:
+		return Vector3.INF
+	var punto: Vector3 = impacto.get("position", origen + frente * distancia)
+	var obstaculo := camara.rayo_entre(camara.posicion_mano(), punto, CamaraJuego.MASCARA_SOLIDA)
+	if not obstaculo.is_empty() and punto.distance_to(obstaculo.position) > 0.15:
+		return Vector3.INF
+	return punto
 
 
 ## Por qué no pasa nada al usar este objeto en este sitio.
@@ -672,10 +743,9 @@ func _cargar_modelo() -> void:
 			var anims := inst.find_children("*", "AnimationPlayer", true, false)
 			if not anims.is_empty():
 				_anim = anims[0] as AnimationPlayer
-				for nombre in ["reposo", "andar", "reposo_herramienta", "andar_herramienta", "agachado_reposo", "agachado_andar", "caer"]:
-					var a := _anim.get_animation(nombre)
-					if a != null:
-						a.loop_mode = Animation.LOOP_LINEAR
+				for nombre in ["reposo", "andar", "reposo_herramienta", "andar_herramienta", "agachado_reposo", "agachado_andar", "caer", "combate_reposo"]:
+					if _anim.has_animation(nombre):
+						_anim.get_animation(nombre).loop_mode = Animation.LOOP_LINEAR
 				for nombre in ["herramienta", "saltar", "aterrizar", "usar_pico", "usar_hacha", "usar_azada", "usar_regadera", "usar_hoz", "usar_semilla", "usar_cana"]:
 					var a := _anim.get_animation(nombre)
 					if a != null:
@@ -724,11 +794,31 @@ func _reproducir(nombre: String, mezcla: float = 0.15, velocidad: float = 1.0) -
 		_anim.play(nombre, mezcla)
 
 
+func animar_combate(nombre: String, duracion: float) -> void:
+	if _anim == null or not _anim.has_animation(nombre):
+		return
+	var clip := _anim.get_animation(nombre)
+	_anim_actual = nombre
+	_anim.speed_scale = clip.length / duracion if duracion > 0.0 else 1.0
+	_anim.play(nombre, 0.07)
+	_anim.seek(0.0)
+
+
+func recibir_ataque(cantidad: float, atacante: Enemigo, origen: Vector3, admite_parada: bool = true) -> void:
+	combate.recibir_ataque(cantidad, atacante, origen, admite_parada)
+
+
+func caer_desmayado() -> void:
+	animar_combate("combate_desmayo", 0.68)
+	velocity = Vector3.ZERO
+
+
 func _configurar_soporte_mano(inst: Node3D) -> void:
 	var skels := inst.find_children("*", "Skeleton3D", true, false)
 	if skels.is_empty():
 		return
 	var sk := skels[0] as Skeleton3D
+	_vista_leo.preparar(inst, sk)
 	var hueso := _buscar_hueso_mano_derecha(sk)
 	if hueso.is_empty():
 		return
@@ -742,6 +832,28 @@ func _configurar_soporte_mano(inst: Node3D) -> void:
 	soporte.position = Vector3(-0.025, 0.078, 0.005)
 	adjunto.add_child(soporte)
 	_mano_soporte = soporte
+	var izquierda := BoneAttachment3D.new()
+	izquierda.name = "ManoIzquierda"
+	izquierda.bone_name = "DEF-hand.L"
+	if sk.find_bone(izquierda.bone_name) >= 0:
+		sk.add_child(izquierda)
+		var empunadura := Node3D.new()
+		empunadura.position = Vector3(0.025, 0.074, 0.006)
+		izquierda.add_child(empunadura)
+		_izquierda_soporte = empunadura
+	else:
+		izquierda.free()
+	var cadera := BoneAttachment3D.new()
+	cadera.name = "CaderaIzquierda"
+	cadera.bone_name = "DEF-spine"
+	if sk.find_bone(cadera.bone_name) >= 0:
+		sk.add_child(cadera)
+		var ancla := Node3D.new()
+		ancla.position = Vector3(-0.24, 0.02, 0.09)
+		cadera.add_child(ancla)
+		_farol_soporte_cadera = ancla
+	else:
+		cadera.free()
 
 
 func _buscar_hueso_mano_derecha(sk: Skeleton3D) -> String:
@@ -775,12 +887,16 @@ func _actualizar_objeto_en_mano() -> void:
 		_herramienta_nodo = null
 	if _mano_soporte == null or id.is_empty():
 		return
-	var clave := _modelo_para_objeto(id)
+	var datos := Datos.objeto(id)
+	var es_arma: bool = datos.get("tipo") == "arma"
+	var clave := str(datos.get("modelo", "")) if es_arma else _modelo_para_objeto(id)
+	if datos.get("tipo") == "equipo":
+		return
 	if clave.is_empty():
 		return
 	var ps: PackedScene = _modelos_mano.get(clave, null) as PackedScene
 	if ps == null:
-		var ruta := RUTA_HERRAMIENTAS % clave
+		var ruta := "res://assets/combate/%s.glb" % clave if es_arma else RUTA_HERRAMIENTAS % clave
 		if not ResourceLoader.exists(ruta):
 			return
 		ps = load(ruta) as PackedScene
@@ -791,8 +907,116 @@ func _actualizar_objeto_en_mano() -> void:
 	if inst == null:
 		return
 	_aplicar_nivel_herramienta(inst, id, nivel)
+	if es_arma:
+		_aplicar_temple(inst, int(datos.get("grado", 0)))
 	_mano_soporte.add_child(inst)
 	_herramienta_nodo = inst
+
+
+func _actualizar_escudo() -> void:
+	if _izquierda_soporte == null:
+		return
+	var id := str(Juego.equipo.get("escudo", ""))
+	if id == _escudo_actual:
+		return
+	_escudo_actual = id
+	if is_instance_valid(_escudo_nodo):
+		_izquierda_soporte.remove_child(_escudo_nodo)
+		_escudo_nodo.queue_free()
+		_escudo_nodo = null
+	if id.is_empty() or not ResourceLoader.exists("res://assets/combate/escudo.glb"):
+		_reubicar_farol_tercera()
+		return
+	var escena := load("res://assets/combate/escudo.glb") as PackedScene
+	_escudo_nodo = escena.instantiate() as Node3D
+	_aplicar_temple(_escudo_nodo, int(Datos.objeto(id).get("grado", 0)))
+	_izquierda_soporte.add_child(_escudo_nodo)
+	_reubicar_farol_tercera()
+
+
+func _preparar_modelos_farol() -> void:
+	const RUTA_FAROL := "res://assets/mina/farol_leo.glb"
+	if not ResourceLoader.exists(RUTA_FAROL):
+		return
+	var escena := load(RUTA_FAROL) as PackedScene
+	if escena == null:
+		return
+	if camara != null and camara.camara != null:
+		var f1 := escena.instantiate() as Node3D
+		if f1 != null:
+			f1.name = "FarolPrimeraPersona"
+			f1.position = Vector3(-0.37, -0.15, -0.44)
+			f1.scale = Vector3.ONE * 0.54
+			f1.rotation_degrees = Vector3(3.0, 14.0, -3.0)
+			_desactivar_sombras_farol(f1)
+			camara.camara.add_child(f1)
+			_farol_primera = f1
+	var f3 := escena.instantiate() as Node3D
+	if f3 != null:
+		f3.name = "FarolTerceraPersona"
+		f3.scale = Vector3.ONE * 0.85
+		_desactivar_sombras_farol(f3)
+		_farol_tercera = f3
+		_reubicar_farol_tercera()
+	_actualizar_visibilidad_farol()
+
+
+static func _desactivar_sombras_farol(raiz: Node3D) -> void:
+	for mi: MeshInstance3D in raiz.find_children("*", "MeshInstance3D", true, false):
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+func _reubicar_farol_tercera() -> void:
+	if _farol_tercera == null:
+		return
+	var destino: Node3D = _farol_soporte_cadera if (_escudo_nodo != null or _izquierda_soporte == null) else _izquierda_soporte
+	if destino == null:
+		destino = _modelo
+	if _farol_tercera.get_parent() != destino:
+		if _farol_tercera.get_parent() != null:
+			_farol_tercera.get_parent().remove_child(_farol_tercera)
+		destino.add_child(_farol_tercera)
+	_farol_tercera.position = Vector3.ZERO if destino != _modelo else Vector3(-0.34, 1.05, 0.14)
+
+
+func _actualizar_visibilidad_farol() -> void:
+	var activo := _farol != null and _farol.visible
+	var primera := camara != null and camara.cabeza_oculta
+	if _farol_primera != null:
+		_farol_primera.visible = activo and primera
+	if _farol_tercera != null:
+		_farol_tercera.visible = activo and not primera
+
+
+func _actualizar_farol(delta: float, rapidez: float, en_suelo: bool) -> void:
+	if _farol == null or not _farol.visible:
+		return
+	_farol_tiempo += delta
+	var reducir: bool = Ajustes.valores.reducir_movimiento
+	var parpadeo := 0.96 + 0.04 * sin(_farol_tiempo * 9.5) + 0.025 * cos(_farol_tiempo * 15.7)
+	_farol.light_energy = _farol_energia_base * (1.0 if reducir else parpadeo)
+	if _farol_primera != null and _farol_primera.visible:
+		var amp := 0.0 if (reducir or not en_suelo) else clampf(rapidez / 6.0, 0.0, 1.0)
+		var osc_x := sin(_farol_tiempo * 7.2) * 0.008 * amp
+		var osc_y := absf(cos(_farol_tiempo * 7.2)) * 0.010 * amp
+		_farol_primera.position = Vector3(-0.37 + osc_x, -0.15 - osc_y, -0.44)
+		_farol_primera.rotation_degrees = Vector3(3.0 + osc_y * 180.0, 14.0, -3.0 - osc_x * 260.0)
+	if _farol_tercera != null and _farol_tercera.visible and not reducir:
+		var balanceo := clampf(rapidez / 6.0, 0.0, 1.0) * 14.0 * sin(_farol_tiempo * 6.8)
+		_farol_tercera.rotation_degrees = Vector3(balanceo, 0.0, sin(_farol_tiempo * 3.1) * 4.0)
+
+
+func _aplicar_temple(raiz: Node3D, grado: int) -> void:
+	var tonos := [Color(0.97, 0.76, 0.64), Color(0.85, 0.94, 1), Color(0.94, 0.96, 1)]
+	for mi: MeshInstance3D in raiz.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null:
+			continue
+		for i in mi.mesh.get_surface_count():
+			var base := mi.get_active_material(i) as BaseMaterial3D
+			if base != null:
+				var acabado := base.duplicate() as BaseMaterial3D
+				acabado.albedo_color *= tonos[clampi(grado, 0, 2)]
+				mi.set_surface_override_material(i, acabado)
 
 
 func _modelo_para_objeto(id: String) -> String:

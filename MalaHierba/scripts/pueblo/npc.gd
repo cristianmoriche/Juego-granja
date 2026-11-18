@@ -13,6 +13,10 @@ const VEL_PASEO := 0.9
 const VEL_VIAJE := 1.7
 const GRAVEDAD := 24.0
 const PALABRAS_ROPA: Array[String] = ["chal", "falda", "chaleco", "bufanda", "pano"]
+## Modelos propios de los vecinos (2026-11-16, riggeados por un compañero): sus animaciones se llaman Idle, Walk, Talk
+## y una de oficio distinta en cada uno (Hammer_Forge, Count_Coins…). Se dan de alta con los nombres del juego.
+const ALIAS_ANIM := {"reposo": ["Idle"], "andar": ["Walk"], "saludar": ["Wave_Greeting", "Talk"], "hablar": ["Talk"]}
+const ANIMS_BASE: Array[String] = ["Idle", "Walk", "Talk", "Wave_Greeting", "reposo", "andar", "saludar", "hablar", "RESET"]
 
 var datos: Dictionary = {}
 var id: String = ""
@@ -30,6 +34,8 @@ var _t_saludo_animado: float = 0.0
 var _modelo: Node3D = null
 var _anim: AnimationPlayer = null
 var _anim_actual: String = ""
+## Animación de oficio del modelo propio (vacía en los modelos antiguos); la hace de vez en cuando estando quieto.
+var _anim_oficio: String = ""
 var _punto: Interactuable = null
 var _estado: String = "quieto"        # quieto | andando
 var _viajando: bool = false
@@ -105,9 +111,15 @@ func ir_a(pos: Vector3, clave_sitio: String) -> void:
 func empezar_charla(jugador: Node3D) -> void:
 	_t_charla = 1.0
 	_mirar_a = jugador.global_position
+	if jugador.has_method("encuadrar_interlocutor"):
+		jugador.call("encuadrar_interlocutor", self)
 	_estado = "quieto"
 	_t_saludo = 2.0
 	_reproducir("saludar", 0.15)
+
+
+func punto_ojos() -> Vector3:
+	return global_position + Vector3.UP * (_alto_visible - 0.14)
 
 
 ## Aparece con un pequeño crecimiento (llega a su sitio según el horario).
@@ -175,6 +187,11 @@ func _paseo(delta: float) -> Vector3:
 				_t_saludo = 1.15
 				_t_saludo_animado = randf_range(7.0, 14.0)
 				_reproducir("saludar", 0.2)
+		if not _anim_oficio.is_empty() and _t_saludo <= 0.0 and _espera > 1.0 and randf() < 0.0015:
+			var largo := _anim.get_animation(_anim_oficio).length
+			_t_saludo = largo
+			_espera = maxf(_espera, largo + 0.3)
+			_reproducir(_anim_oficio, 0.25)
 		if _espera <= 0.0 and radio > 0.2:
 			_elegir_destino()
 		return Vector3.ZERO
@@ -242,6 +259,8 @@ func _animar(horizontal: Vector3) -> void:
 		return
 	if horizontal.length() > 0.05:
 		_reproducir("andar", 0.2, 1.15 if _viajando else 0.8)
+	elif _t_charla > 0.0 and _anim != null and _anim.has_animation("hablar"):
+		_reproducir("hablar", 0.25)
 	else:
 		_reproducir("reposo", 0.25)
 
@@ -273,20 +292,74 @@ func _cargar_modelo() -> void:
 			var anims := inst.find_children("*", "AnimationPlayer", true, false)
 			if not anims.is_empty():
 				_anim = anims[0] as AnimationPlayer
-				for a in ["reposo", "andar"]:
-					var an := _anim.get_animation(a)
+				_alias_animaciones()
+				for a in ["reposo", "andar", "hablar"]:
+					var an: Animation = _anim.get_animation(a) if _anim.has_animation(a) else null
 					if an != null:
 						an.loop_mode = Animation.LOOP_LINEAR
 				var sal := _anim.get_animation("saludar")
-				if sal != null:
+				var habla: Animation = _anim.get_animation("hablar") if _anim.has_animation("hablar") else null
+				if sal != null and sal != habla:
 					sal.loop_mode = Animation.LOOP_NONE
+				if not _anim_oficio.is_empty():
+					_anim.get_animation(_anim_oficio).loop_mode = Animation.LOOP_NONE
 				_reproducir("reposo", 0.0)
 			_teñir(inst, datos.get("tinte", {}))
+			var propio := modelo == id
+			if propio:
+				_quitar_metal(inst)
 			var sombrero := str(datos.get("sombrero", ""))
-			if not sombrero.is_empty():
+			if not sombrero.is_empty() and not propio:
 				_poner_sombrero(inst, sombrero, esc)
 			return
 	_modelo_de_emergencia()
+
+
+## Materiales ya corregidos por `_quitar_metal` (original → copia), para que las instancias compartan la copia.
+static var _sin_metal: Dictionary = {}
+
+
+## Los modelos propios traen `metallicRoughnessTexture` sin `metallicFactor` (glTF lo toma como 1) y con la piel casi
+## lisa en la textura de rugosidad: la piel y las manos brillaban como plástico. Se dejan sin metal, mates y con poco
+## reflejo especular; la textura de color no se toca.
+func _quitar_metal(inst: Node3D) -> void:
+	for n in inst.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		for s in mi.mesh.get_surface_count():
+			var m := mi.get_active_material(s) as BaseMaterial3D
+			if m == null or m.metallic_texture == null:
+				continue
+			if not _sin_metal.has(m):
+				var copia := m.duplicate() as BaseMaterial3D
+				copia.metallic = 0.0
+				copia.metallic_texture = null
+				copia.roughness_texture = null
+				copia.roughness = 0.88
+				copia.metallic_specular = 0.25
+				_sin_metal[m] = copia
+			mi.set_surface_override_material(s, _sin_metal[m])
+
+
+## Da a las animaciones de los modelos nuevos (Idle, Walk, Talk…) los nombres que usa el juego y localiza la de oficio.
+## La biblioteca es compartida entre instancias del mismo modelo: solo se añade lo que falte.
+func _alias_animaciones() -> void:
+	var lib := _anim.get_animation_library("")
+	if lib == null:
+		return
+	for nuevo: String in ALIAS_ANIM:
+		if lib.has_animation(nuevo):
+			continue
+		for orig: String in ALIAS_ANIM[nuevo]:
+			if lib.has_animation(orig):
+				lib.add_animation(nuevo, lib.get_animation(orig))
+				break
+	if lib.has_animation("Idle"):
+		for a in lib.get_animation_list():
+			if not ANIMS_BASE.has(str(a)):
+				_anim_oficio = str(a)
+				break
 
 
 ## Cambia el color de pelo y de la ropa lisa (los materiales sin textura) de este vecino sin tocar el modelo compartido.

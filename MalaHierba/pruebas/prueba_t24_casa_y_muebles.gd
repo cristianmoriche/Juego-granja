@@ -144,6 +144,42 @@ func _ejecutar() -> void:
 	_chk(Juego.cantidad("mesa_roble") == 1, "mesa_roble vuelve al inventario")
 	var rec2 := deco.recoger_mueble_en_celda(Vector2i(5, 4))
 	_chk(rec2 == "alfombra_roja", "Segundo recoger en (5,4) devuelve alfombra_roja (%s)" % rec2)
+	Juego.anadir_objeto("silla_roble", 1)
+	var leo := Escenas.jugador() as Jugador
+	var centro := DecoracionCasa.centro_mundo(5, 4, "silla_roble", 0, 0.015)
+	for vista in [0, 1]:
+		Ajustes.valores["vista"] = vista
+		Ajustes.cambiado.emit("vista")
+		leo.colocar(centro + Vector3(0.0, 0.04, 1.5), NAN, 0.0)
+		await get_tree().create_timer(0.40).timeout
+		deco.entrar_modo_decorar("silla_roble")
+		leo.camara.mirar_hacia(centro)
+		await get_tree().create_timer(0.15).timeout
+		_chk(deco._cursor_valido and deco._cursor_celda == Vector2i(5, 4), "la mira de vista %d marca la casilla (5,4)" % vista)
+		Interfaz.abrir_carpinteria()
+		await get_tree().process_frame
+		await get_tree().process_frame
+		_chk(not Interfaz.cursor_de_juego, "la carpintería libera el ratón al decorar")
+		Interfaz.cerrar_todo()
+		await get_tree().process_frame
+		await get_tree().process_frame
+		_chk(not Interfaz.cursor_de_juego and Interfaz.apuntando_decoracion and deco.esta_decorando(),
+			"se retoma la mira con el cursor libre al cerrar la carpintería")
+		var accion: InputEvent
+		if vista == 0:
+			var clic := InputEventMouseButton.new()
+			clic.button_index = MOUSE_BUTTON_LEFT
+			clic.position = get_viewport().get_visible_rect().get_center()
+			clic.pressed = true
+			accion = clic
+		else:
+			var boton := InputEventJoypadButton.new()
+			boton.button_index = JOY_BUTTON_A
+			boton.pressed = true
+			accion = boton
+		get_viewport().push_input(accion)
+		_chk(deco.recoger_mueble_en_celda(Vector2i(5, 4)) == "silla_roble", "la vista %d confirma la colocación en la casilla apuntada" % vista)
+		deco.salir_modo_decorar()
 
 	# 7. Persistencia en guardado + carga de partida.
 	_chk(Juego.guardar(), "Guardar partida con muebles colocados")

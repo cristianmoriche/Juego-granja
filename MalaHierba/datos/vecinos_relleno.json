@@ -18,9 +18,7 @@
       {"estaciones": [1], "desde": 1170, "hasta": 1320, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [2.2, -1.8], "radio": 3.0},
       {"estaciones": [3], "desde": 900, "hasta": 1260, "mapa": "taberna", "marcador": "Interaccion_chimenea", "desplazar": [1.5, 0.2], "radio": 1.4}
     ],
-    "modelo": "tendera",
-    "escala": 0.96,
-    "tinte": {"ropa": "#4f7a8c", "pelo": "#2b2623"},
+    "modelo": "marisol",
     "sombrero": "",
     "dialogos": [
       "Buenos días. Salgo a dar mi vuelta antes de que apriete el calor. A mi edad, si no camino, me oxido.",
@@ -64,10 +62,8 @@
       {"estaciones": [1], "desde": 1170, "hasta": 1320, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-2.5, -2.0], "radio": 3.0},
       {"estaciones": [3], "desde": 900, "hasta": 1260, "mapa": "taberna", "marcador": "Interaccion_mesas", "desplazar": [-0.5, 0.5], "radio": 1.2}
     ],
-    "modelo": "alcalde",
-    "escala": 0.97,
-    "tinte": {"ropa": "#5b6b4a", "pelo": "#d9d6cc"},
-    "sombrero": "boina",
+    "modelo": "eusebio",
+    "sombrero": "",
     "dialogos": [
       "Hum. Hoy se me ha escapado la tarde mirando las nubes. A las ovejas ya no las llevo, pero la costumbre queda.",
       "Cuando yo era chico, esta plaza era mercado los jueves. Venía gente de tres valles a vender queso.",
@@ -107,9 +103,7 @@
       {"estaciones": [1], "desde": 1140, "hasta": 1320, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [3.2, -1.0], "radio": 3.5},
       {"estaciones": [3], "desde": 840, "hasta": 1080, "mapa": "taberna", "marcador": "Entrada", "desplazar": [-1.2, 0.8], "radio": 1.2}
     ],
-    "modelo": "tendera",
-    "escala": 1.0,
-    "tinte": {"ropa": "#7a5f8c", "pelo": "#6b3a1e"},
+    "modelo": "lucia",
     "sombrero": "",
     "dialogos": [
       "Hola, soy Lucía, la maestra. Tengo cuatro alumnos en total. Cuatro, sí, pero son los mejores del mundo.",
@@ -151,10 +145,8 @@
       {"estaciones": [1], "desde": 840, "hasta": 1020, "mapa": "pueblo", "marcador": "Spawn_Herrero", "desplazar": [-1.8, -0.4], "radio": 1.2},
       {"estaciones": [2], "desde": 480, "hasta": 720, "mapa": "pueblo", "marcador": "Spawn_Herrero", "desplazar": [-2.8, 3.5], "radio": 4.5}
     ],
-    "modelo": "tabernero",
-    "escala": 1.03,
-    "tinte": {"ropa": "#8c4a3a", "pelo": "#3a2a1c"},
-    "sombrero": "paja",
+    "modelo": "bernardo",
+    "sombrero": "",
     "dialogos": [
       "Eh, vecino. Bajo del monte con la leña justa; esta noche promete helada.",
       "El hacha buena es la que se afila antes de que haga falta. Pregúntale a Clara, que de eso sabe.",
@@ -192,9 +184,7 @@
       {"dias": [2], "desde": 960, "hasta": 1200, "se_va": 1200, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-1.6, -1.2], "radio": 2.4},
       {"estaciones": [3], "llega": 420, "se_va": 1080, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-2.0, -2.5], "radio": 3.0}
     ],
-    "modelo": "nino",
-    "escala": 0.97,
-    "tinte": {"ropa": "#c25a3e", "pelo": "#1f1814"},
+    "modelo": "irene",
     "sombrero": "",
     "dialogos": [
       "¡Hola! Estoy esperando a Pablo para jugar a pillar. Siempre llega tarde porque su madre le hace terminar la sopa.",
@@ -254,10 +244,8 @@
       {"dias": [6], "desde": 600, "hasta": 1080, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [4.2, -2.8], "radio": 4.0},
       {"lluvia": true, "desde": 540, "hasta": 1080, "mapa": "mina_exterior", "marcador": "Spawn_Minero", "desplazar": [-1.0, -1.2], "radio": 1.0}
     ],
-    "modelo": "tendera",
-    "escala": 0.98,
-    "tinte": {"ropa": "#3f7f6a", "pelo": "#a2532a"},
-    "sombrero": "paja",
+    "modelo": "gema",
+    "sombrero": "",
     "dialogos": [
       "Hola. Estudio las vetas de esta ladera para la universidad. Dicen que aquí hay más cobre del que se sacó nunca.",
       "Fíjate en el color de la roca: la parte rojiza avisa del cobre y la gris azulada, del hierro.",

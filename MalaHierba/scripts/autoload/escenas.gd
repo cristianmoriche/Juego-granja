@@ -88,6 +88,9 @@ func ir_a_mapa(id_mapa: String, marcador: String = "Spawn_Protagonista") -> void
 func precargar_mapa(id_mapa: String) -> void:
 	if id_mapa.is_empty():
 		return
+	if id_mapa in CargadorMapa.MAPAS_EXTERIORES:
+		var estacion := clampi(Juego.estacion, 0, 3)
+		CieloH03.solicitar_hora(Juego.minutos, CicloDia.AMANECER[estacion], CicloDia.ATARDECER[estacion])
 	var rutas: PackedStringArray = PackedStringArray([RUTA_MAPA % id_mapa, RUTA_JUGADOR])
 	rutas.append_array(CargadorMapa.rutas_mapa(id_mapa))
 	var v := get_node_or_null("/root/Vecinos")
@@ -161,12 +164,9 @@ func _colocar_jugador(j: Node3D, mapa: Node3D, nombre_marcador: String, posicion
 				m = mapa.call("marcador", "Spawn_Protagonista") as Marker3D
 		if m != null:
 			pos = m.global_position
-			if nombre_marcador == "Entrada" or nombre_marcador.begins_with("Puerta_"):
-				var frente := m.global_transform.basis.z
-				frente.y = 0.0
-				if frente.length() > 0.01:
-					frente = frente.normalized()
-					giro = atan2(frente.x, frente.z)
+			var frente := m.global_basis.z.slide(Vector3.UP)
+			if frente.length_squared() > 0.001:
+				giro = atan2(frente.x, frente.z)
 			tiene_pos = true
 	# Los colliders recién creados no cuentan hasta el siguiente fotograma de física.
 	await get_tree().physics_frame
@@ -187,16 +187,44 @@ func _colocar_jugador(j: Node3D, mapa: Node3D, nombre_marcador: String, posicion
 		pos = hit["position"]
 	elif not tiene_pos:
 		pos.y = 1.0
-	# Cámara: el giro del marcador Camara_juego del mapa (si existe).
+	# En una entrada orientada, mira hacia el interior. En otros puntos, ajusta el giro si hay una pared enfrente.
 	var giro_camara := 0.0
 	if mapa.has_method("giro_camara"):
 		giro_camara = float(mapa.call("giro_camara"))
+	if not is_nan(giro):
+		giro_camara = wrapf(giro + PI, -PI, PI)
+		if str(mapa.get("id_mapa")) == "mina_interior":
+			giro_camara = _rumbo_despejado(espacio, pos, giro_camara, PI * 0.25)
+	else:
+		giro_camara = _rumbo_despejado(espacio, pos, giro_camara)
 	if j.has_method("colocar"):
 		j.call("colocar", pos + Vector3(0, 0.05, 0), giro, giro_camara)
 	else:
 		j.global_position = pos
 	if j.has_method("configurar_para_mapa"):
 		j.call("configurar_para_mapa", mapa)
+
+
+func _rumbo_despejado(espacio: PhysicsDirectSpaceState3D, pos: Vector3, inicial: float, limite: float = PI) -> float:
+	var origen := pos + Vector3.UP * 1.60
+	var consulta := PhysicsRayQueryParameters3D.create(origen, origen, 1 | 64 | 128)
+	consulta.hit_from_inside = true
+	var rumbo := inicial
+	var mejor := 0.0
+	for giro in [0.0, PI * 0.125, -PI * 0.125, PI * 0.25, -PI * 0.25, PI * 0.5, -PI * 0.5, PI]:
+		if absf(giro) > limite:
+			continue
+		var angulo := inicial + float(giro)
+		consulta.to = origen + Vector3.FORWARD.rotated(Vector3.UP, angulo) * 3.0
+		var pared := espacio.intersect_ray(consulta)
+		var metros := 3.0 if pared.is_empty() else origen.distance_to(pared.position)
+		if is_zero_approx(giro) and metros >= 1.35:
+			return inicial
+		var puntos := metros - absf(giro) * 0.15
+		if puntos > mejor:
+			mejor = puntos
+			rumbo = angulo
+	return wrapf(rumbo, -PI, PI)
 
 
 ## Continúa la partida guardada: carga el estado y entra en el mapa donde se guardó.
@@ -222,17 +250,23 @@ func continuar_partida() -> void:
 # --- Dormir y fin de año ------------------------------------------------------------------
 
 ## Fundido a negro, cierra el día y despierta en la granja (o va al final si acaba el año).
-func secuencia_dormir(desmayo: bool) -> void:
+func secuencia_dormir(desmayo: bool, por_heridas: bool = false) -> void:
 	if en_transicion:
 		# Ya hay un cambio en curso: se cierra el día sin más y la próxima carga reflejará la fecha nueva.
 		Juego.terminar_dia(desmayo)
 		return
 	en_transicion = true
 	_fin_solicitado = false
+	var leo := jugador()
+	if por_heridas and leo != null:
+		leo.call("caer_desmayado")
+		await get_tree().create_timer(0.68).timeout
 	await Interfaz.fundido_a_negro(0.6)
 	var sigue := Juego.terminar_dia(desmayo, false)
 	if sigue:
-		await _ir_a_mapa_interno(mapa_de_despertar, marcador_de_despertar, Vector3.INF)
+		var mapa := "casa_leo" if por_heridas else mapa_de_despertar
+		var marcador := "Spawn_Protagonista" if por_heridas else marcador_de_despertar
+		await _ir_a_mapa_interno(mapa, marcador, Vector3.INF)
 		# El autoguardado debe conservar el mapa y la posición donde Leo despierta.
 		Juego.guardar()
 		if desmayo:

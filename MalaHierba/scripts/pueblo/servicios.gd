@@ -60,14 +60,15 @@ static func menu_herreria(nombre_herrera: String) -> void:
 			continue
 		herr.append(h)
 		textos.append({"texto": texto_mejora(m), "icono": Datos.id_icono(h, int(m.get("nivel", 0)))})
-	if herr.is_empty():
-		Interfaz.mostrar_dialogo(nombre_herrera, ["Ya no puedo mejorar nada más de lo que llevas. Tienes las mejores herramientas del valle."])
-		return
+	textos.append("Comprar o forjar armas y armaduras")
 	textos.append("Nada, gracias")
-	Interfaz.preguntar("¿Qué herramienta quieres mejorar? Necesito el metal y el pago.", textos, _mejora_elegida.bind(herr, nombre_herrera))
+	Interfaz.preguntar("¿Qué necesitas de la herrería?", textos, _mejora_elegida.bind(herr, nombre_herrera))
 
 
 static func _mejora_elegida(i: int, herr: Array[String], nombre_herrera: String) -> void:
+	if i == herr.size():
+		Interfaz.abrir_tienda("forja")
+		return
 	if i < 0 or i >= herr.size():
 		return
 	var h := herr[i]

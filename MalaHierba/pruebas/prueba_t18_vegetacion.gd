@@ -122,17 +122,25 @@ func _comprobar_instancias(id_m: String, cont: Node) -> void:
 		var es_planta_foliage := _tiene_prefijo(proto, PREFIJOS_FOLIAGE)
 
 		for i in sup_cnt:
-			var sm := mesh.surface_get_material(i) as StandardMaterial3D
+			var material := mesh.surface_get_material(i)
+			var arr := mesh.surface_get_arrays(i)
+			if arr.size() <= Mesh.ARRAY_TEX_UV or arr[Mesh.ARRAY_TEX_UV] == null:
+				fallos.append("%s proto %s sup %d sin UV" % [id_m, proto, i])
+			if material is ShaderMaterial and material.shader.resource_path == "res://shaders/follaje_h03.gdshader":
+				tiene_recorte = true
+				if material.get_shader_parameter("albedo_tex") == null:
+					fallos.append("%s proto %s sup %d sin textura albedo" % [id_m, proto, i])
+				if "ALPHA_SCISSOR_THRESHOLD" not in material.shader.code or "cull_disabled" not in material.shader.code:
+					fallos.append("%s proto %s sup %d sin recorte de doble cara" % [id_m, proto, i])
+				continue
+			var sm := material as StandardMaterial3D
 			if sm == null:
-				fallos.append("%s proto %s sup %d no es StandardMaterial3D" % [id_m, proto, i])
+				fallos.append("%s proto %s sup %d tiene un material inesperado" % [id_m, proto, i])
 				continue
 			if String(sm.resource_name).begins_with("ORIG_"):
 				fallos.append("%s proto %s conserva ORIG_ (%s)" % [id_m, proto, sm.resource_name])
 			if sm.albedo_texture == null:
 				fallos.append("%s proto %s sup %d sin textura albedo" % [id_m, proto, i])
-			var arr := mesh.surface_get_arrays(i)
-			if arr.size() <= Mesh.ARRAY_TEX_UV or arr[Mesh.ARRAY_TEX_UV] == null:
-				fallos.append("%s proto %s sup %d sin UV" % [id_m, proto, i])
 			if sm.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA:
 				fallos.append("%s proto %s sup %d usa transparencia mezclada en lugar de recorte" % [id_m, proto, i])
 			if sm.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR:

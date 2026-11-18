@@ -15,7 +15,7 @@
       {"dias": [6], "desde": 840, "hasta": 1200, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-3.0, 1.2], "radio": 2.8},
       {"estaciones": [1], "desde": 1170, "hasta": 1320, "se_va": 1320, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [-1.5, -2.5], "radio": 3.0}
     ],
-    "modelo": "herrero",
+    "modelo": "mateo",
     "tienda": "tienda_mateo",
     "gusta": ["patata", "col", "calabaza"],
     "no_gusta": ["fibra", "piedra"],
@@ -59,7 +59,7 @@
       {"dias": [6], "desde": 840, "hasta": 1200, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [1.8, 1.8], "radio": 3.0},
       {"estaciones": [2], "desde": 720, "hasta": 840, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Herrero", "desplazar": [-2.2, 1.5], "radio": 2.2}
     ],
-    "modelo": "tendera",
+    "modelo": "clara",
     "tienda": "",
     "gusta": ["hierro", "cuarzo", "cobre"],
     "no_gusta": ["fibra", "haba"],
@@ -99,7 +99,7 @@
       {"festividad": true, "llega": 480, "se_va": 1380, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.5, 3.8], "radio": 3.2},
       {"lluvia": true, "desde": 360, "hasta": 720, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-1.2, 0.5], "radio": 0.6}
     ],
-    "modelo": "tabernero",
+    "modelo": "ramon",
     "tienda": "taberna",
     "gusta": ["tomate", "pimiento", "patata", "melon"],
     "no_gusta": ["piedra", "madera"],
@@ -142,7 +142,7 @@
       {"dias": [5, 6], "desde": 480, "hasta": 780, "anular_interior": true, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [3.0, -3.5], "radio": 3.2},
       {"dias": [5, 6], "desde": 780, "hasta": 960, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.0, 2.4], "radio": 2.4}
     ],
-    "modelo": "alcalde",
+    "modelo": "anselmo",
     "tienda": "",
     "gusta": ["melon", "calabaza", "tortilla"],
     "no_gusta": ["fibra", "cobre"],
@@ -185,7 +185,7 @@
       {"dias": [6], "desde": 900, "hasta": 1260, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-2.2, 2.0], "radio": 2.8},
       {"estaciones": [3], "desde": 1020, "hasta": 1260, "mapa": "taberna", "marcador": "Interaccion_chimenea", "desplazar": [1.8, 0.5], "radio": 1.2}
     ],
-    "modelo": "minero",
+    "modelo": "tomas",
     "tienda": "",
     "gusta": ["bocadillo", "cuarzo", "pan"],
     "no_gusta": ["fibra", "haba"],
@@ -227,7 +227,7 @@
       {"dias": [6], "desde": 960, "hasta": 1140, "mapa": "pueblo", "marcador": "Spawn_Tabernero", "desplazar": [-1.2, 3.2], "radio": 2.5},
       {"estaciones": [3], "llega": 420, "se_va": 1080, "mapa": "pueblo", "marcador": "Spawn_Nino", "desplazar": [1.5, -2.5], "radio": 3.0}
     ],
-    "modelo": "nino",
+    "modelo": "pablo",
     "tienda": "",
     "gusta": ["zanahoria", "melon", "boniato"],
     "no_gusta": ["ajo", "col"],

@@ -17,13 +17,16 @@
   },
   "controles": [
     "WASD o flechas: moverse (Mayús: correr)",
-    "Espacio: saltar    Ctrl izquierdo: agacharse",
-    "Clic derecho + ratón: girar la cámara    C: recolocarla",
-    "E: hablar o interactuar",
-    "Clic izquierdo: usar lo que llevas en la mano",
-    "Rueda o 1–0: cambiar de objeto",
-    "I o Tab: inventario    M: mapa",
-    "Esc: pausa    F11: pantalla completa"
+    "Espacio o RT: saltar · Ctrl izquierdo o LB: agacharse",
+    "Ratón o palanca derecha: mirar · C: centrar cámara",
+    "V o cruceta arriba: cambiar de vista",
+    "E o A/Cruz: interactuar · Clic izquierdo o X: usar / golpear",
+    "Mantén el ataque para cargarlo · Clic derecho o LT: bloquear",
+    "Q o B/Círculo: esquivar · Clic central o R3: fijar objetivo",
+    "Rueda, 1–0 o cruceta lateral: cambiar de objeto",
+    "I, Tab o Y: inventario · M o View: mapa · J: diario",
+    "B o cruceta abajo: decorar en casa · Esc o Start: pausa",
+    "Al decorar, mantén clic derecho o mueve la palanca derecha para apuntar"
   ],
   "final": {
     "malo": {

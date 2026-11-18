@@ -118,7 +118,8 @@ func _poner(clave: String, valor: Variant) -> void:
 	Ajustes.poner(clave, valor)
 	_aviso.text = "Guardado." if Ajustes.ultimo_error == OK else "No se ha podido guardar la configuración."
 
-func _deslizador(clave: String, nombre: String, minimo: float, maximo: float, paso: float) -> void:
+func _deslizador(clave: String, nombre: String, minimo: float, maximo: float, paso: float,
+		formato: String = "%d %%", multiplicador: float = 100.0) -> void:
 	var caja := HBoxContainer.new()
 	var deslizador := HSlider.new()
 	deslizador.min_value = minimo
@@ -128,13 +129,13 @@ func _deslizador(clave: String, nombre: String, minimo: float, maximo: float, pa
 	deslizador.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	deslizador.custom_minimum_size.y = 48
 	deslizador.focus_mode = Control.FOCUS_ALL
-	var lectura := Estilo.etiqueta("%d %%" % roundi(deslizador.value * 100))
+	var lectura := Estilo.etiqueta(formato % (deslizador.value * multiplicador))
 	lectura.custom_minimum_size.x = 100
 	lectura.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	caja.add_child(deslizador)
 	caja.add_child(lectura)
 	deslizador.value_changed.connect(func(valor: float) -> void:
-		lectura.text = "%d %%" % roundi(valor * 100)
+		lectura.text = formato % (valor * multiplicador)
 		_poner(clave, valor))
 	_fila(nombre, caja)
 
@@ -180,8 +181,8 @@ func _mostrar_pagina(indice: int) -> void:
 		1:
 			_opciones("resolucion", "Resolución", ["1280 × 720", "1600 × 900", "1920 × 1080", "2560 × 1440", "Nativa del monitor"])
 			_casilla("pantalla_completa", "Pantalla completa")
-			_opciones("calidad", "Calidad gráfica", ["Baja", "Media", "Alta"])
-			_nota("Baja: render al 75 %, distancia reducida, sombras sin filtro suave, sin SSAO ni SSR. Pensada para equipos sin RTX.\nMedia: render al 90 %, SSAO y distancia intermedia. Alta: render al 100 %, SSAO, SSR y distancia completa.")
+			_opciones("calidad", "Calidad gráfica", ["Bajo", "Medio", "Alto", "Ultra"])
+			_nota("Bajo: escala al 75 %, FXAA, distancia reducida, sombras nítidas y sin SSAO ni SSR.\nMedio: escala al 80 %, FXAA, SSAO y distancia intermedia.\nAlto: FSR2 al 83 %, SSAO, SSIL, SSR, niebla volumétrica y autoexposición.\nUltra: TAA a resolución nativa, SDFGI, sombras suaves altas y detalle completo.")
 		2:
 			_opciones("texto", "Tamaño de texto", ["Normal", "Grande", "Muy grande"])
 			_casilla("alto_contraste", "Alto contraste en la interfaz")
@@ -189,8 +190,12 @@ func _mostrar_pagina(indice: int) -> void:
 			_casilla("tutorial", "Avisos del tutorial")
 			_nota("La reducción de movimiento mantiene estable la cámara y evita sacudidas y balanceo. No altera el control manual de la vista.\nLos avisos del tutorial muestran indicaciones breves la primera vez que descubres cada mecánica; puedes ocultarlos aquí en cualquier momento.")
 		3:
+			_opciones("vista", "Vista de juego", ["Primera persona", "Tercera persona"])
+			_deslizador("fov", "Campo de visión", 70.0, 100.0, 1.0, "%d°", 1.0)
+			_deslizador("distancia_tercera", "Distancia en tercera persona", Ajustes.DISTANCIA_TERCERA_MIN, Ajustes.DISTANCIA_TERCERA_MAX, 0.1, "%.1f m", 1.0)
 			_deslizador("sensibilidad", "Sensibilidad de cámara", 0.25, 3.0, 0.05)
-			_nota("Mando: palanca izquierda, moverse; derecha, cámara; A, interactuar; B, saltar / volver; X, herramienta; Y, inventario; pulsar izquierda, correr; LB, agacharse; pulsar derecha, centrar vista; cruceta izquierda / derecha, ranura; View, mapa; Start, pausa.\nPara cambiar una tecla, elige su botón y pulsa la nueva. Esc cancela. Se rechazan los conflictos.")
+			_casilla("invertir_vertical", "Invertir mirada vertical")
+			_nota("Mando · A/Cruz interactúa, X usa o golpea, LT bloquea, B/Círculo esquiva o vuelve, RT salta y R3 fija objetivo.\nPalancas para andar y mirar · L3 para correr · LB para agacharse · Y para el inventario · Cruceta para vista, decoración y ranuras · View para el mapa · Start para pausar.\nPara cambiar una tecla, elige su botón y pulsa la nueva. Esc cancela. Se rechazan los conflictos.")
 			for accion: String in Ajustes.ACCIONES:
 				var boton := Estilo.boton(Ajustes.texto_tecla(accion))
 				boton.pressed.connect(func() -> void:

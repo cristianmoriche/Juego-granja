@@ -56,8 +56,8 @@ func _prueba_datos() -> void:
 	_comprobar(not Datos.objeto("azada").is_empty(), "falta el objeto azada")
 	_comprobar(Datos.objeto("no_existe").is_empty(), "objeto inexistente debe dar {}")
 	_comprobar(str(Datos.cultivo_de_semilla("semilla_patata").get("id", "")) == "patata", "cultivo_de_semilla(patata)")
-	_comprobar(str(Datos.npc("clara").get("modelo", "")) == "tendera", "Clara usa el modelo tendera")
-	_comprobar(str(Datos.npc("mateo").get("modelo", "")) == "herrero", "Don Mateo usa el modelo herrero")
+	_comprobar(str(Datos.npc("clara").get("modelo", "")) == "clara", "Clara usa su modelo propio")
+	_comprobar(str(Datos.npc("mateo").get("modelo", "")) == "mateo", "Don Mateo usa su modelo propio")
 	_comprobar(Datos.ids_npc().size() == 6, "debe haber 6 vecinos")
 	for id in Datos.ids_npc():
 		for nivel in 3:
@@ -355,7 +355,7 @@ func _prueba_mapa_y_jugador() -> void:
 
 	# Interactuar: Clara está en (3, 0, -3).
 	j.colocar(Vector3(1.8, 0.05, -3.0), 0.0, 0.0)
-	j.direccion = Vector3(1, 0, 0)
+	j.camara.mirar_hacia(Vector3(3.0, 0.9, -3.0))
 	await _esperar(0.4)
 	j._actualizar_interactuable()
 	_comprobar(j._objetivo != null and j._objetivo.name == "Clara", "detecta a Clara delante")
@@ -392,7 +392,7 @@ func _prueba_mapa_y_jugador() -> void:
 	Juego.elegir_ranura(0)
 	_comprobar(str(Juego.objeto_activo()["id"]) == "azada", "azada en la ranura 1")
 	j.colocar(Vector3(-0.7, 0.05, -3.0), 0.0, 0.0)
-	j.direccion = Vector3(-1, 0, 0)
+	j.camara.mirar_hacia(parcela.global_position + Vector3.UP * 0.1)
 	var energia_antes := Juego.energia
 	j._usar()
 	_comprobar(bool(parcela.get("arada")), "usar la azada ara la parcela")
@@ -417,10 +417,9 @@ func _prueba_mapa_y_jugador() -> void:
 	_comprobar(is_equal_approx(j.camara._dist_obj, 2.5), "zoom mínimo 2,5 m (M1)")
 	for i in 40:
 		j.camara.acercar(1.0)
-	_comprobar(is_equal_approx(j.camara._dist_obj, 22.0), "zoom máximo 22 m")
+	_comprobar(is_equal_approx(j.camara._dist_obj, CamaraJuego.DIST_MAX), "distancia máxima de tercera persona")
 	j.camara.acercar(-10.0)
-	# M2: Leo mide EscalaPersonaje.ESCALA de lo que medía y la vista de juego se acercó en la misma proporción (antes 12 m).
-	_comprobar(absf(d0 - 12.0 * EscalaPersonaje.ESCALA) < 0.001, "distancia inicial de la cámara 12 m × escala de los personajes (%.2f)" % d0)
+	_comprobar(absf(d0 - float(Ajustes.valores.distancia_tercera)) < 0.001, "distancia coincide con Ajustes (%.2f m)" % d0)
 
 	# Salida: una salida de prueba que lleva al mismo mapa (recarga y recoloca).
 	var plantilla := load("res://escenas/objetos/salida.tscn") as PackedScene

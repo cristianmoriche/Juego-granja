@@ -3,15 +3,21 @@ extends Node
 
 signal cambiado(clave: String)
 const RUTA := "user://ajustes.cfg"
+const DISTANCIA_TERCERA_MIN := 2.5
+const DISTANCIA_TERCERA_MAX := 6.0
 const RESOLUCIONES := [Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(1920, 1080), Vector2i(2560, 1440)]
 const DEFECTO := {"general": 1.0, "musica": 0.8, "efectos": 1.0, "ambiente": 0.8,
-	"sensibilidad": 1.0, "resolucion": 1, "pantalla_completa": false, "calidad": 2,
+	"sensibilidad": 1.0, "vista": 0, "fov": 80.0, "distancia_tercera": 3.6, "invertir_vertical": false,
+	"resolucion": 1, "pantalla_completa": false, "calidad": 2,
 	"texto": 0, "alto_contraste": false, "reducir_movimiento": false, "tutorial": true}
 const ACCIONES := {"mover_arriba": "Avanzar", "mover_abajo": "Retroceder", "mover_izquierda": "Izquierda",
 	"mover_derecha": "Derecha", "correr": "Correr", "saltar": "Saltar", "agachar": "Agacharse",
-	"interactuar": "Interactuar", "usar": "Usar herramienta", "inventario": "Inventario", "mapa": "Mapa", "diario": "Diario de misiones",
-	"pausa": "Pausa", "camara_reiniciar": "Centrar cámara", "pantalla_completa": "Pantalla completa",
+	"interactuar": "Interactuar", "usar": "Usar / atacar", "bloquear": "Bloquear",
+	"esquivar": "Esquivar", "fijar_objetivo": "Fijar objetivo",
+	"inventario": "Inventario", "mapa": "Mapa", "diario": "Diario de misiones",
+	"pausa": "Pausa", "alternar_vista": "Cambiar de vista", "camara_reiniciar": "Centrar cámara", "pantalla_completa": "Pantalla completa",
 	"cerrar_tutorial": "Cerrar aviso",
+	"decorar": "Decorar la casa",
 	"ranura_1": "Ranura 1", "ranura_2": "Ranura 2", "ranura_3": "Ranura 3", "ranura_4": "Ranura 4",
 	"ranura_5": "Ranura 5", "ranura_6": "Ranura 6", "ranura_7": "Ranura 7", "ranura_8": "Ranura 8",
 	"ranura_9": "Ranura 9", "ranura_10": "Ranura 10"}
@@ -57,8 +63,12 @@ func _validar(clave: String, valor: Variant) -> Variant:
 	match clave:
 		"general", "musica", "efectos", "ambiente": return clampf(float(valor), 0.0, 1.0)
 		"sensibilidad": return clampf(float(valor), 0.25, 3.0)
+		"vista": return clampi(int(valor), 0, 1)
+		"fov": return clampf(float(valor), 70.0, 100.0)
+		"distancia_tercera": return clampf(float(valor), DISTANCIA_TERCERA_MIN, DISTANCIA_TERCERA_MAX)
 		"resolucion": return clampi(int(valor), 0, 4)
-		"calidad", "texto": return clampi(int(valor), 0, 2)
+		"calidad": return clampi(int(valor), 0, 3)
+		"texto": return clampi(int(valor), 0, 2)
 		_: return bool(valor)
 
 func guardar() -> bool:
@@ -138,12 +148,15 @@ func texto_tecla(accion: String) -> String:
 			var traducciones := {"Up": "Arriba", "Down": "Abajo", "Left": "Izquierda", "Right": "Derecha", "Shift": "Mayús", "Space": "Espacio", "Enter": "Intro", "Escape": "Esc", "Backspace": "Retroceso", "Delete": "Supr", "Home": "Inicio", "End": "Fin", "PageUp": "RePág", "PageDown": "AvPág", "Insert": "Insertar"}
 			textos.append(str(traducciones.get(nombre, nombre)))
 		elif evento is InputEventMouseButton:
-			textos.append("Clic izquierdo" if evento.button_index == MOUSE_BUTTON_LEFT else "Ratón")
+			var botones := {MOUSE_BUTTON_LEFT: "Clic izquierdo", MOUSE_BUTTON_RIGHT: "Clic derecho", MOUSE_BUTTON_MIDDLE: "Clic central"}
+			textos.append(str(botones.get(evento.button_index, "Ratón")))
 	return " / ".join(textos)
 
 func pista(accion: String) -> String:
 	if ultimo_mando:
-		return str({"interactuar": "A", "inventario": "Y", "usar": "X", "saltar": "B", "pausa": "Start", "mapa": "View", "correr": "L3", "agachar": "LB", "camara_reiniciar": "R3", "cerrar_tutorial": "RB"}.get(accion, texto_tecla(accion)))
+		return str({"interactuar": "A", "inventario": "Y", "usar": "X", "saltar": "RT", "bloquear": "LT", "esquivar": "B / Círculo", "fijar_objetivo": "R3", "pausa": "Start", "mapa": "View", "correr": "L3", "agachar": "LB", "alternar_vista": "Cruceta arriba", "decorar": "Cruceta abajo", "cerrar_tutorial": "RB"}.get(accion, texto_tecla(accion)))
+	if accion == "usar" and not teclas.has(accion):
+		return "Clic"
 	return texto_tecla(accion).split(" / ")[0]
 
 func _input(evento: InputEvent) -> void:
@@ -187,32 +200,45 @@ func aplicar_ventana() -> void:
 	_escala_render.call_deferred()
 
 func _escala_render() -> void:
-	var escala: float = [0.75, 0.9, 1.0][int(valores.calidad)]
+	var calidad := int(valores.calidad)
+	var escala: float = [0.75, 0.80, 0.83, 1.0][calidad]
 	if valores.pantalla_completa and DisplayServer.get_name() != "headless":
 		var ventana := DisplayServer.window_get_size()
 		escala *= minf(float(resolucion_elegida().x) / maxf(1, ventana.x), float(resolucion_elegida().y) / maxf(1, ventana.y))
-	get_viewport().scaling_3d_scale = clampf(escala, 0.25, 2.0)
+	var visor := get_viewport()
+	if RenderingServer.get_current_rendering_method() == "forward_plus":
+		visor.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR2 if calidad >= 2 and escala < 1.0 else Viewport.SCALING_3D_MODE_FSR
+		if escala >= 1.0:
+			visor.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+		visor.use_taa = calidad >= 2 and escala >= 1.0
+		visor.msaa_3d = Viewport.MSAA_DISABLED
+		visor.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if calidad < 2 else Viewport.SCREEN_SPACE_AA_DISABLED
+	visor.scaling_3d_scale = clampf(escala, 0.25, 2.0)
 
 func aplicar_graficos() -> void:
 	var calidad := int(valores.calidad)
 	_escala_render()
-	RenderingServer.directional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_HARD if calidad == 0 else RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM)
-	RenderingServer.positional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_HARD if calidad == 0 else RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM)
+	var filtro: int = [RenderingServer.SHADOW_QUALITY_HARD, RenderingServer.SHADOW_QUALITY_SOFT_LOW,
+		RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM, RenderingServer.SHADOW_QUALITY_SOFT_HIGH][calidad]
+	RenderingServer.directional_soft_shadow_filter_set_quality(filtro)
+	RenderingServer.positional_soft_shadow_filter_set_quality(filtro)
+	RenderingServer.global_shader_parameter_set("calidad_h03", calidad)
 	_graficos_nodo(get_tree().root, calidad)
 
 func _graficos_nodo(nodo: Node, calidad: int) -> void:
 	if nodo is WorldEnvironment and nodo.environment != null:
-		nodo.environment.ssao_enabled = calidad > 0
-		nodo.environment.ssr_enabled = calidad == 2
+		GraficaH03.ajustar_entorno(nodo, calidad)
 	if nodo is Camera3D and nodo.get_parent() is CamaraJuego:
-		nodo.far = [100.0, 300.0, 700.0][calidad]
+		nodo.far = [100.0, 300.0, 700.0, 700.0][calidad]
+	if nodo is Light3D and nodo.has_meta("sombra_h03"):
+		GraficaH03.ajustar_luz(nodo, calidad)
 	if nodo is GeometryInstance3D:
 		if not nodo.has_meta("alcance_original"):
 			nodo.set_meta("alcance_original", nodo.visibility_range_end)
 		var original := float(nodo.get_meta("alcance_original"))
-		var limite: float = [90.0, 180.0, 0.0][calidad]
+		var limite: float = [90.0, 180.0, 0.0, 0.0][calidad]
 		nodo.visibility_range_end = minf(original, limite) if original > 0.0 and limite > 0.0 else maxf(original, limite)
-		if calidad == 2:
+		if calidad >= 2:
 			nodo.visibility_range_end = original
 	for hijo: Node in nodo.get_children():
 		_graficos_nodo(hijo, calidad)
@@ -291,7 +317,11 @@ func _eje_mando(accion: String, eje: JoyAxis, valor: float) -> void:
 func _crear_mando() -> void:
 	for par: Array in [["mover_izquierda", JOY_AXIS_LEFT_X, -1.0], ["mover_derecha", JOY_AXIS_LEFT_X, 1.0], ["mover_arriba", JOY_AXIS_LEFT_Y, -1.0], ["mover_abajo", JOY_AXIS_LEFT_Y, 1.0], ["camara_izquierda", JOY_AXIS_RIGHT_X, -1.0], ["camara_derecha", JOY_AXIS_RIGHT_X, 1.0], ["camara_arriba", JOY_AXIS_RIGHT_Y, -1.0], ["camara_abajo", JOY_AXIS_RIGHT_Y, 1.0]]:
 		_eje_mando(par[0], par[1], par[2])
-	for par: Array in [["interactuar", JOY_BUTTON_A], ["saltar", JOY_BUTTON_B], ["usar", JOY_BUTTON_X], ["inventario", JOY_BUTTON_Y], ["correr", JOY_BUTTON_LEFT_STICK], ["agachar", JOY_BUTTON_LEFT_SHOULDER], ["camara_reiniciar", JOY_BUTTON_RIGHT_STICK], ["cerrar_tutorial", JOY_BUTTON_RIGHT_SHOULDER], ["pausa", JOY_BUTTON_START], ["mapa", JOY_BUTTON_BACK], ["ranura_anterior", JOY_BUTTON_DPAD_LEFT], ["ranura_siguiente", JOY_BUTTON_DPAD_RIGHT], ["ui_cancel", JOY_BUTTON_B]]:
+	for par: Array in [["interactuar", JOY_BUTTON_A], ["esquivar", JOY_BUTTON_B], ["usar", JOY_BUTTON_X], ["inventario", JOY_BUTTON_Y], ["correr", JOY_BUTTON_LEFT_STICK], ["agachar", JOY_BUTTON_LEFT_SHOULDER], ["alternar_vista", JOY_BUTTON_DPAD_UP], ["cerrar_tutorial", JOY_BUTTON_RIGHT_SHOULDER], ["pausa", JOY_BUTTON_START], ["mapa", JOY_BUTTON_BACK], ["ranura_anterior", JOY_BUTTON_DPAD_LEFT], ["ranura_siguiente", JOY_BUTTON_DPAD_RIGHT], ["ui_cancel", JOY_BUTTON_B]]:
 		_boton_mando(par[0], par[1])
 	# Godot ya asigna cruceta y palanca izquierda a ui_*; A confirma y B vuelve.
 	_boton_mando("ui_accept", JOY_BUTTON_A)
+	_boton_mando("decorar", JOY_BUTTON_DPAD_DOWN)
+	_boton_mando("fijar_objetivo", JOY_BUTTON_RIGHT_STICK)
+	_eje_mando("bloquear", JOY_AXIS_TRIGGER_LEFT, 1.0)
+	_eje_mando("saltar", JOY_AXIS_TRIGGER_RIGHT, 1.0)

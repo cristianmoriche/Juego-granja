@@ -150,6 +150,7 @@ func _verificar_mapa_nuevo(id: String, puestos_minimos: int) -> void:
 func _ejecutar() -> void:
 	await _esperar_frames(2)
 	get_tree().current_scene = null
+	Ajustes.valores["vista"] = 0
 	Juego.ruta_partida = "user://partida_prueba_t25.json"
 	Juego.nueva_partida("Leo")
 
@@ -185,6 +186,7 @@ func _ejecutar() -> void:
 	var mk_cana := _mapa.call("marcador", "Cana_Muelle") as Marker3D
 	_ok(mk_cana != null, "costa_lago: marcador Cana_Muelle presente")
 	_poner_leo(mk_cana.global_position + Vector3(0.4, 0.05, 0.0), PI * 0.5)
+	_j.camara.mirar_hacia(mk_cana.global_position + Vector3.UP * 0.7)
 	await _esperar_frames(4)
 	_j._actualizar_interactuable()
 	_j._interactuar()
@@ -218,7 +220,9 @@ func _ejecutar() -> void:
 	_ok(_mapa.puntos_interes.any(func(x: Interactuable) -> bool: return x.name == "Punto_cartel_bosque_granja"), "granja: poste hacia Bosque del Norte")
 
 	_ok(await _entrar_en_salida("bosque_norte") and _j.dentro_de_limites(), "portal granja -> bosque_norte")
-	# Probar también pesca en el río del Bosque del Norte
+	# Probar también pesca en tercera persona en el río del Bosque del Norte.
+	Ajustes.valores["vista"] = 1
+	Ajustes.cambiado.emit("vista")
 	_poner_leo(Vector3(-2.8, _suelo(-2.8, 10.2) + 0.05, 10.2), 0.0)
 	await _esperar_frames(3)
 	var p1 := _contar_peces()

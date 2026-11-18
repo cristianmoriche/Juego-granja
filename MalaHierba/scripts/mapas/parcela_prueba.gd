@@ -16,6 +16,14 @@ func _ready() -> void:
 	m.albedo_color = Color(0.45, 0.6, 0.3)
 	_malla.material_override = m
 	add_child(_malla)
+	var suelo := StaticBody3D.new()
+	var forma := CollisionShape3D.new()
+	var caja := BoxShape3D.new()
+	caja.size = b.size
+	forma.shape = caja
+	forma.position = _malla.position
+	add_child(suelo)
+	suelo.add_child(forma)
 
 
 func usar(id_objeto: String, punto: Vector3, _jugador: Node3D) -> bool:

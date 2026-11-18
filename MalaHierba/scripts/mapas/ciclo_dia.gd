@@ -11,6 +11,7 @@ const CREPUSCULO := 45.0       # minutos de transición entre el día y la noche
 
 var _env: Environment = null
 var _mat_cielo: Material = null
+var _cielo_h03: CieloH03
 var _cargador: Node = null
 var _interior: bool = false
 var _es_mina: bool = false
@@ -41,6 +42,9 @@ func configurar(info_sol: Dictionary, env: Environment, mat_cielo: Material, es_
 	_color_niebla = color_niebla
 	_fuerza_cielo = fuerza_cielo
 	_densidad_niebla = densidad
+	if not _interior and _env != null and _env.sky != null:
+		_cielo_h03 = CieloH03.new()
+		_env.sky.sky_material = _cielo_h03.material
 	if info_sol.has("dir"):
 		var d: Array = info_sol["dir"]
 		var v := Vector3(float(d[0]), float(d[1]), float(d[2]))
@@ -76,6 +80,10 @@ func actualizar() -> void:
 	var e := clampi(Juego.estacion, 0, 3)
 	var sale := float(AMANECER[e])
 	var se_pone := float(ATARDECER[e])
+	var lluvia := Juego.esta_lloviendo()
+	var tormenta := Juego.clima == "tormenta"
+	var nieve := Juego.esta_nevando()
+	var niebla := Juego.intensidad_neblina(sale)
 
 	if _interior:
 		visible = false
@@ -84,11 +92,13 @@ func actualizar() -> void:
 			var luz_dia := clampf(sin(clampf((m - sale) / (se_pone - sale), 0.0, 1.0) * PI), 0.0, 1.0) if (m >= sale and m <= se_pone) else 0.0
 			var es_atardecer := smoothstep(se_pone - 95.0, se_pone + 10.0, m)
 			var factor_ext := clampf(luz_dia * (1.0 - es_atardecer * 0.85), 0.0, 1.0)
+			factor_ext *= 0.43 if lluvia else lerpf(1.0, 0.56, niebla)
 			var calidez_hora := clampf((1.0 - smoothstep(0.15, 0.72, luz_dia)) * 0.55 + es_atardecer * 0.45, 0.0, 1.0)
 			_env.ambient_light_color = Color(0.76, 0.72, 0.66).lerp(Color(0.84, 0.62, 0.40), calidez_hora * 0.82)
 			_env.ambient_light_energy = lerpf(0.36, 0.50, factor_ext)
 			if _cargador != null and _cargador.has_method("actualizar_iluminacion_hora"):
 				_cargador.call("actualizar_iluminacion_hora", 1.0, 1.0, factor_ext)
+				_cargador.call("iluminar_ventanas_h03", factor_ext, (m - sale) / (se_pone - sale), lluvia)
 		elif _cargador != null and _cargador.has_method("actualizar_iluminacion_hora"):
 			_cargador.call("actualizar_iluminacion_hora", 1.0, 1.0, 1.0)
 		return
@@ -136,9 +146,6 @@ func actualizar() -> void:
 	var color := color_dia.lerp(color_noche, noche)
 	var energia := lerpf(energia_dia, energia_noche, noche)
 
-	var lluvia := Juego.esta_lloviendo()
-	var tormenta := Juego.clima == "tormenta"
-	var nieve := (e == 3 and Juego.clima == "nieve")
 	if tormenta:
 		color = color.lerp(Color(0.56, 0.62, 0.72), 0.62)
 		energia *= 0.38
@@ -148,16 +155,25 @@ func actualizar() -> void:
 	elif nieve:
 		color = color.lerp(Color(0.84, 0.89, 0.98), 0.35)
 		energia *= 0.78
+	else:
+		energia *= lerpf(1.0, 0.48, niebla)
 
 	global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP), global_position)
 	light_color = color
 	light_energy = energia
+	RenderingServer.global_shader_parameter_set("humedad_h03", 1.0 if tormenta else (0.77 if lluvia else niebla * 0.27))
+	RenderingServer.global_shader_parameter_set("viento_h03", 1.0 if tormenta else (0.59 if lluvia else (0.39 if nieve else 0.24)))
+	var luz_agua := lerpf(0.46, 1.0, smoothstep(0.0, 0.92, elev))
+	luz_agua *= (0.42 if tormenta else 0.72) if lluvia else lerpf(1.0, 0.66, niebla)
+	RenderingServer.global_shader_parameter_set("luz_agua_h03", lerpf(luz_agua, 0.045, noche))
 
 	if _env != null:
 		var factor_cielo := 0.42 if tormenta else (0.68 if lluvia else (0.82 if nieve else 1.0))
 		var curva_cielo := lerpf(0.44, 0.78, smoothstep(0.15, 0.90, elev)) * lerpf(1.0, 0.48, crep_tarde)
 		var brillo := lerpf(curva_cielo, 0.04, noche) * _fuerza_cielo * factor_cielo
-		if _mat_cielo is PanoramaSkyMaterial:
+		if _cielo_h03 != null:
+			_cielo_h03.actualizar(m, sale, se_pone, _fuerza_cielo, -dir, color, noche, lluvia, tormenta, nieve, niebla)
+		elif _mat_cielo is PanoramaSkyMaterial:
 			(_mat_cielo as PanoramaSkyMaterial).energy_multiplier = brillo
 		elif _mat_cielo is ProceduralSkyMaterial:
 			(_mat_cielo as ProceduralSkyMaterial).sky_energy_multiplier = brillo
@@ -168,7 +184,7 @@ func actualizar() -> void:
 		_env.ambient_light_color = amb_dia.lerp(Color(0.08, 0.12, 0.26), noche)
 		_env.ambient_light_sky_contribution = lerpf(0.86, 0.42, maxf(crep_tarde * 0.45, noche))
 		var amb_e := lerpf(0.45, 0.58, elev) * lerpf(1.0, 0.78, crep_tarde)
-		_env.ambient_light_energy = lerpf(amb_e, 0.52, noche)
+		_env.ambient_light_energy = lerpf(amb_e * lerpf(1.0, 0.78, niebla), 0.52, noche)
 		var gris := Color(0.45, 0.49, 0.56) if tormenta else Color(0.55, 0.58, 0.62)
 		var fn := _color_niebla
 		if e == 3:
@@ -182,8 +198,13 @@ func actualizar() -> void:
 			fn = fn.lerp(gris, 0.65 if tormenta else 0.5)
 		_env.fog_light_color = fn
 		var mult_niebla := 2.3 if tormenta else (1.6 if lluvia else (1.45 if e == 3 else lerpf(1.0, 1.32, crep_manana)))
-		_env.fog_density = _densidad_niebla * mult_niebla
+		_env.fog_density = _densidad_niebla * mult_niebla * 0.77 + niebla * 0.012
+		_env.fog_height = 3.5
+		_env.fog_height_density = niebla * 0.065
+		_env.fog_sun_scatter = 0.24 * (1.0 - noche) * (1.0 - niebla * 0.6)
 		_env.fog_enabled = _env.fog_density > 0.0
+		_env.volumetric_fog_density = 0.0028 + crep_manana * 0.004 + noche * 0.005 + niebla * 0.013 + (0.0045 if lluvia else 0.0)
+		_env.volumetric_fog_albedo = Color(0.82, 0.87, 0.92).lerp(Color(0.50, 0.61, 0.75), noche * 0.46)
 
 	if _cargador != null and _cargador.has_method("actualizar_iluminacion_hora"):
 		var oscuro := clampf(crep_tarde * 1.15 + noche, 0.0, 1.0)

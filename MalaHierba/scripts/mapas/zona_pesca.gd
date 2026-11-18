@@ -15,6 +15,7 @@ var _cana_pickup: Interactuable = null
 
 func _ready() -> void:
 	add_to_group("usable")
+	add_to_group("zona_pesca")
 	var m := _mapa()
 	if m == null:
 		return

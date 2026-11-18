@@ -86,12 +86,12 @@ func contenido_de(id: String) -> Dictionary:
 		"mover":
 			titulo = "1/5 · Moverse"
 			if mando:
-				texto = "Muévete con la palanca izquierda (púlsala para correr) y gira la cámara con la palanca derecha."
+				texto = "Muévete con la palanca izquierda (púlsala para correr), mira con la derecha y cambia de vista con la cruceta arriba."
 			else:
-				texto = "Muévete con %s (mantén %s para correr) y gira la cámara arrastrando el clic derecho." % [_pista_movimiento(), Ajustes.pista("correr")]
+				texto = "Muévete con %s (mantén %s para correr), mira con el ratón y cambia de vista con %s." % [_pista_movimiento(), Ajustes.pista("correr"), Ajustes.pista("alternar_vista")]
 		"labrar":
 			titulo = "2/5 · Labrar"
-			texto = "Elige la azada (%s) y úsala (%s) sobre tierra limpia para abrir un bancal." % [_pista_ranura(1), Ajustes.pista("usar")]
+			texto = "Elige la azada (%s), apunta a la tierra limpia y úsala (%s) para abrir un bancal." % [_pista_ranura(1), Ajustes.pista("usar")]
 		"sembrar":
 			titulo = "3/5 · Sembrar"
 			texto = "Selecciona las semillas de patata (%s) y plántalas (%s) en la tierra labrada." % [_pista_ranura(6), Ajustes.pista("usar")]
@@ -112,7 +112,11 @@ func contenido_de(id: String) -> Dictionary:
 			texto = "Has ganado tu primera amistad. Elige un objeto (%s o barra rápida) e interactúa (%s) con un vecino para regalárselo." % [Ajustes.pista("inventario"), Ajustes.pista("interactuar")]
 		"mina":
 			titulo = "La mina"
-			texto = "Equipa el pico (%s) y golpea las rocas (%s) para sacar minerales. Para salir, sigue los raíles hacia la entrada." % [_pista_ranura(5), _pista_picar()]
+			texto = "Equipa el pico (%s), apunta a la roca y golpéala (%s). Para salir, sigue los raíles hacia la entrada." % [_pista_ranura(5), Ajustes.pista("usar")]
+		"combate":
+			titulo = "Primer combate"
+			texto = "Golpea con %s. Encadena tres toques o mantén para cargar. %s alza la guardia. Púlsalo justo antes del golpe para pararlo. %s esquiva y %s fija la criatura." % [
+				Ajustes.pista("usar"), Ajustes.pista("bloquear"), Ajustes.pista("esquivar"), Ajustes.pista("fijar_objetivo")]
 		"mejoras":
 			titulo = "Mejorar herramientas"
 			texto = "Tienes dinero suficiente para mejorar herramientas: habla (%s) con Clara en el pueblo y tráele mineral de la mina." % Ajustes.pista("interactuar")
@@ -190,6 +194,12 @@ func _marcar_hecho(id: String) -> void:
 
 
 # --- Cola y activación ----------------------------------------------------------------
+
+func avisar_combate() -> void:
+	if _actual == "mina" and not esta_visto("combate"):
+		_actual = ""
+	_encolar("combate", true)
+
 
 func _puede_mostrar_ahora() -> bool:
 	return Juego.partida_activa and activo_en_ajustes() and Interfaz.hud_visible() and Escenas.jugador() != null and not Escenas.en_transicion and not Interfaz.ocupada()
@@ -498,7 +508,3 @@ func _pista_ranura(n: int) -> String:
 	return Ajustes.pista("ranura_%d" % n)
 
 
-func _pista_picar() -> String:
-	var usar := Ajustes.pista("usar")
-	var inter := Ajustes.pista("interactuar")
-	return "%s o %s" % [usar, inter]

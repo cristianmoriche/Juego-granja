@@ -103,22 +103,23 @@ func oscurecer(mapa: Node) -> void:
 	if we == null or we.environment == null:
 		return
 	var env := we.environment
-	env.background_color = Color(0.006, 0.01, 0.026)
-	env.ambient_light_color = Color(0.25, 0.35, 0.68)
-	env.ambient_light_energy = minf(env.ambient_light_energy, 1.3) * 0.75
-	env.fog_light_color = Color(0.02, 0.035, 0.09)
-	env.fog_density = env.fog_density * 1.3
-	# Una luz azul suave y sin sombras tiñe toda la cueva (el ambiente solo apenas se nota junto al farol), y el farol de Leo
-	# se vuelve más frío y flojo.
+	env.background_color = Color(0.004, 0.008, 0.022)
+	env.ambient_light_color = Color(0.16, 0.26, 0.60)
+	env.ambient_light_energy = minf(env.ambient_light_energy, 0.30) * 0.65
+	env.fog_light_color = Color(0.012, 0.024, 0.068)
+	env.fog_density = env.fog_density * 1.35
+	# Una luz azul muy tenue y sin sombras tiñe toda la cueva; el farol de Leo se vuelve más frío y contenido.
 	var luz := DirectionalLight3D.new()
 	luz.name = "LuzAzulNivel2"
-	luz.light_color = Color(0.35, 0.5, 1.0)
-	luz.light_energy = 0.45
+	luz.light_color = Color(0.32, 0.48, 1.0)
+	luz.light_energy = 0.28
 	luz.shadow_enabled = false
 	luz.rotation_degrees = Vector3(-80.0, 20.0, 0.0)
 	mapa.add_child(luz)
 	var jugador := Escenas.jugador()
 	var farol: OmniLight3D = jugador.get_node_or_null("Farol") as OmniLight3D if jugador != null else null
 	if farol != null:
-		farol.light_color = Color(0.82, 0.9, 1.0)
-		farol.light_energy *= 0.8
+		farol.light_color = Color(0.80, 0.89, 1.0)
+		farol.light_energy *= 0.85
+		if jugador.has_method("fijar_energia_base_farol"):
+			jugador.call("fijar_energia_base_farol", farol.light_energy)

@@ -7,6 +7,7 @@ extends Node3D
 ##   con 4 ambientaciones (piedra 1-5, húmeda con agua 6-10, cristal 11-15, magma 16-20), antorchas y ascensor.
 
 const ID_MAPA := "mina_interior"
+const GeneradorCavernaH04 := preload("res://scripts/mina/generador_caverna_h04.gd")
 const MAX_NIVEL := 20
 const PASO := 2.5
 const CEL_BASE := 36                 # macro-celdas de 2,5x2,5 m equivalentes a 1x (~225 m² pisables)
@@ -18,47 +19,68 @@ const AMBIENTACIONES := {
 		"nombre": "Galerías de piedra",
 		"roca": Color(0.32, 0.30, 0.33),
 		"suelo": Color(0.28, 0.26, 0.29),
-		"niebla": Color(0.026, 0.030, 0.042),
-		"ambiente": Color(0.24, 0.27, 0.36),
+		"niebla": Color(0.016, 0.019, 0.030),
+		"ambiente": Color(0.22, 0.24, 0.32),
 		"luz_dir": Color(0.56, 0.62, 0.78),
-		"energia_amb": 0.48,
-		"densidad": 0.016,
+		"energia_amb": 0.19,
+		"densidad": 0.017,
 		"rugosidad": 0.90,
 	},
 	"humeda": {
 		"nombre": "Grutas húmedas",
 		"roca": Color(0.17, 0.23, 0.27),
 		"suelo": Color(0.14, 0.20, 0.24),
-		"niebla": Color(0.018, 0.048, 0.072),
-		"ambiente": Color(0.20, 0.38, 0.50),
-		"luz_dir": Color(0.42, 0.70, 0.88),
-		"energia_amb": 0.54,
-		"densidad": 0.020,
-		"rugosidad": 0.34,
+		"niebla": Color(0.014, 0.036, 0.056),
+		"ambiente": Color(0.18, 0.34, 0.44),
+		"luz_dir": Color(0.40, 0.68, 0.85),
+		"energia_amb": 0.21,
+		"densidad": 0.021,
+		"rugosidad": 0.30,
 	},
 	"cristal": {
 		"nombre": "Cavernas de cristal",
 		"roca": Color(0.20, 0.17, 0.30),
 		"suelo": Color(0.18, 0.15, 0.26),
-		"niebla": Color(0.036, 0.022, 0.068),
-		"ambiente": Color(0.34, 0.26, 0.58),
-		"luz_dir": Color(0.66, 0.52, 0.95),
-		"energia_amb": 0.56,
-		"densidad": 0.017,
-		"rugosidad": 0.72,
+		"niebla": Color(0.024, 0.014, 0.048),
+		"ambiente": Color(0.30, 0.22, 0.52),
+		"luz_dir": Color(0.62, 0.48, 0.92),
+		"energia_amb": 0.20,
+		"densidad": 0.018,
+		"rugosidad": 0.70,
 	},
 	"magma": {
 		"nombre": "Fallas de magma",
 		"roca": Color(0.17, 0.13, 0.13),
 		"suelo": Color(0.14, 0.11, 0.11),
-		"niebla": Color(0.085, 0.024, 0.014),
-		"ambiente": Color(0.48, 0.22, 0.14),
-		"luz_dir": Color(0.95, 0.44, 0.22),
-		"energia_amb": 0.58,
+		"niebla": Color(0.068, 0.018, 0.010),
+		"ambiente": Color(0.40, 0.17, 0.10),
+		"luz_dir": Color(0.92, 0.40, 0.20),
+		"energia_amb": 0.22,
 		"densidad": 0.019,
 		"rugosidad": 0.84,
 	},
 }
+
+signal niebla_actualizada
+
+const TAM_NIEBLA := 64
+const RADIO_REVELAR := 13.5
+const SHADER_AGUA_MINA := """shader_type spatial;
+uniform sampler2D onda_norm : hint_normal, filter_linear_mipmap, repeat_enable;
+void fragment() {
+	vec2 uv1 = UV * 3.5 + vec2(TIME * 0.03, TIME * 0.02);
+	vec2 uv2 = UV * 5.0 + vec2(-TIME * 0.025, TIME * 0.035);
+	vec3 n = normalize(mix(texture(onda_norm, uv1).rgb * 2.0 - 1.0, texture(onda_norm, uv2).rgb * 2.0 - 1.0, 0.5));
+	ALBEDO = vec3(0.08, 0.28, 0.38);
+	ALPHA = 0.80;
+	ROUGHNESS = 0.08;
+	METALLIC = 0.18;
+	SPECULAR = 0.82;
+	NORMAL_MAP = n * 0.5 + 0.5;
+	NORMAL_MAP_DEPTH = 0.55;
+	EMISSION = vec3(0.03, 0.14, 0.20);
+}
+"""
 
 var nivel: int = 1
 var ambientacion_id: String = "piedra"
@@ -71,12 +93,31 @@ var puntos_enemigos: Node3D = null
 var nodo_ascensor: Node3D = null
 var nodo_escalera_profunda: Node3D = null
 var nodo_escalera_subida: Node3D = null
+var cofres_nivel: Array[Node3D] = []
+var atajos_nivel: Array[Node3D] = []
 
 var _geometria_proc: Node3D = null
 var _celdas_cavadas: Dictionary = {}
+var _celdas_info: Dictionary = {}
+var _origen_proc: Vector2 = Vector2(400.0, 0.0)
+var _aabb_proc: AABB = AABB()
+var _rutas_enemigos: AStarGrid2D
 var _distancias: Dictionary = {}
 var _celda_bajada: Vector2i = Vector2i.ZERO
 var _preparado_en_nivel: int = -1
+var _escalera_profunda_ala: Vector3 = Vector3.INF
+var _niebla_bytes: PackedByteArray = PackedByteArray()
+var _niebla_img: Image = null
+var _niebla_tex: ImageTexture = null
+var _niebla_overlay_img: Image = null
+var _niebla_overlay_tex: ImageTexture = null
+var _niebla_rect: Rect2 = Rect2()
+var _t_niebla: float = 0.0
+var _t_goteo: float = 3.5
+
+static var _origen_estatico: Vector2 = Vector2(400.0, 0.0)
+static var _shader_agua: Shader = null
+static var _mat_agua: ShaderMaterial = null
 
 
 static func nivel_actual() -> int:
@@ -135,6 +176,45 @@ func _al_mapa_cargado(id: String) -> void:
 	# En niveles 1 y 2 la exploración física de suelo funciona mejor tras emitir mapa_cargado.
 	if nv <= 2:
 		_colocar_extras_clasicos(mapa)
+	_inicializar_niebla(mapa)
+
+
+func _process(delta: float) -> void:
+	var mapa := _mapa()
+	if mapa == null or not bool(mapa.get("esta_listo")):
+		return
+	var j := Escenas.jugador()
+	if j == null or not is_instance_valid(j):
+		return
+	_t_niebla -= delta
+	if _t_niebla <= 0.0:
+		_t_niebla = 0.14
+		revelar_niebla_en(Vector2(j.global_position.x, j.global_position.z), RADIO_REVELAR)
+	if DisplayServer.get_name() != "headless":
+		_t_goteo -= delta
+		if _t_goteo <= 0.0:
+			_t_goteo = randf_range(3.8, 7.2)
+			var ang := randf() * TAU
+			var dist := randf_range(5.0, 12.5)
+			var p_g := j.global_position + Vector3(cos(ang) * dist, randf_range(0.6, 2.2), sin(ang) * dist)
+			Audio.reproducir_posicional("mina_goteo_1" if randf() < 0.55 else "mina_goteo_2", p_g, self, -4.0)
+
+
+func aabb_nivel() -> AABB:
+	return _aabb_proc
+
+
+func material_agua_subterranea() -> ShaderMaterial:
+	if _mat_agua != null:
+		return _mat_agua
+	if _shader_agua == null:
+		_shader_agua = Shader.new()
+		_shader_agua.code = SHADER_AGUA_MINA
+	_mat_agua = ShaderMaterial.new()
+	_mat_agua.shader = _shader_agua
+	if ResourceLoader.exists("res://assets/agua/ondas_normal.png"):
+		_mat_agua.set_shader_parameter("onda_norm", load("res://assets/agua/ondas_normal.png"))
+	return _mat_agua
 
 
 func _mapa() -> Node:
@@ -168,7 +248,7 @@ func preparar(mapa: Node) -> void:
 		Juego.banderas["mina_ascensor_desbloqueado"] = true
 
 	if nivel <= 2:
-		superficie_generada_m2 = float(CEL_BASE) * (PASO * PASO)
+		_generar_ala_clasica(mapa)
 		return
 
 	# Niveles 3..20: ocultar la cueva estática de L1/L2 y generar la caverna del nivel por semilla.
@@ -181,6 +261,13 @@ func _limpiar_nodos_propios() -> void:
 		h.queue_free()
 	_geometria_proc = null
 	puntos_enemigos = null
+	_rutas_enemigos = null
+	_celdas_cavadas.clear()
+	_celdas_info.clear()
+	_aabb_proc = AABB()
+	_escalera_profunda_ala = Vector3.INF
+	cofres_nivel.clear()
+	atajos_nivel.clear()
 	nodo_ascensor = null
 	nodo_escalera_profunda = null
 	nodo_escalera_subida = null
@@ -204,12 +291,13 @@ func _ocultar_cueva_base(mapa: Node) -> void:
 			for cs in cols.get_children():
 				if cs is CollisionShape3D:
 					(cs as CollisionShape3D).disabled = true
-	var solo_jug := mapa.get_node_or_null("ColisionSoloJugador") as StaticBody3D
-	if solo_jug != null:
-		solo_jug.collision_layer = 0
-		for cs in solo_jug.get_children():
-			if cs is CollisionShape3D:
-				(cs as CollisionShape3D).disabled = true
+	for nombre in ["ColisionSoloJugador", "ColisionSoloCamara"]:
+		var cuerpo := mapa.get_node_or_null(nombre) as StaticBody3D
+		if cuerpo != null:
+			cuerpo.collision_layer = 0
+			for cs in cuerpo.get_children():
+				if cs is CollisionShape3D:
+					(cs as CollisionShape3D).disabled = true
 	for nom_extra: String in ["ParedesLisasLlegada", "SueloLisoLlegada"]:
 		var n_ex := mapa.get_node_or_null(nom_extra) as CollisionObject3D
 		if n_ex != null:
@@ -238,124 +326,165 @@ func aplicar_ambiente(mapa: Node) -> void:
 	var sol := mapa.get_node_or_null("Sol") as DirectionalLight3D
 	if sol != null and nivel >= 3:
 		sol.light_color = d["luz_dir"] as Color
-		sol.light_energy = 0.55 if ambientacion_id != "magma" else 0.70
+		sol.light_energy = 0.22 if ambientacion_id != "magma" else 0.30
 
 	if nivel == 1:
-		# En nivel 1 dejamos las antorchas clásicas tras cargar suelo.
+		# Nivel 1 usa las antorchas clásicas y del ala nueva tras colocarse en mapa_cargado.
 		return
 
-	# Luz ambiental direccional extra suave en niveles profundos para resaltar el relieve.
+	# Luz ambiental direccional muy tenue para recortar siluetas sin iluminar las galerías apagadas.
 	var rel := DirectionalLight3D.new()
 	rel.name = "LuzAmbientacionMina"
 	rel.light_color = d["luz_dir"] as Color
-	rel.light_energy = 0.36
+	rel.light_energy = 0.14
 	rel.shadow_enabled = false
 	rel.rotation_degrees = Vector3(-72.0, -25.0, 0.0)
 	add_child(rel)
 
 
-# --- Generación procedural (niveles 3..20) --------------------------------------------------------------
+# --- Generación procedural (niveles 1..20 H04) --------------------------------------------------------------
 
 static func _mundo_celda(c: Vector2i) -> Vector2:
-	return Vector2(402.5 + float(c.x) * PASO, 0.0 + float(c.y) * PASO)
+	return _origen_estatico + Vector2(float(c.x) * PASO, float(c.y) * PASO)
+
+
+func _altura_celda(c: Vector2i) -> float:
+	if _celdas_cavadas.has(c) and (_celdas_cavadas[c] is float or _celdas_cavadas[c] is int):
+		return float(_celdas_cavadas[c])
+	return float((_celdas_info.get(c, {}) as Dictionary).get("h0", 0.0))
+
+
+func ruta_enemigo(desde: Vector3, hasta: Vector3) -> PackedVector3Array:
+	var ruta := PackedVector3Array()
+	if _celdas_cavadas.is_empty():
+		return ruta
+	var origen := _celda_pisable(desde)
+	var destino := _celda_pisable(hasta)
+	if not _celdas_cavadas.has(origen) or not _celdas_cavadas.has(destino) or origen == destino:
+		return ruta
+	if _rutas_enemigos == null:
+		_preparar_rutas_enemigos()
+	var ids := _rutas_enemigos.get_id_path(origen, destino)
+	for i in range(1, ids.size()):
+		var punto := _mundo_celda(ids[i])
+		ruta.append(Vector3(punto.x, _altura_celda(ids[i]), punto.y))
+	return ruta
+
+
+func _celda_pisable(punto: Vector3) -> Vector2i:
+	var origen := _mundo_celda(Vector2i.ZERO)
+	var p := (Vector2(punto.x, punto.z) - origen) / PASO
+	var celda := Vector2i(p.round())
+	if _celdas_cavadas.has(celda):
+		return celda
+	var mejor := INF
+	var cercana := celda
+	for y in range(-1, 2):
+		for x in range(-1, 2):
+			var otra := celda + Vector2i(x, y)
+			var dist := p.distance_squared_to(Vector2(otra))
+			if dist < mejor and _celdas_cavadas.has(otra):
+				cercana = otra
+				mejor = dist
+	return cercana
+
+
+func _preparar_rutas_enemigos() -> void:
+	var caja := Rect2i(Vector2i.ZERO, Vector2i.ONE)
+	for celda: Vector2i in _celdas_cavadas:
+		caja = caja.merge(Rect2i(celda, Vector2i.ONE))
+	_rutas_enemigos = AStarGrid2D.new()
+	_rutas_enemigos.region = caja
+	_rutas_enemigos.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
+	_rutas_enemigos.update()
+	for y in range(caja.position.y, caja.end.y):
+		for x in range(caja.position.x, caja.end.x):
+			var celda := Vector2i(x, y)
+			if not _celdas_cavadas.has(celda):
+				_rutas_enemigos.set_point_solid(celda)
+
+
+func _generar_ala_clasica(mapa: Node) -> void:
+	var azar := RandomNumberGenerator.new()
+	azar.seed = 26000 + nivel * 977
+	var plan := GeneradorCavernaH04.construir_ala_clasica(self, mapa, nivel, azar)
+	_origen_proc = plan["origen"]
+	_origen_estatico = _origen_proc
+	_celdas_info = plan["celdas_info"]
+	_celdas_cavadas.clear()
+	for c: Vector2i in _celdas_info:
+		_celdas_cavadas[c] = float((_celdas_info[c] as Dictionary)["h0"])
+	_escalera_profunda_ala = plan.get("escalera_profunda", Vector3.INF)
+
+	_geometria_proc = Node3D.new()
+	_geometria_proc.name = "GeometriaProcedural"
+	add_child(_geometria_proc)
+	var res := GeneradorCavernaH04.construir_geometria(self, _geometria_proc, plan, "piedra", nivel)
+	_aabb_proc = res["aabb"]
+
+	# Polígono en L compacto que rodea la cueva clásica y el ala este manteniendo lados amplios para pruebas de muro.
+	var x_max := 456.5
+	var z_min := -30.5
+	for c: Vector2i in _celdas_info:
+		var p := _mundo_celda(c)
+		x_max = maxf(x_max, p.x + 4.0)
+		z_min = minf(z_min, p.y - 4.0)
+	mapa.set("poligono_limites", PackedVector2Array([
+		Vector2(396.0, 22.0),
+		Vector2(416.0, 22.0),
+		Vector2(416.0, 5.5),
+		Vector2(x_max, 5.5),
+		Vector2(x_max, z_min),
+		Vector2(396.0, z_min),
+	]))
+
+	superficie_generada_m2 = float(CEL_BASE + _celdas_cavadas.size()) * (PASO * PASO)
+	superficie_objetivo_m2 = superficie_generada_m2
+	_colocar_cofres_y_atajo(plan)
+	# Proteger pasarelas estrechas en N2 para que RocasMina no las obstruya.
+	for c_p: Vector2i in plan.get("puentes", []):
+		var pw := _mundo_celda(c_p)
+		puntos_evitar_rocas.append(Vector3(pw.x, _altura_celda(c_p), pw.y))
 
 
 func _generar_caverna_procedural(mapa: Node) -> void:
-	var escala := escala_superficie(nivel)
-	var factor_lado := sqrt(escala)
-	var ancho := 48.0 * factor_lado
-	var largo := 40.0 * factor_lado
-	var x0 := 394.0
-	var x1 := x0 + ancho
-	var z1 := 8.0
-	var z0 := z1 - largo
-
-	mapa.set("poligono_limites", PackedVector2Array([
-		Vector2(x0, z0),
-		Vector2(x1, z0),
-		Vector2(x1, z1),
-		Vector2(x0, z1),
-	]))
-
-	var ix_min := 0
-	var ix_max := int(floor((x1 - 3.5 - 402.5) / PASO))
-	var iz_min := int(ceil((z0 + 3.5) / PASO))
-	var iz_max := 1
-
 	var azar := RandomNumberGenerator.new()
 	azar.seed = 26000 + nivel * 977
-
+	var plan := GeneradorCavernaH04.construir_disposicion_completa(nivel, ambientacion_id, azar)
+	_origen_proc = plan["origen"]
+	_origen_estatico = _origen_proc
+	_celdas_info = plan["celdas_info"]
 	_celdas_cavadas.clear()
-	# Vestíbulo de entrada centrado en Entrada_Interior (400.0, 0.0) y Llegada_Interior (403.0, 0.07).
-	_celdas_cavadas[Vector2i(-1, 0)] = true
-	for ix in range(0, 3):
-		for iz in range(-1, 2):
-			_celdas_cavadas[Vector2i(ix, iz)] = true
+	for c: Vector2i in _celdas_info:
+		_celdas_cavadas[c] = float((_celdas_info[c] as Dictionary)["h0"])
 
-	var objetivo := clampi(roundi(float(CEL_BASE) * escala), 42, 180)
-	var dirs: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
-
-	var punteros: Array[Vector2i] = [Vector2i(2, 0), Vector2i(2, -1), Vector2i(1, -1), Vector2i(3, -1)]
-	var intentos := 0
-	while _celdas_cavadas.size() < objetivo and intentos < 1800:
-		intentos += 1
-		var idx := intentos % punteros.size()
-		var p: Vector2i = punteros[idx]
-		var d: Vector2i = dirs[azar.randi_range(0, 3)]
-		if p.x < 4 and azar.randf() < 0.55:
-			d = Vector2i(1, 0)
-		elif p.y > -3 and azar.randf() < 0.45:
-			d = Vector2i(0, -1)
-		var np := p + d
-		np.x = clampi(np.x, 1, maxi(1, ix_max - 1))
-		np.y = clampi(np.y, iz_min, maxi(iz_min, iz_max - 1))
-		punteros[idx] = np
-		for dx in 2:
-			for dz in 2:
-				if _celdas_cavadas.size() >= objetivo:
-					break
-				var c := Vector2i(clampi(np.x + dx, 1, ix_max), clampi(np.y + dz, iz_min, iz_max))
-				_celdas_cavadas[c] = true
-			if _celdas_cavadas.size() >= objetivo:
-				break
-		if _celdas_cavadas.size() < objetivo and azar.randf() < 0.16:
-			for dx in range(-1, 2):
-				for dz in range(-1, 2):
-					if _celdas_cavadas.size() >= objetivo:
-						break
-					var c := Vector2i(clampi(np.x + dx, 1, ix_max), clampi(np.y + dz, iz_min, iz_max))
-					_celdas_cavadas[c] = true
-				if _celdas_cavadas.size() >= objetivo:
-					break
-
-	# Completar de forma determinista hasta objetivo si la caminata aleatoria tocó los bordes.
-	if _celdas_cavadas.size() < objetivo:
-		var frontera := true
-		while _celdas_cavadas.size() < objetivo and frontera:
-			frontera = false
-			var actuales: Array[Vector2i] = []
-			for k: Vector2i in _celdas_cavadas:
-				if k.x >= 1:
-					actuales.append(k)
-			actuales.sort()
-			for c: Vector2i in actuales:
-				for d in dirs:
-					var n := c + d
-					if n.x >= 1 and n.x <= ix_max and n.y >= iz_min and n.y <= iz_max and not _celdas_cavadas.has(n):
-						_celdas_cavadas[n] = true
-						frontera = true
-						if _celdas_cavadas.size() >= objetivo:
-							break
-				if _celdas_cavadas.size() >= objetivo:
-					break
+	var x_min := 394.0
+	var x_max := 420.0
+	var z_min := -14.0
+	var z_max := 10.0
+	for dict_c in [_celdas_info, plan.get("simas", {})]:
+		for c: Vector2i in dict_c:
+			var p := _mundo_celda(c)
+			x_min = minf(x_min, p.x - 4.2)
+			x_max = maxf(x_max, p.x + 4.2)
+			z_min = minf(z_min, p.y - 4.2)
+			z_max = maxf(z_max, p.y + 4.2)
+	mapa.set("poligono_limites", PackedVector2Array([
+		Vector2(x_min, z_min),
+		Vector2(x_max, z_min),
+		Vector2(x_max, z_max),
+		Vector2(x_min, z_max),
+	]))
 
 	superficie_generada_m2 = float(_celdas_cavadas.size()) * (PASO * PASO)
+	superficie_objetivo_m2 = superficie_generada_m2
 
-	# Calcular distancias BFS desde (0, 0) para situar bajada, antorchas y enemigos.
-	_distancias = {Vector2i(0, 0): 0}
-	var cola: Array[Vector2i] = [Vector2i(0, 0)]
+	# Distancias BFS desde la llegada (2, 0) para repartir enemigos, luces y bajada lejana.
+	var dirs: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+	_distancias = {Vector2i(2, 0): 0}
+	var cola: Array[Vector2i] = [Vector2i(2, 0)]
 	var cabeza := 0
-	var celda_lejana := Vector2i(2, -1)
+	var celda_lejana: Vector2i = plan.get("celda_bajada", Vector2i(5, 0))
 	var max_dist := 0
 	while cabeza < cola.size():
 		var c := cola[cabeza]
@@ -366,15 +495,45 @@ func _generar_caverna_procedural(mapa: Node) -> void:
 			if _celdas_cavadas.has(n) and not _distancias.has(n):
 				_distancias[n] = dist_c + 1
 				cola.append(n)
-				if dist_c + 1 > max_dist and (n.x >= 3 or n.y <= -3):
+				if dist_c + 1 > max_dist and str((_celdas_info.get(n, {}) as Dictionary).get("tipo", "")) != "puente":
 					max_dist = dist_c + 1
 					celda_lejana = n
 	_celda_bajada = celda_lejana
 
-	_construir_malla_caverna(azar)
+	_geometria_proc = Node3D.new()
+	_geometria_proc.name = "GeometriaProcedural"
+	add_child(_geometria_proc)
+	var res := GeneradorCavernaH04.construir_geometria(self, _geometria_proc, plan, ambientacion_id, nivel)
+	_aabb_proc = res["aabb"]
 	_colocar_ambientacion_especifica(azar)
+	_colocar_cofres_y_atajo(plan)
+	for c_p: Vector2i in plan.get("puentes", []):
+		var pw := _mundo_celda(c_p)
+		puntos_evitar_rocas.append(Vector3(pw.x, _altura_celda(c_p), pw.y))
 	_actualizar_marcadores_nivel(mapa)
 	_colocar_elementos_nivel(mapa, azar)
+
+
+func _colocar_cofres_y_atajo(plan: Dictionary) -> void:
+	if _geometria_proc == null:
+		return
+	for cf: Dictionary in plan.get("cofres", []):
+		var id_c := str(cf["id"])
+		var pos_c: Vector3 = cf["pos"]
+		var abierto := GeneradorCavernaH04.estado_contiene("cofres", id_c)
+		var nodo_c := GeneradorCavernaH04.crear_cofre(_geometria_proc, id_c, pos_c, float(cf.get("rot", 0.0)), nivel, abierto)
+		cofres_nivel.append(nodo_c)
+		puntos_evitar_rocas.append(pos_c)
+	var ata: Dictionary = plan.get("atajo", {})
+	if not ata.is_empty():
+		var c_at: Vector2i = ata["celda"]
+		var pw := _mundo_celda(c_at)
+		var pos_at := Vector3(pw.x, float(ata["y"]), pw.y)
+		var id_a := str(ata["id"])
+		var abierto := GeneradorCavernaH04.estado_contiene("atajos", id_a)
+		var nodo_a := GeneradorCavernaH04.crear_atajo(_geometria_proc, id_a, pos_at, ata["dir"] as Vector2i, abierto)
+		atajos_nivel.append(nodo_a)
+		puntos_evitar_rocas.append(pos_at)
 
 
 func _altura_esquina(ix: int, iz: int, azar_semilla: int) -> float:
@@ -405,6 +564,10 @@ func _construir_malla_caverna(azar: RandomNumberGenerator) -> void:
 	st_muros.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st_muros.set_smooth_group(-1)
 
+	var st_techo := SurfaceTool.new()
+	st_techo.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st_techo.set_smooth_group(0)
+	var tono_techo := col_roca.lerp(Color(0.70, 0.68, 0.65), 0.42)
 	var caras_col := PackedVector3Array()
 	var vistas_techo: Dictionary = {}
 
@@ -427,6 +590,16 @@ func _construir_malla_caverna(azar: RandomNumberGenerator) -> void:
 			st_suelo.set_color(cs_col)
 			for v: Vector3 in tri:
 				st_suelo.add_vertex(v)
+				caras_col.append(v)
+
+		var t0 := Vector3(p0.x, _altura_techo(c, alto_muro), p0.z)
+		var t1 := Vector3(p1.x, _altura_techo(c + Vector2i.RIGHT, alto_muro), p1.z)
+		var t2 := Vector3(p2.x, _altura_techo(c + Vector2i.ONE, alto_muro), p2.z)
+		var t3 := Vector3(p3.x, _altura_techo(c + Vector2i.DOWN, alto_muro), p3.z)
+		for tri in [[t0, t2, t1], [t0, t3, t2]]:
+			st_techo.set_color(tono_techo)
+			for v: Vector3 in tri:
+				st_techo.add_vertex(v)
 				caras_col.append(v)
 
 		for dir in dirs:
@@ -452,6 +625,12 @@ func _construir_malla_caverna(azar: RandomNumberGenerator) -> void:
 			var vb_m := Vector3(vb.x + off.x * 0.35, 2.2 + azar.randf_range(-0.18, 0.22), vb.z + off.z * 0.35)
 			var va_t := Vector3(va.x + off.x, alto_muro, va.z + off.z)
 			var vb_t := Vector3(vb.x + off.x, alto_muro, vb.z + off.z)
+			var va_techo := Vector3(va.x, alto_muro, va.z)
+			var vb_techo := Vector3(vb.x, alto_muro, vb.z)
+			for tri in [[va_techo, vb_t, vb_techo], [va_techo, va_t, vb_t]]:
+				st_techo.set_color(tono_techo)
+				for v: Vector3 in tri:
+					st_techo.add_vertex(v)
 
 			var tono_w := azar.randf_range(0.78, 1.08)
 			var cw_bajo := Color(col_roca.r * tono_w, col_roca.g * tono_w, col_roca.b * tono_w)
@@ -474,12 +653,12 @@ func _construir_malla_caverna(azar: RandomNumberGenerator) -> void:
 			if not vistas_techo.has(n):
 				vistas_techo[n] = true
 				var cn := _mundo_celda(n)
-				var t0 := Vector3(cn.x - ms, alto_muro, cn.y - ms)
-				var t1 := Vector3(cn.x + ms, alto_muro, cn.y - ms)
-				var t2 := Vector3(cn.x + ms, alto_muro, cn.y + ms)
-				var t3 := Vector3(cn.x - ms, alto_muro, cn.y + ms)
+				var borde0 := Vector3(cn.x - ms, alto_muro, cn.y - ms)
+				var borde1 := Vector3(cn.x + ms, alto_muro, cn.y - ms)
+				var borde2 := Vector3(cn.x + ms, alto_muro, cn.y + ms)
+				var borde3 := Vector3(cn.x - ms, alto_muro, cn.y + ms)
 				var c_cap := Color(col_roca.r * 0.35, col_roca.g * 0.35, col_roca.b * 0.35)
-				for tri in [[t0, t1, t2], [t0, t2, t3]]:
+				for tri in [[borde0, borde1, borde2], [borde0, borde2, borde3]]:
 					st_muros.set_color(c_cap)
 					for v: Vector3 in tri:
 						st_muros.add_vertex(v)
@@ -507,6 +686,7 @@ func _construir_malla_caverna(azar: RandomNumberGenerator) -> void:
 	mi_m.name = "ParedesCaverna"
 	mi_m.mesh = m_muros
 	_geometria_proc.add_child(mi_m)
+	_montar_techo(st_techo)
 
 	var body := StaticBody3D.new()
 	body.name = "ColisionCaverna"
@@ -521,15 +701,37 @@ func _construir_malla_caverna(azar: RandomNumberGenerator) -> void:
 	_geometria_proc.add_child(body)
 
 
+func _altura_techo(esquina: Vector2i, alto_muro: float) -> float:
+	# El contorno coincide con las paredes, mientras el interior del techo conserva relieve.
+	for adyacente in [Vector2i.ZERO, Vector2i.LEFT, Vector2i.UP, -Vector2i.ONE]:
+		if not _celdas_cavadas.has(esquina + adyacente):
+			return alto_muro
+	return alto_muro + 0.16 * sin(float(esquina.x) * 0.61) + 0.18 * cos(float(esquina.y) * 0.47)
+
+
+func _montar_techo(superficie: SurfaceTool) -> void:
+	superficie.generate_normals()
+	var roca := StandardMaterial3D.new()
+	CargadorMapa.aplicar_pbr_techo_roca(roca)
+	roca.vertex_color_use_as_albedo = true
+	roca.vertex_color_is_srgb = true
+	var techo := MeshInstance3D.new()
+	techo.name = "TechoCaverna"
+	techo.layers = FotoCenital.CAPA_TECHOS
+	techo.mesh = superficie.commit()
+	techo.material_override = roca
+	_geometria_proc.add_child(techo)
+
+
 func _colocar_ambientacion_especifica(azar: RandomNumberGenerator) -> void:
 	if _geometria_proc == null:
 		return
-	# Seleccionar celdas periféricas o de salas anchas libres de entrada y bajada.
 	var borde_celdas: Array[Vector2i] = []
 	var interiores: Array[Vector2i] = []
 	var dirs: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 	for c: Vector2i in _celdas_cavadas:
-		if int(_distancias.get(c, 0)) < 3 or c == _celda_bajada:
+		var tipo_c := str((_celdas_info.get(c, {}) as Dictionary).get("tipo", ""))
+		if int(_distancias.get(c, 0)) < 3 or c == _celda_bajada or tipo_c in ["puente", "rampa", "atajo"]:
 			continue
 		var vecinos := 0
 		for d in dirs:
@@ -541,122 +743,117 @@ func _colocar_ambientacion_especifica(azar: RandomNumberGenerator) -> void:
 			interiores.append(c)
 	borde_celdas.sort()
 	interiores.sort()
+	if borde_celdas.is_empty():
+		return
 
 	match ambientacion_id:
 		"humeda":
-			# Charcos reflectantes y agua subterránea en zonas apartadas.
-			var mat_agua := StandardMaterial3D.new()
-			mat_agua.albedo_color = Color(0.14, 0.44, 0.56, 0.72)
-			mat_agua.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-			mat_agua.roughness = 0.06
-			mat_agua.metallic = 0.25
-			mat_agua.emission_enabled = true
-			mat_agua.emission = Color(0.06, 0.20, 0.28)
-			mat_agua.emission_energy_multiplier = 0.35
-			var n_charcos := mini(4 + nivel / 3, borde_celdas.size())
+			var mat_agua := material_agua_subterranea()
+			var n_charcos := mini(5 + nivel / 2, borde_celdas.size())
 			for i in n_charcos:
 				var c := borde_celdas[(i * 7 + azar.randi_range(0, 3)) % borde_celdas.size()]
 				var p := _mundo_celda(c)
+				var h := _altura_celda(c)
 				var disco := MeshInstance3D.new()
 				disco.name = "Charco_%d" % i
 				var cm := CylinderMesh.new()
-				cm.top_radius = azar.randf_range(0.85, 1.30)
+				cm.top_radius = azar.randf_range(0.95, 1.45)
 				cm.bottom_radius = cm.top_radius * 1.05
 				cm.height = 0.04
-				cm.radial_segments = 14
+				cm.radial_segments = 16
 				disco.mesh = cm
 				disco.material_override = mat_agua
-				disco.position = Vector3(p.x, 0.025, p.y)
+				disco.position = Vector3(p.x, h + 0.025, p.y)
+				disco.visibility_range_end = 58.0
 				_geometria_proc.add_child(disco)
 		"cristal":
-			# Clústeres luminosos de cristales amatista y cian junto a las paredes.
 			var mats: Array[StandardMaterial3D] = []
-			for col_c in [Color(0.68, 0.34, 0.96), Color(0.30, 0.86, 0.98)]:
+			for col_c in [Color(0.68, 0.34, 0.98), Color(0.28, 0.86, 1.0)]:
 				var mc := StandardMaterial3D.new()
 				mc.albedo_color = col_c
 				mc.emission_enabled = true
 				mc.emission = col_c
-				mc.emission_energy_multiplier = 1.65
-				mc.roughness = 0.18
+				mc.emission_energy_multiplier = 1.9
+				mc.roughness = 0.16
 				mats.append(mc)
-			var n_c := mini(8 + nivel / 2, borde_celdas.size())
+			var n_c := mini(10 + nivel / 2, borde_celdas.size())
 			for i in n_c:
 				var c := borde_celdas[(i * 5 + azar.randi_range(0, 2)) % borde_celdas.size()]
 				var p := _mundo_celda(c)
+				var h := _altura_celda(c)
 				var base := Node3D.new()
 				base.name = "Cristales_%d" % i
-				base.position = Vector3(p.x + azar.randf_range(-0.6, 0.6), 0.0, p.y + azar.randf_range(-0.6, 0.6))
+				base.position = Vector3(p.x + azar.randf_range(-0.6, 0.6), h, p.y + azar.randf_range(-0.6, 0.6))
 				var mat_e := mats[i % 2]
 				for j in 3:
 					var aguja := MeshInstance3D.new()
 					var pm := PrismMesh.new()
-					pm.size = Vector3(0.24, azar.randf_range(0.65, 1.35), 0.24)
+					pm.size = Vector3(0.26, azar.randf_range(0.75, 1.55), 0.26)
 					aguja.mesh = pm
 					aguja.material_override = mat_e
 					aguja.position = Vector3(azar.randf_range(-0.22, 0.22), pm.size.y * 0.42, azar.randf_range(-0.22, 0.22))
 					aguja.rotation_degrees = Vector3(azar.randf_range(-16, 16), azar.randf_range(0, 180), azar.randf_range(-16, 16))
+					aguja.visibility_range_end = 54.0
 					base.add_child(aguja)
 				if i % 2 == 0:
 					var lc := OmniLight3D.new()
 					lc.light_color = mat_e.albedo_color
-					lc.light_energy = 1.15
-					lc.omni_range = 7.5
+					lc.light_energy = 1.10
+					lc.omni_range = 7.8
 					lc.shadow_enabled = false
+					lc.set_meta("sin_sombra", true)
 					lc.position = Vector3(0.0, 0.9, 0.0)
 					base.add_child(lc)
 				_geometria_proc.add_child(base)
 				puntos_evitar_rocas.append(base.position)
 		"magma":
-			# Pozas incandescentes de magma en los bordes con iluminación cálida.
-			var mat_lava := StandardMaterial3D.new()
-			mat_lava.albedo_color = Color(0.95, 0.34, 0.06)
-			mat_lava.emission_enabled = true
-			mat_lava.emission = Color(1.0, 0.30, 0.04)
-			mat_lava.emission_energy_multiplier = 2.4
-			mat_lava.roughness = 0.25
-			var n_l := mini(6 + nivel / 3, borde_celdas.size())
+			var mat_lava := GeneradorCavernaH04.material_magma()
+			var n_l := mini(8 + nivel / 2, borde_celdas.size())
 			for i in n_l:
 				var c := borde_celdas[(i * 6 + azar.randi_range(0, 3)) % borde_celdas.size()]
 				var p := _mundo_celda(c)
-				var pos := Vector3(p.x, 0.03, p.y)
+				var h := _altura_celda(c)
+				var pos := Vector3(p.x, h + 0.03, p.y)
 				var poza := MeshInstance3D.new()
 				poza.name = "Magma_%d" % i
 				var cm := CylinderMesh.new()
-				cm.top_radius = azar.randf_range(0.75, 1.10)
+				cm.top_radius = azar.randf_range(0.85, 1.25)
 				cm.bottom_radius = cm.top_radius * 1.12
 				cm.height = 0.06
-				cm.radial_segments = 12
+				cm.radial_segments = 14
 				poza.mesh = cm
 				poza.material_override = mat_lava
 				poza.position = pos
+				poza.visibility_range_end = 58.0
 				_geometria_proc.add_child(poza)
 				if i % 2 == 0:
 					var ll := OmniLight3D.new()
-					ll.light_color = Color(1.0, 0.42, 0.14)
-					ll.light_energy = 1.45
-					ll.omni_range = 8.0
+					ll.light_color = Color(1.0, 0.40, 0.12)
+					ll.light_energy = 1.40
+					ll.omni_range = 8.4
 					ll.shadow_enabled = false
+					ll.set_meta("sin_sombra", true)
 					ll.position = pos + Vector3(0.0, 0.7, 0.0)
 					_geometria_proc.add_child(ll)
 				puntos_evitar_rocas.append(pos)
 		_:
-			# Niveles 3-5 piedra: algunos pilares de madera / roca de apoyo en salas grandes.
-			var mat_p := StandardMaterial3D.new()
-			mat_p.albedo_color = Color(0.28, 0.20, 0.14)
-			mat_p.roughness = 0.90
-			for i in mini(4, interiores.size()):
-				var p := _mundo_celda(interiores[(i * 4) % interiores.size()])
+			var mat_p := GeneradorCavernaH04._mat_viga()
+			for i in mini(5, interiores.size()):
+				var c := interiores[(i * 4) % interiores.size()]
+				var p := _mundo_celda(c)
+				var h := _altura_celda(c)
 				var pilar := StaticBody3D.new()
 				pilar.name = "Puntal_%d" % i
 				pilar.collision_layer = CAPA_SOLO_JUGADOR
 				pilar.collision_mask = 0
-				pilar.position = Vector3(p.x, 0.0, p.y)
+				pilar.position = Vector3(p.x, h, p.y)
 				var mi := MeshInstance3D.new()
 				var box := BoxMesh.new()
-				box.size = Vector3(0.32, 4.6, 0.32)
+				box.size = Vector3(0.32, 6.4, 0.32)
 				mi.mesh = box
 				mi.material_override = mat_p
-				mi.position = Vector3(0.0, 2.3, 0.0)
+				mi.position = Vector3(0.0, 3.2, 0.0)
+				mi.visibility_range_end = 54.0
 				pilar.add_child(mi)
 				var cs := CollisionShape3D.new()
 				var bs := BoxShape3D.new()
@@ -673,29 +870,33 @@ func _actualizar_marcadores_nivel(mapa: Node) -> void:
 	if m_bajada == null:
 		return
 	var dest := _mundo_celda(_celda_bajada)
-	m_bajada.global_position = Vector3(dest.x, 0.0, dest.y)
+	m_bajada.global_position = Vector3(dest.x, _altura_celda(_celda_bajada), dest.y)
 
 
 func _colocar_elementos_nivel(mapa: Node, azar: RandomNumberGenerator) -> void:
-	# 1. Antorchas con luz real repartidas por pasillos y vestíbulo.
+	# 1. Antorchas con luz real repartidas por vestíbulo y puntos clave (dejando corredores oscuros para el farol).
 	var candidatas_ant: Array[Vector2i] = []
 	for c: Vector2i in _celdas_cavadas:
-		candidatas_ant.append(c)
+		var t_c := str((_celdas_info.get(c, {}) as Dictionary).get("tipo", ""))
+		if t_c in ["sala", "galeria"]:
+			candidatas_ant.append(c)
 	candidatas_ant.sort()
 	_poner_antorcha(Vector3(401.2, 0.0, -1.2))
 	_poner_antorcha(Vector3(401.2, 0.0, 1.2))
 	var dest_b := _mundo_celda(_celda_bajada)
-	_poner_antorcha(Vector3(dest_b.x - 1.0, 0.0, dest_b.y))
-	var objetivo_ant := clampi(6 + nivel / 2, 6, 16)
+	var hb := _altura_celda(_celda_bajada)
+	_poner_antorcha(Vector3(dest_b.x - 1.0, hb, dest_b.y))
+	var objetivo_ant := clampi(6 + nivel / 3, 6, 12)
 	var paso_i := maxi(candidatas_ant.size() / maxi(objetivo_ant, 1), 1)
 	for i in range(0, candidatas_ant.size(), paso_i):
 		if posiciones_antorchas.size() >= objetivo_ant:
 			break
-		var pos2 := _mundo_celda(candidatas_ant[i])
-		var pos := Vector3(pos2.x + 0.8, 0.0, pos2.y + 0.8)
+		var cc := candidatas_ant[i]
+		var pos2 := _mundo_celda(cc)
+		var pos := Vector3(pos2.x + 0.75, _altura_celda(cc), pos2.y + 0.75)
 		var demasiado_cerca := false
 		for ya in posiciones_antorchas:
-			if ya.distance_to(pos) < 6.5:
+			if ya.distance_to(pos) < 10.5:
 				demasiado_cerca = true
 				break
 		if not demasiado_cerca:
@@ -709,7 +910,7 @@ func _colocar_elementos_nivel(mapa: Node, azar: RandomNumberGenerator) -> void:
 	if nivel >= 3:
 		_poner_escalera_subida(Vector3(402.5, 0.0, 2.5), nivel - 1)
 
-	# 4. Puntos de aparición de enemigos (inactivos hasta tener modelos, ACTIVOS = false).
+	# 4. Puntos de aparición de enemigos (y el jefe en los niveles 5, 10, 15 y 20).
 	_colocar_puntos_enemigos(azar)
 
 
@@ -724,22 +925,21 @@ func _colocar_extras_clasicos(mapa: Node) -> void:
 	# Antorchas repartidas por toda la cueva clásica buscando suelo real cerca de referencias del túnel y cavernas.
 	var candidatos_l1 := [
 		Vector3(401.6, 0.0, -0.9),
-		Vector3(405.2, 0.0, 0.9),
 		Vector3(410.5, 0.0, -1.5),
-		Vector3(415.0, 0.0, -4.0),
 		Vector3(420.5, 0.0, -8.5),
-		Vector3(426.0, 0.0, -13.0),
 		Vector3(428.0, 0.0, -17.0),
-		Vector3(420.0, 0.0, -16.5),
+		Vector3(434.2, 0.0, -14.5),
+		Vector3(448.5, 0.0, -16.0),
+		Vector3(449.0, 2.0, -4.0),
 	]
 	for p: Vector3 in candidatos_l1:
-		var suelo := AyudasL4b.suelo(self, p, 1.5, 3.0)
+		var suelo := AyudasL4b.suelo(self, p, 1.5, 3.5)
 		if suelo == Vector3.INF:
-			suelo = AyudasL4b.sitio_libre(self, p, 0.25, 3.0)
+			suelo = AyudasL4b.sitio_libre(self, p, 0.25, 3.5)
 		if suelo != Vector3.INF:
 			var lejos := true
 			for ya in posiciones_antorchas:
-				if ya.distance_to(suelo) < 3.0:
+				if ya.distance_to(suelo) < 4.5:
 					lejos = false
 					break
 			if lejos:
@@ -757,13 +957,14 @@ func _colocar_extras_clasicos(mapa: Node) -> void:
 			p_asc = AyudasL4b.sitio_libre(self, Vector3(411.5, 0.0, -3.5), 0.35, 3.5)
 		_poner_ascensor(p_asc)
 
-	# Nivel 2: coloca la bajada adicional hacia el nivel 3 sin tocar Bajada_Nivel_2 («Subir al nivel 1»).
+	# Nivel 2: coloca la bajada adicional hacia el nivel 3 en la cámara este sin tocar Bajada_Nivel_2 («Subir al nivel 1»).
 	if nivel == 2:
 		var p_baj2 := m_baj.global_position if m_baj != null else Vector3(431.0, 0.0, -14.0)
 		var objetivos := [
+			_escalera_profunda_ala if _escalera_profunda_ala != Vector3.INF else Vector3(448.5, 0.0, -16.0),
+			Vector3(448.5, 0.0, -16.0),
 			Vector3(424.0, 0.0, -19.0),
 			Vector3(417.0, 0.0, -14.5),
-			Vector3(433.0, 0.0, -8.5),
 			p_baj2 + Vector3(-4.2, 0.0, 1.5),
 		]
 		var elegido := Vector3.INF
@@ -833,10 +1034,14 @@ func _poner_antorcha(pos: Vector3) -> void:
 
 	var luz := OmniLight3D.new()
 	luz.light_color = Color(1.0, 0.68, 0.34)
-	luz.light_energy = 1.60
-	luz.omni_range = 11.5
+	luz.light_energy = 1.55
+	luz.omni_range = 10.5
 	luz.omni_attenuation = 1.35
-	luz.shadow_enabled = false
+	if posiciones_antorchas.size() <= 6:
+		luz.set_meta("sombra_h03", true)
+	else:
+		luz.set_meta("sin_sombra", true)
+	GraficaH03.ajustar_luz(luz, int(Ajustes.valores.calidad))
 	luz.position = Vector3(0.0, 1.65, 0.0)
 	ant.add_child(luz)
 
@@ -1012,23 +1217,63 @@ func _colocar_puntos_enemigos(azar: RandomNumberGenerator) -> void:
 
 	var candidatas: Array[Vector2i] = []
 	for c: Vector2i in _celdas_cavadas:
-		if int(_distancias.get(c, 0)) >= 4 and c != _celda_bajada:
+		var tc := str((_celdas_info.get(c, {}) as Dictionary).get("tipo", ""))
+		if int(_distancias.get(c, 0)) >= 5 and c != _celda_bajada and not (tc in ["puente", "rampa", "atajo"]):
 			candidatas.append(c)
 	candidatas.sort()
 	if candidatas.is_empty():
-		candidatas.append(Vector2i(0, -1))
+		candidatas.append(Vector2i(3, 0))
 	for i in range(candidatas.size() - 1, 0, -1):
 		var j := azar.randi_range(0, i)
 		var tmp := candidatas[i]
 		candidatas[i] = candidatas[j]
 		candidatas[j] = tmp
 
-	var catalogo := Enemigo.para_nivel(nivel)
-	var cantidad := clampi(3 + nivel / 3, 3, 9)
-	for i in mini(cantidad, candidatas.size()):
-		var p2 := _mundo_celda(candidatas[i])
-		var pos := Vector3(p2.x, 0.0, p2.y)
-		_registrar_punto_enemigo(i, pos, catalogo[i % catalogo.size()] if not catalogo.is_empty() else {})
+	# Jefe en los niveles 5, 10, 15 y 20: uno solo, en la zona más despejada y alejada de la llegada.
+	var jefe := Enemigo.jefe_para_nivel(nivel)
+	var celda_jefe := Vector2i(999999, 999999)
+	if not jefe.is_empty():
+		celda_jefe = _celda_con_espacio(candidatas)
+		var pj := _mundo_celda(celda_jefe)
+		_registrar_punto_enemigo(0, Vector3(pj.x, _altura_celda(celda_jefe), pj.y), jefe)
+
+	var catalogo := Enemigo.normales_para_nivel(nivel)
+	var cantidad := clampi(4 + nivel / 2, 4, 12) - (1 if not jefe.is_empty() else 0)
+	var puestos: Array[Vector2] = []
+	var colocados := 0
+	for c: Vector2i in candidatas:
+		if colocados >= cantidad or catalogo.is_empty():
+			break
+		if c == celda_jefe or (not jefe.is_empty() and Vector2(c - celda_jefe).length() < 3.5):
+			continue
+		var p2 := _mundo_celda(c)
+		var separado := true
+		for ya_p: Vector2 in puestos:
+			if ya_p.distance_to(p2) < 6.0:
+				separado = false
+				break
+		if not separado:
+			continue
+		puestos.append(p2)
+		_registrar_punto_enemigo(colocados + 1, Vector3(p2.x, _altura_celda(c), p2.y), catalogo[colocados % catalogo.size()])
+		colocados += 1
+
+
+## Celda pisable con más celdas libres alrededor (radio de 2 celdas = 5 m), lejos de la llegada: sitio con espacio para un jefe.
+func _celda_con_espacio(candidatas: Array[Vector2i]) -> Vector2i:
+	var mejor := candidatas[0]
+	var mejor_valor := -1.0
+	for c: Vector2i in candidatas:
+		var libres := 0
+		for dx in range(-2, 3):
+			for dz in range(-2, 3):
+				if _celdas_cavadas.has(c + Vector2i(dx, dz)):
+					libres += 1
+		var valor := float(libres) * 10.0 + float(int(_distancias.get(c, 0)))
+		if valor > mejor_valor:
+			mejor_valor = valor
+			mejor = c
+	return mejor
 
 
 func _colocar_puntos_enemigos_clasicos(p_lleg: Vector3, _azar: RandomNumberGenerator) -> void:
@@ -1037,19 +1282,24 @@ func _colocar_puntos_enemigos_clasicos(p_lleg: Vector3, _azar: RandomNumberGener
 	puntos_enemigos = Node3D.new()
 	puntos_enemigos.name = "PuntosEnemigos"
 	add_child(puntos_enemigos)
-	var catalogo := Enemigo.para_nivel(nivel)
+	var catalogo := Enemigo.normales_para_nivel(nivel)
 	var puestos := [
 		Vector3(417.0, 0.0, -5.0),
 		Vector3(424.0, 0.0, -10.5),
 		Vector3(429.0, 0.0, -15.0),
+		Vector3(446.5, 0.0, -15.5),
+		Vector3(448.5, 2.0, -4.0),
 	]
 	for i in puestos.size():
-		var s := AyudasL4b.suelo(self, puestos[i], 1.0, 2.5)
+		var s := AyudasL4b.suelo(self, puestos[i], 1.5, 3.0)
 		var pos := s if s != Vector3.INF else p_lleg + Vector3(6.0 + float(i) * 2.5, 0.0, -4.0 - float(i) * 2.5)
 		_registrar_punto_enemigo(i, pos, catalogo[i % catalogo.size()] if not catalogo.is_empty() else {})
 
 
 func _registrar_punto_enemigo(indice: int, pos: Vector3, datos: Dictionary) -> void:
+	if not datos.is_empty():
+		datos = datos.duplicate()
+		datos["nivel_mina"] = nivel
 	var m := Marker3D.new()
 	m.name = "SpawnEnemigo_%d" % (indice + 1)
 	m.position = pos
@@ -1059,7 +1309,7 @@ func _registrar_punto_enemigo(indice: int, pos: Vector3, datos: Dictionary) -> v
 	if Enemigo.ACTIVOS and not datos.is_empty():
 		var en := Enemigo.new()
 		en.configurar(datos)
-		en.position = pos
+		en.position = pos + Vector3(0.0, 0.25, 0.0)
 		puntos_enemigos.add_child(en)
 
 
@@ -1079,3 +1329,114 @@ func instanciar_enemigos_prueba(forzar_activos: bool = true) -> Array[Enemigo]:
 				en.activar_para_prueba(forzar_activos)
 				r.append(en)
 	return r
+
+
+# --- Niebla de guerra en minimapa y mapa grande ---------------------------------------------------------
+
+func _inicializar_niebla(mapa: Node) -> void:
+	_niebla_rect = mapa.call("rect_mapa") if mapa.has_method("rect_mapa") else Rect2(394, -36, 80, 60)
+	if not (Juego.estado_mapas.get(ID_MAPA, null) is Dictionary):
+		Juego.estado_mapas[ID_MAPA] = {}
+	var est: Dictionary = Juego.estado_mapas[ID_MAPA]
+	if int(est.get("niebla_dia", -1)) != AyudasL4b.clave_dia():
+		est["niebla_dia"] = AyudasL4b.clave_dia()
+		est["niebla"] = {}
+	if not (est.get("niebla", null) is Dictionary):
+		est["niebla"] = {}
+	var dic_niebla: Dictionary = est["niebla"]
+	var clave := str(nivel)
+	var bytes_n := TAM_NIEBLA * TAM_NIEBLA
+	if dic_niebla.get(clave, null) is PackedByteArray and (dic_niebla[clave] as PackedByteArray).size() == bytes_n:
+		_niebla_bytes = dic_niebla[clave] as PackedByteArray
+	else:
+		_niebla_bytes = PackedByteArray()
+		_niebla_bytes.resize(bytes_n)
+		_niebla_bytes.fill(0)
+		dic_niebla[clave] = _niebla_bytes
+	_niebla_img = Image.create_from_data(TAM_NIEBLA, TAM_NIEBLA, false, Image.FORMAT_R8, _niebla_bytes)
+	_niebla_tex = ImageTexture.create_from_image(_niebla_img)
+	_niebla_overlay_img = Image.create(TAM_NIEBLA, TAM_NIEBLA, false, Image.FORMAT_RGBA8)
+	_niebla_overlay_tex = ImageTexture.create_from_image(_niebla_overlay_img)
+	_actualizar_textura_overlay_niebla()
+	var m_lleg := mapa.call("marcador", "Llegada_Interior") as Marker3D
+	if m_lleg != null:
+		revelar_niebla_en(Vector2(m_lleg.global_position.x, m_lleg.global_position.z), RADIO_REVELAR + 1.5)
+	var j := Escenas.jugador()
+	if j != null:
+		revelar_niebla_en(Vector2(j.global_position.x, j.global_position.z), RADIO_REVELAR)
+
+
+func _actualizar_textura_overlay_niebla() -> void:
+	if _niebla_overlay_img == null or _niebla_overlay_tex == null:
+		return
+	for z in TAM_NIEBLA:
+		for x in TAM_NIEBLA:
+			var v := float(_niebla_bytes[z * TAM_NIEBLA + x]) / 255.0
+			var a := (1.0 - v) * 0.94
+			var g := 0.055 + 0.015 * sin(float(x) * 0.9 + float(z) * 0.7)
+			_niebla_overlay_img.set_pixel(x, z, Color(g, g * 0.96, g * 1.15, a))
+	_niebla_overlay_tex.update(_niebla_overlay_img)
+
+
+func revelar_niebla_en(pos_xz: Vector2, radio: float = RADIO_REVELAR) -> void:
+	if _niebla_bytes.is_empty() or _niebla_rect.size.x <= 0.0 or _niebla_rect.size.y <= 0.0:
+		return
+	var cambios := false
+	var gx_c := ((pos_xz.x - _niebla_rect.position.x) / _niebla_rect.size.x) * float(TAM_NIEBLA - 1)
+	var gz_c := ((pos_xz.y - _niebla_rect.position.y) / _niebla_rect.size.y) * float(TAM_NIEBLA - 1)
+	var rx := (radio / _niebla_rect.size.x) * float(TAM_NIEBLA - 1)
+	var rz := (radio / _niebla_rect.size.y) * float(TAM_NIEBLA - 1)
+	var x0 := maxi(0, floori(gx_c - rx))
+	var x1 := mini(TAM_NIEBLA - 1, ceili(gx_c + rx))
+	var z0 := maxi(0, floori(gz_c - rz))
+	var z1 := mini(TAM_NIEBLA - 1, ceili(gz_c + rz))
+	for z in range(z0, z1 + 1):
+		var dz := (float(z) - gz_c) / maxf(rz, 0.01)
+		for x in range(x0, x1 + 1):
+			var dx := (float(x) - gx_c) / maxf(rx, 0.01)
+			var d := sqrt(dx * dx + dz * dz)
+			if d <= 1.0:
+				var valor := clampi(roundi(smoothstep(1.0, 0.55, d) * 255.0), 0, 255)
+				var idx := z * TAM_NIEBLA + x
+				if valor > int(_niebla_bytes[idx]):
+					_niebla_bytes[idx] = valor
+					cambios = true
+	if cambios and _niebla_img != null and _niebla_tex != null:
+		_niebla_img.set_data(TAM_NIEBLA, TAM_NIEBLA, false, Image.FORMAT_R8, _niebla_bytes)
+		_niebla_tex.update(_niebla_img)
+		_actualizar_textura_overlay_niebla()
+		if Juego.estado_mapas.get(ID_MAPA, null) is Dictionary:
+			var est: Dictionary = Juego.estado_mapas[ID_MAPA]
+			if est.get("niebla", null) is Dictionary:
+				(est["niebla"] as Dictionary)[str(nivel)] = _niebla_bytes
+		niebla_actualizada.emit()
+
+
+func textura_niebla() -> Texture2D:
+	return _niebla_tex
+
+
+func textura_niebla_overlay() -> Texture2D:
+	return _niebla_overlay_tex
+
+
+func rect_niebla() -> Rect2:
+	return _niebla_rect
+
+
+func es_punto_explorado(pos_xz: Vector2) -> bool:
+	if _niebla_bytes.is_empty() or _niebla_rect.size.x <= 0.0 or _niebla_rect.size.y <= 0.0:
+		return true
+	var gx := clampi(roundi(((pos_xz.x - _niebla_rect.position.x) / _niebla_rect.size.x) * float(TAM_NIEBLA - 1)), 0, TAM_NIEBLA - 1)
+	var gz := clampi(roundi(((pos_xz.y - _niebla_rect.position.y) / _niebla_rect.size.y) * float(TAM_NIEBLA - 1)), 0, TAM_NIEBLA - 1)
+	return int(_niebla_bytes[gz * TAM_NIEBLA + gx]) >= 64
+
+
+func fraccion_explorada() -> float:
+	if _niebla_bytes.is_empty():
+		return 0.0
+	var vis := 0
+	for b in _niebla_bytes:
+		if int(b) >= 64:
+			vis += 1
+	return float(vis) / float(_niebla_bytes.size())

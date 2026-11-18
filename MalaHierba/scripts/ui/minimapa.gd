@@ -19,14 +19,20 @@ const COLOR_NPC := Color(0.55, 0.82, 1.0)
 const COLOR_SALIDA := Color(1.0, 0.72, 0.22)
 const COLOR_PUERTA := Color(0.9, 0.55, 0.3)
 const COLOR_CONTORNO := Color(0.05, 0.04, 0.03, 0.95)
-const LADO_FOTO := 1280
+const LADO_FOTO := 1024
 
 const SHADER_FOTO := "shader_type canvas_item;
 uniform vec4 fuera : source_color = vec4(0.06, 0.05, 0.045, 1.0);
+uniform float usar_niebla = 0.0;
+uniform sampler2D tex_niebla : filter_linear;
+uniform vec4 color_niebla : source_color = vec4(0.045, 0.045, 0.060, 1.0);
 void fragment() {
 	vec4 c = texture(TEXTURE, UV);
 	if (UV.x < 0.0 || UV.x > 1.0 || UV.y < 0.0 || UV.y > 1.0) {
 		c = fuera;
+	} else if (usar_niebla > 0.5) {
+		float vis = texture(tex_niebla, UV).r;
+		c.rgb = mix(color_niebla.rgb, c.rgb, vis);
 	}
 	COLOR = c;
 }
@@ -51,6 +57,8 @@ var _l_nombre: Label
 var _l_norte: Label
 var _poligono: PackedVector2Array = PackedVector2Array()
 var _mapa_actual: Node3D = null
+var _mat_foto: ShaderMaterial = null
+var _nivel_mina: Node3D = null
 
 
 ## Capa que dibuja solo la foto (lleva el shader que deja oscuro lo que cae fuera de la imagen).
@@ -98,6 +106,7 @@ func _ready() -> void:
 	sh.code = SHADER_FOTO
 	var mat := ShaderMaterial.new()
 	mat.shader = sh
+	_mat_foto = mat
 	_fondo.material = mat
 	add_child(_fondo)
 
@@ -125,9 +134,20 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if not is_visible_in_tree():
 		return
+	if _mat_foto != null:
+		var tex_n: Variant = _nivel_mina.call("textura_niebla") if (id_mapa == "mina_interior" and _nivel_mina != null and is_instance_valid(_nivel_mina) and _nivel_mina.has_method("textura_niebla")) else null
+		if tex_n is Texture2D:
+			_mat_foto.set_shader_parameter("usar_niebla", 1.0)
+			_mat_foto.set_shader_parameter("tex_niebla", tex_n)
+		else:
+			_mat_foto.set_shader_parameter("usar_niebla", 0.0)
 	_poner_norte()
 	_fondo.queue_redraw()
 	_marcas.queue_redraw()
+
+
+func nivel_mina_actual() -> Node3D:
+	return _nivel_mina if is_instance_valid(_nivel_mina) else null
 
 
 # --- Preparación ---------------------------------------------------------------------------------------
@@ -137,6 +157,7 @@ func _al_mapa_cargado(id: String) -> void:
 	if mapa == null:
 		return
 	_mapa_actual = mapa
+	_nivel_mina = mapa.get_node_or_null("Objetos/NivelMina") as Node3D if id == "mina_interior" else null
 	jugador = Escenas.jugador()
 	camara = jugador.get("camara") as CamaraJuego if jugador != null else null
 	id_mapa = id
@@ -155,6 +176,12 @@ func _al_mapa_cargado(id: String) -> void:
 	rect_mundo = rect
 	textura = null
 	var clave_foto := "%s_n%d" % [id, clampi(int(Juego.banderas.get("nivel_mina", 1)), 1, 20)] if id == "mina_interior" else id
+	_generar_foto_diferida.call_deferred(id, mapa, clave_foto, rect)
+
+
+func _generar_foto_diferida(id: String, mapa: Node3D, clave_foto: String, rect: Rect2) -> void:
+	if id != id_mapa or not is_instance_valid(mapa):
+		return
 	var foto := await FotoCenital.generar(mapa, clave_foto, rect, LADO_FOTO)
 	if id != id_mapa:
 		return      # mientras tanto se cambió de mapa
@@ -272,6 +299,9 @@ func _dibujar_marcas(c: Control) -> void:
 				var nodo := n3 as Node3D
 				if nodo == null or not nodo.is_inside_tree():
 					continue
+				if id_mapa == "mina_interior" and _nivel_mina != null and is_instance_valid(_nivel_mina) and _nivel_mina.has_method("es_punto_explorado"):
+					if not bool(_nivel_mina.call("es_punto_explorado", Vector2(nodo.global_position.x, nodo.global_position.z))):
+						continue
 				var q := mundo_a_pantalla(Vector2(nodo.global_position.x, nodo.global_position.z))
 				if q.distance_to(centro) <= r - 7.0:
 					_rombo(c, q, 7.0, color)

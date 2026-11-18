@@ -1,9 +1,11 @@
-extends Node3D
+extends Interactuable
 ## Interactuable de prueba (mapa de prueba de L3): habla con Leo para ver el cartel de acción y el diálogo.
 
 
 func _ready() -> void:
-	add_to_group("interactuable")
+	radio = 0.4
+	altura_marca = 1.7
+	super._ready()
 	var cuerpo := MeshInstance3D.new()
 	var c := CapsuleMesh.new()
 	c.radius = 0.35

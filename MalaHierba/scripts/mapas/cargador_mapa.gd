@@ -13,6 +13,13 @@ const SHADER_TRIPLANAR: Shader = preload("res://shaders/triplanar_tinte.gdshader
 const SHADER_ESTACIONAL: Shader = preload("res://shaders/estandar_estacional.gdshader")
 const SHADER_NIEVE_HOJAS: Shader = preload("res://shaders/nieve_hojas.gdshader")
 const SHADER_NIEVE_CORTEZA: Shader = preload("res://shaders/nieve_corteza.gdshader")
+const SHADER_AGUA: Shader = preload("res://shaders/agua_h03.gdshader")
+const SHADER_FOLLAJE: Shader = preload("res://shaders/follaje_h03.gdshader")
+const NORMAL_AGUA := "res://assets/agua/ondas_normal.png"
+const SUELOS_H03 := {
+	"granja": "stony_dirt_path", "pueblo": "stony_dirt_path", "bosque_norte": "forest_floor",
+	"costa_lago": "coast_sand_rocks_02", "mina_exterior": "rocks_ground_06",
+}
 const MAPAS_EXTERIORES: Array[String] = ["granja", "pueblo", "mina_exterior", "bosque_norte", "costa_lago"]
 const TAM_CELDA := 24.0                 # metros: tamaño de cada trozo de MultiMesh (permite recortar lo que no se ve)
 const ALCANCE_PLANTAS := 75.0           # distancia a partir de la cual desaparecen las plantas pequeñas
@@ -42,6 +49,7 @@ var _mats_estacionales: Array[Dictionary] = []
 var _mats_nieve: Array[Dictionary] = []
 var _mats_ventana: Array[Dictionary] = []
 var _luces_mapa: Array[Dictionary] = []
+var _luces_ventana_h03: Array[SpotLight3D] = []
 var _mat_nieve_corteza: ShaderMaterial = null
 var _cache_forma_malla: Dictionary = {}
 var _cache_protos: Dictionary = {}
@@ -103,11 +111,17 @@ static func _rutas_de_datos(base: String, id: String, datos: Dictionary, mats: D
 				var t: Variant = d.get(k, "")
 				if t is String:
 					anadir.call(t as String)
-	var cielo: Variant = datos.get("cielo", null)
-	if cielo is Dictionary:
-		var hdri: Variant = (cielo as Dictionary).get("hdri", "")
-		if hdri is String:
-			anadir.call(hdri as String)
+	if not MAPAS_EXTERIORES.has(id):
+		var cielo: Variant = datos.get("cielo", null)
+		if cielo is Dictionary:
+			var hdri: Variant = (cielo as Dictionary).get("hdri", "")
+			if hdri is String:
+				anadir.call(hdri as String)
+	if SUELOS_H03.has(id):
+		for mapa_pbr: String in ["diff", "nor_gl", "rough", "disp"]:
+			anadir.call(_ruta_suelo_h03(id, mapa_pbr))
+	if id == "costa_lago" or id == "bosque_norte":
+		anadir.call(NORMAL_AGUA)
 	var protos: Dictionary = inst.get("protos", {})
 	var info: Dictionary = inst.get("info", {})
 	var usados: Dictionary = {}
@@ -336,9 +350,15 @@ func _preparar_malla(mi: MeshInstance3D) -> void:
 		var m := _material_para(mi.mesh.surface_get_material(i))
 		if m != null:
 			mi.set_surface_override_material(i, m)
+	if String(mi.name) == "Ventanas_luz" and not _es_exterior():
+		_crear_luces_ventana_h03(mi)
+	if String(mi.name) == "Rio_agua" or String(mi.name) == "Lago_agua":
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 	if bool(info.get("solo_sombra", false)):
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
-	if bool(info.get("colision", true)):
+	var cristal_farol := id_mapa == "mina_interior" and String(mi.name).begins_with("Prop_int_Cristal_farol")
+	if bool(info.get("colision", true)) or cristal_farol:
 		var forma := _cache_forma_malla.get(mi.mesh) as Shape3D
 		if forma == null:
 			forma = mi.mesh.create_trimesh_shape()
@@ -346,6 +366,7 @@ func _preparar_malla(mi: MeshInstance3D) -> void:
 		var cs := CollisionShape3D.new()
 		cs.shape = forma
 		cs.name = "col_" + String(mi.name)
+		cs.set_meta("malla_apuntada", mi)
 		colisiones.add_child(cs)
 		cs.global_transform = mi.global_transform
 
@@ -370,7 +391,7 @@ func _info_objeto(nombre: String) -> Dictionary:
 
 
 func _ajustar_luz(l: Light3D) -> void:
-	l.shadow_enabled = false
+	l.set_meta("sombra_h03", true)
 	var tope := ENERGIA_LUZ_EXT_MAX if _es_exterior() else ENERGIA_LUZ_MAX
 	if l is OmniLight3D:
 		var o := l as OmniLight3D
@@ -382,6 +403,38 @@ func _ajustar_luz(l: Light3D) -> void:
 		s.spot_range = ALCANCE_LUZ
 		s.light_energy = clampf(s.light_energy, 0.2, tope)
 	_luces_mapa.append({"luz": l, "base": l.light_energy})
+	GraficaH03.ajustar_luz(l, int(Ajustes.valores.calidad))
+
+
+func _crear_luces_ventana_h03(ventanas: MeshInstance3D) -> void:
+	var caja := ventanas.global_transform * ventanas.get_aabb()
+	for lado in [-1.0, 1.0]:
+		var foco := SpotLight3D.new()
+		foco.name = "LuzVentana"
+		foco.spot_range = 9.0
+		foco.spot_angle = 20.0
+		foco.spot_angle_attenuation = 1.25
+		foco.spot_attenuation = 0.85
+		foco.light_energy = 0.0
+		foco.light_volumetric_fog_energy = 2.2
+		foco.set_meta("sombra_h03", true)
+		nodo_luces.add_child(foco, true)
+		foco.global_position = caja.get_center() + Vector3.RIGHT * lado * maxf(0.0, caja.size.x * 0.5 - 0.15)
+		_luces_ventana_h03.append(foco)
+
+
+func iluminar_ventanas_h03(dia: float, avance_sol: float, lluvia: bool) -> void:
+	var avance := clampf(avance_sol, 0.0, 1.0)
+	var lateral := cos(avance * PI)
+	for i in _luces_ventana_h03.size():
+		var foco := _luces_ventana_h03[i]
+		var lado := 1.0 if i == 0 else -1.0
+		var entrada := maxf(0.0, lateral * lado)
+		foco.light_energy = dia * (0.23 + entrada * 1.8)
+		foco.light_volumetric_fog_energy = 0.75 if lluvia else 2.2
+		foco.light_color = Color(0.81, 0.89, 1.0).lerp(Color(1.0, 0.80, 0.59), entrada * 0.6)
+		foco.look_at(foco.global_position + Vector3(lado, -0.40 - sin(avance * PI) * 0.46, lateral * 0.27))
+		GraficaH03.ajustar_luz(foco, int(Ajustes.valores.calidad))
 
 
 # ------------------------------------------------------------------------------------------------ materiales
@@ -396,6 +449,17 @@ func _material_para(m: Material) -> Material:
 	var nuevo := _construir_material(nombre, _materiales[nombre])
 	_cache_mat[nombre] = nuevo
 	return nuevo
+
+
+## Material PBR existente, proyectado sobre la roca del techo desde los tres ejes.
+static func aplicar_pbr_techo_roca(roca: BaseMaterial3D) -> void:
+	roca.albedo_texture = preload("res://assets/texturas/rocky_terrain_02/rocky_terrain_02_albedo.jpg")
+	roca.normal_texture = preload("res://assets/texturas/rocky_terrain_02/rocky_terrain_02_normal.png")
+	roca.normal_enabled = true
+	roca.roughness_texture = preload("res://assets/texturas/rocky_terrain_02/rocky_terrain_02_rug.jpg")
+	roca.roughness = 0.94
+	roca.uv1_triplanar = true
+	roca.uv1_scale = Vector3.ONE * 0.8
 
 
 func _tex(ruta: Variant) -> Texture2D:
@@ -416,6 +480,12 @@ func _es_exterior() -> bool:
 
 
 func _construir_material(nombre: String, e: Dictionary) -> Material:
+	if nombre == "Agua" and (id_mapa == "costa_lago" or id_mapa == "bosque_norte"):
+		var agua := ShaderMaterial.new()
+		agua.shader = SHADER_AGUA
+		agua.set_shader_parameter("ondas", _tex(NORMAL_AGUA))
+		agua.set_shader_parameter("es_rio", id_mapa == "bosque_norte")
+		return agua
 	var tipo := String(e.get("tipo", "triplanar"))
 	if tipo == "triplanar":
 		return _material_triplanar(e)
@@ -443,7 +513,13 @@ func _material_triplanar(e: Dictionary) -> ShaderMaterial:
 	if tm != null:
 		m.set_shader_parameter("tinte_mult", Vector3(tm[0], tm[1], tm[2]))
 	m.set_shader_parameter("rug_mult", float(e.get("rug_mult", 1.0)))
+	m.set_shader_parameter("recibe_lluvia", _es_exterior())
 	return m
+
+
+static func _ruta_suelo_h03(mapa: String, canal: String) -> String:
+	var prefijo: String = SUELOS_H03[mapa]
+	return "res://assets/texturas/h03/%s/%s_%s_2k.jpg" % [prefijo, prefijo, canal]
 
 
 func _material_estandar(nombre: String, e: Dictionary) -> Material:
@@ -474,6 +550,12 @@ func _material_estandar(nombre: String, e: Dictionary) -> Material:
 		sm.set_shader_parameter("metalico", float(e.get("metalico", 0.0)))
 		sm.set_shader_parameter("es_suelo", es_suelo)
 		sm.set_shader_parameter("es_tejado", es_tejado)
+		if nombre == "Terreno__Suelo" and SUELOS_H03.has(id_mapa):
+			sm.set_shader_parameter("usa_detalle", true)
+			sm.set_shader_parameter("detalle_color", _tex(_ruta_suelo_h03(id_mapa, "diff")))
+			sm.set_shader_parameter("detalle_normal", _tex(_ruta_suelo_h03(id_mapa, "nor_gl")))
+			sm.set_shader_parameter("detalle_rugosidad", _tex(_ruta_suelo_h03(id_mapa, "rough")))
+			sm.set_shader_parameter("detalle_altura", _tex(_ruta_suelo_h03(id_mapa, "disp")))
 		return sm
 
 	var m := StandardMaterial3D.new()
@@ -509,6 +591,10 @@ func _material_estandar(nombre: String, e: Dictionary) -> Material:
 	if bool(e.get("doble_cara", false)):
 		m.cull_mode = BaseMaterial3D.CULL_DISABLED
 
+	var cat_est := _categoria_tinte_estacional(nombre)
+	if _es_exterior() and a == "recorte" and not cat_est.is_empty() and alb != null:
+		return _material_follaje(nombre, m, cat_est)
+
 	if nombre == "Ventana" or nombre == "Ventana_luz" or nombre == "Ventana_tenue" or nombre == "Ventana_calida":
 		_mats_ventana.append({
 			"mat": m,
@@ -523,11 +609,28 @@ func _material_estandar(nombre: String, e: Dictionary) -> Material:
 		_mats_nieve.append({"mat": m, "pass": np})
 		if Juego.estacion == 3:
 			m.next_pass = np
-	var cat_est := _categoria_tinte_estacional(nombre)
 	if _es_exterior() and not cat_est.is_empty():
 		_mats_estacionales.append({"mat": m, "base": m.albedo_color, "cat": cat_est})
-		_aplicar_tinte_mat(m, m.albedo_color, cat_est)
+		m.albedo_color = _tinte_estacional(m.albedo_color, cat_est)
 	return m
+
+
+func _material_follaje(nombre: String, base: StandardMaterial3D, categoria: String) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = SHADER_FOLLAJE
+	var hierba := nombre.begins_with("grass_")
+	material.set_shader_parameter("albedo_tex", base.albedo_texture)
+	material.set_shader_parameter("normal_tex", base.normal_texture)
+	material.set_shader_parameter("usa_normal", base.normal_enabled)
+	material.set_shader_parameter("rug_tex", base.roughness_texture)
+	material.set_shader_parameter("usa_rug", base.roughness_texture != null)
+	material.set_shader_parameter("rug_base", base.roughness)
+	material.set_shader_parameter("es_hierba", hierba)
+	material.set_shader_parameter("flexion", 0.28 if hierba else (0.21 if categoria == "arbol" else 0.16))
+	material.set_shader_parameter("transmision", 0.20 if categoria == "arbol" else 0.36)
+	material.set_shader_parameter("tinte", _tinte_estacional(base.albedo_color, categoria))
+	_mats_estacionales.append({"mat": material, "base": base.albedo_color, "cat": categoria})
+	return material
 
 
 func _ajuste_albedo_textura(nombre: String, alfa: float) -> Color:
@@ -615,33 +718,33 @@ func _next_pass_nieve(es_foliage: bool, alb: Texture2D) -> ShaderMaterial:
 	return _mat_nieve_corteza
 
 
-func _aplicar_tinte_mat(m: StandardMaterial3D, base: Color, cat: String) -> void:
+func _tinte_estacional(base: Color, cat: String) -> Color:
 	var est := Juego.estacion
 	if cat == "hierba":
 		match est:
 			1:
-				m.albedo_color = base * Color(0.95, 1.05, 0.92, 1.0)
+				return base * Color(0.95, 1.05, 0.92, 1.0)
 			2:
-				m.albedo_color = base * Color(1.08, 0.84, 0.50, 1.0)
+				return base * Color(1.08, 0.84, 0.50, 1.0)
 			3:
-				m.albedo_color = base * Color(0.84, 0.90, 0.86, 1.0)
-			_:
-				m.albedo_color = base
+				return base * Color(0.84, 0.90, 0.86, 1.0)
 	elif cat == "arbol":
 		match est:
 			2:
-				m.albedo_color = base * Color(1.04, 0.92, 0.72, 1.0)
+				return base * Color(1.04, 0.92, 0.72, 1.0)
 			3:
-				m.albedo_color = base * Color(0.88, 0.94, 0.98, 1.0)
-			_:
-				m.albedo_color = base
+				return base * Color(0.88, 0.94, 0.98, 1.0)
+	return base
 
 
 func actualizar_estacion() -> void:
 	for reg: Dictionary in _mats_estacionales:
-		var m := reg.get("mat") as StandardMaterial3D
-		if is_instance_valid(m):
-			_aplicar_tinte_mat(m, reg["base"] as Color, str(reg["cat"]))
+		var m := reg.get("mat") as Material
+		var tinte := _tinte_estacional(reg["base"] as Color, str(reg["cat"]))
+		if m is ShaderMaterial:
+			m.set_shader_parameter("tinte", tinte)
+		elif m is StandardMaterial3D:
+			m.albedo_color = tinte
 	var inv := Juego.estacion == 3 and _es_exterior()
 	for reg_n: Dictionary in _mats_nieve:
 		var mn := reg_n.get("mat") as StandardMaterial3D
@@ -678,6 +781,7 @@ func actualizar_iluminacion_hora(factor_ventanas: float, factor_luces: float, fu
 			l.light_energy = base * clampf(factor_luces, 0.04, 1.0)
 		else:
 			l.light_energy = base
+		GraficaH03.ajustar_luz(l, int(Ajustes.valores.calidad))
 
 
 func _crear_nodo_arbol(nombre: String, mesh: Mesh, xf: Transform3D, r_ini: float, r_fin: float, m_ini: float, m_fin: float, lod_bias_val: float, sombra: bool) -> MeshInstance3D:
@@ -685,6 +789,7 @@ func _crear_nodo_arbol(nombre: String, mesh: Mesh, xf: Transform3D, r_ini: float
 	mi.name = nombre
 	mi.mesh = mesh
 	mi.transform = xf
+	mi.extra_cull_margin = 0.3
 	mi.lod_bias = lod_bias_val
 	mi.visibility_range_begin = r_ini
 	mi.visibility_range_begin_margin = m_ini
@@ -765,20 +870,12 @@ func _cargar_instancias(base: String) -> void:
 				var mm := MultiMesh.new()
 				mm.transform_format = MultiMesh.TRANSFORM_3D
 				mm.mesh = mesh
-				mm.instance_count = ts.size()
-				var buf := PackedFloat32Array()
-				buf.resize(ts.size() * 12)
-				var k := 0
-				for t: Array in ts:
-					buf[k] = t[0]; buf[k + 1] = t[3]; buf[k + 2] = t[6]; buf[k + 3] = t[9]
-					buf[k + 4] = t[1]; buf[k + 5] = t[4]; buf[k + 6] = t[7]; buf[k + 7] = t[10]
-					buf[k + 8] = t[2]; buf[k + 9] = t[5]; buf[k + 10] = t[8]; buf[k + 11] = t[11]
-					k += 12
-				mm.buffer = buf
+				_cargar_buffer_instancias(mm, ts, p.begins_with("grass_") and _es_exterior())
 				var mmi := MultiMeshInstance3D.new()
 				mmi.name = "mm_%s_%d_%d" % [p, celda.x, celda.y]
 				mmi.multimesh = mm
 				if cat == "planta" or sin_col.has(p):
+					mmi.extra_cull_margin = 0.3
 					mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 					mmi.visibility_range_end = ALCANCE_PLANTAS
 				nodo_instancias.add_child(mmi)
@@ -800,6 +897,33 @@ func _cargar_instancias(base: String) -> void:
 					cs.shape = forma
 					cs.position = Vector3(t[9], t[10] + alto * esc * 0.5, t[11])
 					cuerpo_troncos.add_child(cs)
+
+
+func _cargar_buffer_instancias(mm: MultiMesh, originales: Array, hierba: bool) -> void:
+	# Refuerza los macizos existentes con un tallo bajo por cada tres plantas.
+	var extras := originales.size() / 3 if hierba else 0
+	var paso := 16 if hierba else 12
+	mm.use_custom_data = hierba
+	mm.instance_count = originales.size() + extras
+	var buffer := PackedFloat32Array()
+	buffer.resize(mm.instance_count * paso)
+	for i in mm.instance_count:
+		var extra := i >= originales.size()
+		var indice := (i - originales.size()) * 3 if extra else i
+		var xf := _t_a_transform(originales[indice])
+		if extra:
+			var lateral := xf.basis.x.normalized() * 0.20
+			xf.origin += Vector3(lateral.x, -0.045, lateral.z)
+			xf.basis = xf.basis.rotated(Vector3.UP, 1.72).scaled(Vector3.ONE * 0.69)
+			buffer[i * paso + 12] = 1.0
+		# MultiMesh guarda las tres filas de la matriz seguidas de la traslación de cada eje.
+		for eje in 3:
+			var fila := i * paso + eje * 4
+			buffer[fila] = xf.basis.x[eje]
+			buffer[fila + 1] = xf.basis.y[eje]
+			buffer[fila + 2] = xf.basis.z[eje]
+			buffer[fila + 3] = xf.origin[eje]
+	mm.buffer = buffer
 
 
 func _forma_cilindro(radio: float, alto: float) -> CylinderShape3D:

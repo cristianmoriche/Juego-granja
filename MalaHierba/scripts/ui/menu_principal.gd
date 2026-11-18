@@ -26,6 +26,7 @@ func _ready() -> void:
 	_construir_columna()
 	_construir_panel_nombre()
 	_construir_panel_creditos()
+	CargadorMapa.solicitar_recurso(Escenas.RUTA_JUGADOR)
 	if _b_continuar.disabled:
 		_b_nueva.grab_focus.call_deferred()
 	else:

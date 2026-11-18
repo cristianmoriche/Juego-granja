@@ -126,11 +126,14 @@ func calcular_disposicion() -> Dictionary:
 	obstaculos.append(Rect2(norte_pos - Vector2(22.0, 26.0), Vector2(44.0, 56.0)))
 
 	if minimapa != null and minimapa.lista():
+		var nm_niebla := minimapa.nivel_mina_actual() if minimapa.id_mapa == "mina_interior" else null
 		if is_inside_tree():
 			for grupo in ["puerta", "salida"]:
 				for n3: Node in get_tree().get_nodes_in_group(grupo):
 					var nodo := n3 as Node3D
 					if nodo == null or not nodo.is_inside_tree():
+						continue
+					if nm_niebla != null and nm_niebla.has_method("es_punto_explorado") and not bool(nm_niebla.call("es_punto_explorado", Vector2(nodo.global_position.x, nodo.global_position.z))):
 						continue
 					var q := mundo_a_pantalla(Vector2(nodo.global_position.x, nodo.global_position.z))
 					var info := _clasificar_punto(nodo, grupo)
@@ -509,6 +512,12 @@ func _draw() -> void:
 
 	draw_rect(area.grow(10.0), Color(0.09, 0.07, 0.06, 0.96))
 	draw_texture_rect(minimapa.textura, area, false)
+	if minimapa.id_mapa == "mina_interior":
+		var nm_n := minimapa.nivel_mina_actual()
+		if nm_n != null and nm_n.has_method("textura_niebla_overlay"):
+			var ov: Variant = nm_n.call("textura_niebla_overlay")
+			if ov is Texture2D:
+				draw_texture_rect(ov as Texture2D, area, false)
 	draw_rect(area.grow(10.0), Estilo.COLOR_BORDE, false, 3.0)
 
 	# Título superior y ayuda inferior.

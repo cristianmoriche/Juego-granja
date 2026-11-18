@@ -14,6 +14,7 @@ const CLAVE_BANDERA := "muebles_casa"
 var _decorando: bool = false
 var _cursor_celda: Vector2i = Vector2i(6, 5)
 var _cursor_fijado: bool = false
+var _cursor_valido: bool = false
 var _rot_actual: int = 0
 var _id_forzado: String = ""
 
@@ -21,6 +22,7 @@ var _contenedor: Node3D
 var _capa_ui: CanvasLayer
 var _panel_estado: PanelContainer
 var _l_estado: Label
+var _l_mira: Label
 var _l_aviso: Label
 
 var _rejilla: MeshInstance3D
@@ -32,23 +34,6 @@ var _mat_verde: StandardMaterial3D
 var _mat_rojo: StandardMaterial3D
 
 var _colocados: Array[Dictionary] = []
-var _ultimo_raton: Vector2 = Vector2(-9999.0, -9999.0)
-
-
-class BaulInteractuable extends Node3D:
-	func _ready() -> void:
-		add_to_group("interactuable")
-
-	func texto_interaccion() -> String:
-		return "Abrir baúl"
-
-	func alcance_interaccion() -> float:
-		return 2.4
-
-	func interactuar(_jugador: Node) -> void:
-		InteraccionesInterior.abrir_arcon()
-
-
 func _ready() -> void:
 	add_to_group("decoracion_casa")
 	add_to_group("usable")
@@ -110,6 +95,7 @@ func entrar_modo_decorar(id_opcional: String = "") -> void:
 	elif Datos.es_mueble(str(Juego.objeto_activo().get("id", ""))):
 		_id_forzado = ""
 	_decorando = true
+	Interfaz.actualizar_cursor()
 	if _rejilla != null:
 		_rejilla.visible = true
 	if _cuadro_celda != null:
@@ -122,6 +108,7 @@ func entrar_modo_decorar(id_opcional: String = "") -> void:
 
 func salir_modo_decorar() -> void:
 	_decorando = false
+	Interfaz.actualizar_cursor()
 	_cursor_fijado = false
 	_id_forzado = ""
 	if _rejilla != null:
@@ -134,6 +121,7 @@ func salir_modo_decorar() -> void:
 
 func fijar_cursor_celda(celda: Vector2i, rot: int = -1) -> void:
 	_cursor_fijado = true
+	_cursor_valido = true
 	_cursor_celda = Vector2i(clampi(celda.x, 0, COLS - 1), clampi(celda.y, 0, FILAS - 1))
 	if rot >= 0:
 		_rot_actual = ((rot % 4) + 4) % 4
@@ -167,6 +155,10 @@ func usar(id: String, _punto: Vector3, _jugador: Node) -> bool:
 func accion_principal() -> void:
 	if not _decorando:
 		return
+	if not _cursor_fijado:
+		_actualizar_cursor_desde_mundo(true)
+	if not _cursor_valido:
+		return
 	var id_sel := _id_mueble_activo()
 	if id_sel != "":
 		if colocar_mueble_en_celda(id_sel, _cursor_celda, _rot_actual, false):
@@ -191,6 +183,8 @@ func _process(_delta: float) -> void:
 	var vis := Interfaz.hud_visible() and not Interfaz.ocupada()
 	if _capa_ui != null:
 		_capa_ui.visible = vis
+	if vis and not _decorando:
+		_posicionar_panel_estado()
 	if not _decorando or Interfaz.ocupada():
 		return
 	if not _cursor_fijado:
@@ -202,23 +196,17 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not Interfaz.hud_visible() or Interfaz.ocupada() or Escenas.en_transicion:
 		return
-	if event is InputEventMouseMotion and _decorando:
-		var pos_r := (event as InputEventMouseMotion).position
-		if _ultimo_raton.distance_to(pos_r) > 6.0:
-			_cursor_fijado = false
-		_ultimo_raton = pos_r
+	if event.is_action_pressed("decorar"):
+		if _decorando:
+			salir_modo_decorar()
+		else:
+			entrar_modo_decorar()
+		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey:
 		var ek := event as InputEventKey
 		if ek.pressed and not ek.echo:
 			var codigo := ek.keycode if ek.keycode != KEY_NONE else ek.physical_keycode
-			if codigo == KEY_B:
-				if _decorando:
-					salir_modo_decorar()
-				else:
-					entrar_modo_decorar()
-				get_viewport().set_input_as_handled()
-				return
 			if codigo == KEY_F:
 				Interfaz.abrir_carpinteria()
 				get_viewport().set_input_as_handled()
@@ -228,7 +216,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					girar_mueble(1)
 					get_viewport().set_input_as_handled()
 					return
-				if codigo == KEY_X or codigo == KEY_DELETE or codigo == KEY_BACKSPACE:
+				if _cursor_valido and codigo in [KEY_X, KEY_DELETE, KEY_BACKSPACE]:
 					var rec := recoger_mueble_en_celda(_cursor_celda)
 					if rec != "":
 						Audio.reproducir("ui_aceptar")
@@ -510,9 +498,15 @@ func _crear_nodo_mueble(id: String, es_previa: bool) -> Node3D:
 			l.position = Vector3(float(p_arr[0]), float(p_arr[1]), float(p_arr[2]))
 			raiz.add_child(l)
 		if bool(m.get("almacen", false)):
-			var baul := BaulInteractuable.new()
+			var baul := Interactuable.new()
 			baul.name = "InteraccionBaul"
 			baul.position = Vector3(0.0, 0.35, 0.45)
+			baul.verbo = "Abrir"
+			baul.nombre_objeto = "baúl"
+			baul.radio = 0.65
+			baul.altura_marca = 0.7
+			baul.objetivo_resaltado = raiz
+			baul.usado.connect(func(_j: Node3D) -> void: InteraccionesInterior.abrir_arcon())
 			raiz.add_child(baul)
 	return raiz
 
@@ -611,33 +605,25 @@ func _id_mueble_activo() -> String:
 	return ""
 
 
-func _actualizar_cursor_desde_mundo() -> void:
+func _actualizar_cursor_desde_mundo(inmediato: bool = false) -> void:
 	var j := Escenas.jugador() as Jugador
-	if j == null:
+	_cursor_valido = false
+	if j == null or Escenas.en_transicion:
 		return
-	var p := Vector3.ZERO
-	var valido := false
-	if not Ajustes.ultimo_mando and j.camara != null and j.camara.camara != null and get_viewport() != null:
-		var cam := j.camara.camara
-		var mpos := get_viewport().get_mouse_position()
-		var orig := cam.project_ray_origin(mpos)
-		var dir := cam.project_ray_normal(mpos)
-		if dir.y < -0.02:
-			var t := (0.0 - orig.y) / dir.y
-			if t > 0.0 and t < 35.0:
-				var hit := orig + dir * t
-				if absf(hit.x) <= 5.4 and absf(hit.z) <= 4.7:
-					p = hit
-					valido = true
-	if not valido:
-		p = j.punto_delante(1.35)
-	var gx := clampi(int(floor((p.x - ORIGEN.x) / TAM_CELDA)), 0, COLS - 1)
-	var gz := clampi(int(floor((p.z - ORIGEN.z) / TAM_CELDA)), 0, FILAS - 1)
+	var resultado := j.apuntar() if inmediato else j.apuntado_actual()
+	if not resultado.has("punto"):
+		return
+	var p: Vector3 = resultado.punto
+	var gx := floori((p.x - ORIGEN.x) / TAM_CELDA)
+	var gz := floori((p.z - ORIGEN.z) / TAM_CELDA)
+	_cursor_valido = gx >= 0 and gx < COLS and gz >= 0 and gz < FILAS
+	if not _cursor_valido:
+		return
 	_cursor_celda = Vector2i(gx, gz)
 
 
 func _refrescar_previa() -> void:
-	if not _decorando:
+	if not _decorando or not _cursor_valido:
 		_limpiar_previa()
 		if _cuadro_celda != null:
 			_cuadro_celda.visible = false
@@ -717,6 +703,10 @@ func _crear_ui() -> void:
 	_l_estado.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_l_estado)
 
+	_l_mira = Estilo.etiqueta("", Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO_SUAVE)
+	_l_mira.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_l_mira)
+
 	_l_aviso = Estilo.etiqueta("", Estilo.TAM_PEQUENO, Estilo.COLOR_MALO)
 	_l_aviso.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_l_aviso.visible = false
@@ -747,35 +737,44 @@ func _posicionar_panel_estado() -> void:
 		_panel_estado.grow_vertical = Control.GROW_DIRECTION_END
 		_panel_estado.offset_left = -280.0
 		_panel_estado.offset_right = -16.0
-		_panel_estado.offset_top = 196.0
-		_panel_estado.offset_bottom = 228.0
+		var debajo_del_reloj := Interfaz.borde_inferior_info() + 8.0
+		_panel_estado.offset_top = debajo_del_reloj
+		_panel_estado.offset_bottom = debajo_del_reloj + 32.0
 
 
 func _actualizar_ui() -> void:
 	if _l_estado == null or _l_aviso == null:
 		return
 	_posicionar_panel_estado()
+	_l_mira.visible = _decorando
 	if not _decorando:
-		_l_estado.text = "B · Decorar casa  |  F · Carpintería"
+		_l_estado.text = "%s · Decorar casa%s" % [
+			Ajustes.pista("decorar"), "" if Ajustes.ultimo_mando else "  |  F · Carpintería"]
 		_l_aviso.visible = false
 		return
 	var id := _id_mueble_activo()
 	var gr := _rot_actual * 90
+	_l_mira.text = "Palanca derecha para apuntar" if Ajustes.ultimo_mando else "Mantén clic derecho y mueve el ratón para apuntar"
+	var colocar := Ajustes.pista("interactuar")
+	if not Ajustes.ultimo_mando:
+		colocar = "%s/%s" % [Ajustes.pista("usar"), colocar]
+	var girar := Ajustes.pista("usar") if Ajustes.ultimo_mando else "R/Rueda"
+	var salir := Ajustes.pista("decorar")
 	if id != "":
 		var chk := puede_colocar(id, _cursor_celda.x, _cursor_celda.y, _rot_actual)
-		_l_estado.text = "DECORAR: %s (%d°)  ·  Clic/E: Colocar  ·  R/Rueda: Girar  ·  X: Guardar  ·  F: Carpintería  ·  B: Salir" % [
-			Datos.nombre_objeto(id), gr
+		_l_estado.text = "%s (%d°)  ·  %s para colocar  ·  %s para girar  ·  %s para salir" % [
+			Datos.nombre_objeto(id), gr, colocar, girar, salir
 		]
-		var ok := bool(chk.get("ok", false))
+		var ok := _cursor_valido and bool(chk.get("ok", false))
 		_l_aviso.add_theme_color_override("font_color", Estilo.COLOR_MALO)
 		_l_aviso.visible = not ok
-		_l_aviso.text = str(chk.get("motivo", ""))
+		_l_aviso.text = str(chk.get("motivo", "")) if _cursor_valido else "Apunta a una casilla cercana."
 	else:
-		var hay := _buscar_mueble_en_celda(_cursor_celda) >= 0
-		_l_estado.text = "DECORAR: Selecciona un mueble en la barra (1-0)  ·  X/Clic: Recoger  ·  F: Carpintería  ·  B: Salir"
+		var hay := _cursor_valido and _buscar_mueble_en_celda(_cursor_celda) >= 0
+		_l_estado.text = "Selecciona un mueble  ·  %s para recoger  ·  %s para salir" % [colocar, salir]
 		_l_aviso.visible = hay
 		if hay:
 			_l_aviso.add_theme_color_override("font_color", Estilo.COLOR_ACENTO)
-			_l_aviso.text = "Pulsa Clic, E o X para recoger este mueble a la mochila."
+			_l_aviso.text = "Pulsa %s para guardar este mueble en la mochila." % colocar
 		else:
 			_l_aviso.add_theme_color_override("font_color", Estilo.COLOR_MALO)

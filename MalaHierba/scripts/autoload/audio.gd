@@ -4,6 +4,7 @@ extends Node
 
 const CARPETA := "res://assets/audio/"
 const BUSES := ["Musica", "Efectos", "Ambiente"]
+const BUS_MINA_ECO := "MinaEco"
 const POOL_EFECTOS := 8
 const DURACION_FUNDIDO := 0.8
 
@@ -57,6 +58,29 @@ func _asegurar_buses() -> void:
 			var idx := AudioServer.bus_count - 1
 			AudioServer.set_bus_name(idx, nombre)
 			AudioServer.set_bus_send(idx, "Master")
+	var idx_eco := AudioServer.get_bus_index(BUS_MINA_ECO)
+	if idx_eco < 0:
+		AudioServer.add_bus()
+		idx_eco = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(idx_eco, BUS_MINA_ECO)
+		AudioServer.set_bus_send(idx_eco, "Efectos")
+	if AudioServer.get_bus_effect_count(idx_eco) == 0:
+		var rev := AudioEffectReverb.new()
+		rev.room_size = 0.72
+		rev.damping = 0.55
+		rev.spread = 0.85
+		rev.hipass = 0.12
+		rev.dry = 0.68
+		rev.wet = 0.34
+		AudioServer.add_bus_effect(idx_eco, rev)
+
+
+func bus_efectos_actual(id: String = "") -> String:
+	if id.begins_with("ui_") or id.begins_with("puerta_"):
+		return "Efectos"
+	if has_node("/root/Juego") and Juego.mapa_actual == "mina_interior":
+		return BUS_MINA_ECO
+	return "Efectos"
 
 
 func _crear_reproductor(bus: String) -> AudioStreamPlayer:
@@ -102,10 +126,30 @@ func reproducir(id: String, variacion_tono: float = 0.04) -> void:
 	conteo_efectos[id] = int(conteo_efectos.get(id, 0)) + 1
 	var p := _efectos[_idx_efecto]
 	_idx_efecto = (_idx_efecto + 1) % _efectos.size()
+	p.bus = bus_efectos_actual(id)
 	p.stream = s
 	p.pitch_scale = randf_range(1.0 - variacion_tono, 1.0 + variacion_tono) if variacion_tono > 0.0 else 1.0
 	p.volume_db = 0.0
 	p.play()
+
+
+## Usa el mismo bus que los efectos (con eco de caverna en mina_interior) y se libera al terminar.
+func reproducir_posicional(id: String, punto: Vector3, padre: Node, volumen: float = 0.0) -> void:
+	var stream := _cargar_stream(id, false)
+	if stream == null or not is_instance_valid(padre) or DisplayServer.get_name() == "headless":
+		return
+	var bus := bus_efectos_actual(id)
+	var sonido := AudioStreamPlayer3D.new()
+	sonido.bus = bus
+	sonido.stream = stream
+	sonido.volume_db = volumen
+	sonido.pitch_scale = randf_range(0.92, 1.08)
+	sonido.unit_size = 4.5 if bus == BUS_MINA_ECO else 3.5
+	sonido.max_distance = 22.0 if bus == BUS_MINA_ECO else 16.0
+	padre.add_child(sonido)
+	sonido.global_position = punto
+	sonido.finished.connect(sonido.queue_free)
+	sonido.play()
 
 
 func poner_musica(id: String) -> void:

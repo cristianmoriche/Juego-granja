@@ -1,8 +1,8 @@
 class_name Interactuable
 extends Area3D
 ## Base reutilizable de todo lo que se puede usar con E: carteles, pozos, puertas, vecinos, cajas...
-## Es un Area3D en la capa 3 («interactuables») y en el grupo «interactuable». El jugador (jugador.gd) elige el
-## más cercano y de frente, muestra «E · <verbo> <nombre_objeto>», lo resalta y, al pulsar E, llama a interactuar().
+## Es un Area3D en la capa 3 («interactuables»). El jugador lo detecta con la mira, lo resalta y
+## al pulsar E o hacer clic llama a interactuar(). Si requiere herramienta, muestra la pista de «usar».
 ##
 ## Uso rápido (sin heredar):
 ##   var c := Interactuable.new()
@@ -10,9 +10,6 @@ extends Area3D
 ##   mapa.objetos.add_child(c); c.global_position = punto
 ## Para hacer algo propio: conecta la señal `usado(jugador)` (y pon `mostrar_descripcion = false` si no quieres
 ## el cuadro de texto), o hereda y sobreescribe `_al_usar(jugador)`.
-## Contrato con el jugador (por si un nodo no hereda de esta clase): grupo «interactuable» y los métodos
-## texto_interaccion() -> String, interactuar(jugador) -> void; opcionales: alcance_interaccion() -> float,
-## punto_marca() -> Vector3, nombre_resaltado() -> String.
 
 ## Se dispara al pulsar E sobre el objeto.
 signal usado(jugador: Node3D)
@@ -25,13 +22,17 @@ signal usado(jugador: Node3D)
 @export_multiline var descripcion: String = ""
 ## Nombre que sale en el cuadro de texto (por defecto, `nombre_objeto` con mayúscula inicial).
 @export var titulo_dialogo: String = ""
-## Tamaño del objeto: el jugador lo alcanza a ALCANCE (1,2 m) + radio de su centro. También es el radio del
-## anillo de resaltado y de la esfera de colisión que se crea si no hay ninguna.
+## Radio de la marca y de la esfera de apuntado si el objeto no trae una forma propia.
 @export var radio: float = 0.8
 ## Altura de la flecha que marca el objeto elegido (y del nombre flotante).
 @export var altura_marca: float = 1.5
 ## Si es false, no se puede elegir ni usar (el cartel desaparece).
-@export var activo: bool = true
+@export var activo: bool = true:
+	set(valor):
+		activo = valor
+		set_deferred("collision_layer", 4 if activo else 0)
+## Objeto que se debe llevar en la mano para accionar este punto con «usar».
+@export var herramienta: String = ""
 ## Si es true y hay `descripcion`, se muestra con Interfaz.mostrar_dialogo tras emitir `usado`.
 @export var mostrar_descripcion: bool = true
 ## Pone el nombre flotando sobre el objeto elegido (para vecinos).
@@ -48,7 +49,7 @@ const ALCANCE := 1.2
 
 
 func _ready() -> void:
-	collision_layer = 4          # capa 3 «interactuables»
+	collision_layer = 4 if activo else 0
 	collision_mask = 0
 	monitoring = false
 	add_to_group("interactuable")
@@ -70,7 +71,7 @@ func texto_interaccion() -> String:
 	return verbo + " " + nombre_objeto
 
 
-## Hasta dónde llega el jugador desde el centro del objeto.
+## Alcance antiguo desde el centro del objeto, para consultas geométricas existentes.
 func alcance_interaccion() -> float:
 	return ALCANCE + radio
 

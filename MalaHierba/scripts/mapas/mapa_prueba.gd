@@ -40,6 +40,7 @@ func _construir() -> void:
 	# Marcadores.
 	var spawn := Marker3D.new()
 	spawn.name = "Spawn_Protagonista"
+	spawn.rotation.y = PI
 	add_child(spawn)
 	var cam := Marker3D.new()
 	cam.name = "Camara_juego"
@@ -47,7 +48,7 @@ func _construir() -> void:
 	cam.position = Vector3(0, 12, 10)
 
 	# Un «vecino» con el que hablar y una parcela donde usar la azada.
-	var vecino := Node3D.new()
+	var vecino := Area3D.new()
 	vecino.set_script(load("res://scripts/mapas/objeto_prueba.gd"))
 	vecino.name = "Clara"
 	add_child(vecino)

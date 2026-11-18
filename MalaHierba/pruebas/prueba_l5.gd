@@ -243,10 +243,10 @@ func _probar_puertas_pueblo() -> void:
 		_comprobar(nodo_puerta.is_in_group("puerta") and nodo_puerta.is_in_group("interactuable"), "«Puerta_%s» está en los grupos puerta e interactuable" % id_casa)
 
 		# Colocar a Leo en el marcador mirando hacia la puerta
-		var hacia_puerta := marc.global_position - marc.global_transform.basis.z * 1.0
-		var blanco := nodo_puerta.global_position if nodo_puerta.global_position.distance_to(marc.global_position) > 0.05 else hacia_puerta
-		_colocar_jugador_mirando(j, marc.global_position + Vector3(0.0, 0.05, 0.0), blanco)
+		var delante := marc.global_position + marc.global_basis.z * 1.12
+		_colocar_jugador_mirando(j, delante + Vector3.UP * 0.05, nodo_puerta.global_position)
 		await _fisica(3)
+		(j as Jugador).camara.mirar_hacia(nodo_puerta.global_position + Vector3.UP * 0.95)
 		j.call("_actualizar_interactuable")
 
 		var obj: Node = j.get("_objetivo")
@@ -294,8 +294,9 @@ func _probar_puertas_pueblo() -> void:
 		var puerta_sal := mapa_int.get_node_or_null("Salidas/Puerta_pueblo") as Node3D
 		_comprobar(m_salida != null and puerta_sal != null and puerta_sal is PuertaMapa, "el interior «%s» tiene marcador Salida y PuertaMapa Puerta_pueblo" % id_casa)
 		if m_salida != null and puerta_sal != null:
-			_colocar_jugador_mirando(j_int, m_salida.global_position + Vector3(0.0, 0.05, -0.25), m_salida.global_position + Vector3(0.0, 0.05, 1.0))
+			_colocar_jugador_mirando(j_int, m_salida.global_position + Vector3(0.0, 0.05, -1.05), puerta_sal.global_position)
 			await _fisica(3)
+			(j_int as Jugador).camara.mirar_hacia(puerta_sal.global_position + Vector3.UP * 0.95)
 			j_int.call("_actualizar_interactuable")
 			_comprobar(Interfaz.texto_accion().begins_with("E  ·  Salir"), "junto a la salida de «%s» el cartel ofrece «%s»" % [id_casa, Interfaz.texto_accion()])
 
@@ -342,6 +343,7 @@ func _probar_puerta_y_cama_casa_leo() -> void:
 
 	_colocar_jugador_mirando(j, marc_cab.global_position + Vector3(0.0, 0.05, 0.5), marc_cab.global_position + Vector3(0.0, 0.05, -1.0))
 	await _fisica(3)
+	(j as Jugador).camara.mirar_hacia(puerta_cab.global_position + Vector3.UP * 0.9)
 	j.call("_actualizar_interactuable")
 	_comprobar(j.get("_objetivo") == puerta_cab and Interfaz.texto_accion() == "E  ·  Entrar en la cabaña", "frente a la cabaña aparece «E · Entrar en la cabaña»")
 
@@ -492,12 +494,17 @@ func _probar_objetos_y_horarios_interiores() -> void:
 
 			# Colocar a Leo frente al objeto y comprobar que puede seleccionarlo e interactuar
 			var pos_obj: Vector3 = nodo_it.global_position
-			var pos_leo := Vector3(pos_obj.x, 0.05, pos_obj.z + 0.55)
+			var pos_leo := Vector3(pos_obj.x, 0.05, pos_obj.z + 1.05)
 			if absf(pos_obj.z) > 2.0 and pos_obj.z > 0.0:
-				pos_leo = Vector3(pos_obj.x, 0.05, pos_obj.z - 0.55)
+				pos_leo = Vector3(pos_obj.x, 0.05, pos_obj.z - 1.05)
 			_colocar_jugador_mirando(j, pos_leo, pos_obj)
 			await _fisica(2)
+			(j as Jugador).camara.mirar_hacia(pos_obj + Vector3.UP * 0.8)
 			j.call("_actualizar_interactuable")
+			var malla := nodo_it.objetivo_resaltado as MeshInstance3D
+			if j.get("_objetivo") == null and malla != null and malla.mesh != null:
+				(j as Jugador).camara.mirar_hacia(_aabb_mundial_malla(malla).get_center())
+				j.call("_actualizar_interactuable")
 			_comprobar(j.get("_objetivo") != null, "en «%s» Leo detecta un interactuable al acercarse a «%s»" % [id_int, nom_marc])
 
 			nodo_it.interactuar(j)

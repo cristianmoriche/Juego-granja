@@ -241,8 +241,9 @@ func _prueba_tamano_granja() -> void:
 	_comprobar(tejado.end.y >= alto * 2.5, "el tejado de la cabaña (%.2f) es más de 2,5 veces Leo" % tejado.end.y)
 	_comprobar(_caja_mapa("Silo_muro").end.y >= alto * 3.0, "el silo es al menos tres veces más alto que Leo")
 	# La cámara por defecto sigue la escala.
-	_comprobar(absf(CamaraJuego.DIST_JUEGO - 12.0 * esc) < 0.001, "distancia de la vista de juego = 12 × escala (%.2f)" % CamaraJuego.DIST_JUEGO)
-	_comprobar(CamaraJuego.DIST_MIN == 2.5 and CamaraJuego.DIST_MAX == 22.0, "el rango del zoom sigue siendo 2,5–22 m")
+	_comprobar(CamaraJuego.ALTURA_OJOS < EscalaPersonaje.altura_leo(), "los ojos quedan por debajo de la coronilla")
+	_comprobar(CamaraJuego.DIST_MIN <= CamaraJuego.DIST_JUEGO and CamaraJuego.DIST_JUEGO <= CamaraJuego.DIST_MAX,
+		"la distancia de hombro inicial queda dentro del rango de Ajustes")
 
 
 func _prueba_tamano_pueblo() -> void:
@@ -315,7 +316,7 @@ func _prueba_vecinos() -> void:
 	var nino: Array = alturas["pablo"]
 	_comprobar(float(nino[0]) < alto_leo * 0.8, "el niño (%.2f) sigue siendo bastante más bajo que Leo (%.2f)" % [float(nino[0]), alto_leo])
 	var proporcion_leo := alto_leo / EscalaPersonaje.ALTURA_MODELO_LEO
-	_comprobar(absf(float(nino[0]) / alto_leo - _altura_nativa("res://assets/personajes/aldeanos/nino.glb") / EscalaPersonaje.ALTURA_MODELO_LEO) < 0.03, "la relación niño/Leo es la de los modelos originales")
+	_comprobar(absf(float(nino[0]) / alto_leo - _altura_nativa("res://assets/personajes/aldeanos/pablo.glb") / EscalaPersonaje.ALTURA_MODELO_LEO) < 0.03, "la relación niño/Leo es la de los modelos originales")
 	for id: String in ["mateo", "clara", "ramon", "anselmo", "tomas"]:
 		_comprobar(float((alturas[id] as Array)[0]) <= alto_leo + 0.02, "%s no es más alto que Leo" % id)
 	_comprobar(absf(proporcion_leo - EscalaPersonaje.ESCALA) < 0.02, "Leo = modelo × escala común")

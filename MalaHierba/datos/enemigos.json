@@ -1,54 +1,534 @@
 [
   {
-    "id": "murcielago_roca",
+    "id": "rata_mina",
+    "material_impacto": "carne",
+    "botin": "cobre",
+    "unidades_botin": 1,
+    "tipo": "corredor",
+    "nombre": "Rata de mina",
+    "jefe": false,
+    "vida": 28,
+    "dano": 6,
+    "velocidad": 3.6,
+    "alcance_deteccion": 9,
+    "alcance_ataque": 1.1,
+    "cadencia_ataque": 1.2,
+    "niveles": [
+      1,
+      5
+    ],
+    "modelo": "res://assets/enemigos/rata_mina.glb",
+    "tamano": 0.4,
+    "medida": "largo",
+    "giro": 0
+  },
+  {
+    "id": "murcielago",
+    "material_impacto": "carne",
+    "botin": "piedra",
+    "unidades_botin": 1,
     "tipo": "volador",
     "nombre": "Murciélago de cueva",
-    "vida": 25.0,
-    "dano": 8.0,
+    "jefe": false,
+    "vida": 20,
+    "dano": 5,
+    "velocidad": 4.4,
+    "alcance_deteccion": 10,
+    "alcance_ataque": 1.2,
+    "cadencia_ataque": 1.3,
+    "niveles": [
+      1,
+      10
+    ],
+    "modelo": "res://assets/enemigos/murcielago.glb",
+    "tamano": 0.5,
+    "medida": "largo",
+    "giro": 0,
+    "altura_vuelo": 1.5
+  },
+  {
+    "id": "escarabajo_roca",
+    "material_impacto": "roca",
+    "botin": "cobre",
+    "unidades_botin": 2,
+    "guardia": true,
+    "tipo": "reptante",
+    "nombre": "Escarabajo de roca",
+    "jefe": false,
+    "vida": 60,
+    "dano": 9,
+    "velocidad": 1.8,
+    "alcance_deteccion": 8,
+    "alcance_ataque": 1.3,
+    "cadencia_ataque": 1.6,
+    "niveles": [
+      3,
+      8
+    ],
+    "modelo": "res://assets/enemigos/escarabajo_roca.glb",
+    "tamano": 0.6,
+    "medida": "largo",
+    "giro": 0
+  },
+  {
+    "id": "rata_reina",
+    "material_impacto": "carne",
+    "botin": "hierro",
+    "unidades_botin": 6,
+    "tipo": "corredor",
+    "nombre": "Rata reina",
+    "jefe": true,
+    "vida": 200,
+    "dano": 14,
+    "velocidad": 3.4,
+    "alcance_deteccion": 14,
+    "alcance_ataque": 1.6,
+    "cadencia_ataque": 1.3,
+    "niveles": [
+      5,
+      5
+    ],
+    "modelo": "res://assets/enemigos/rata_reina.glb",
+    "tamano": 1.2,
+    "medida": "largo",
+    "giro": 0,
+    "especial": "embestida"
+  },
+  {
+    "id": "babosa_gruta",
+    "material_impacto": "carne",
+    "botin": "cobre",
+    "unidades_botin": 2,
+    "tipo": "reptante",
+    "nombre": "Babosa de gruta",
+    "jefe": false,
+    "vida": 55,
+    "dano": 9,
+    "velocidad": 1.5,
+    "alcance_deteccion": 8,
+    "alcance_ataque": 1.4,
+    "cadencia_ataque": 1.6,
+    "niveles": [
+      6,
+      10
+    ],
+    "modelo": "res://assets/enemigos/babosa_gruta.glb",
+    "tamano": 0.7,
+    "medida": "largo",
+    "giro": 90,
+    "emision": {
+      "umbral_luz": 0.3,
+      "umbral_sat": 0.3,
+      "fuerza": 0.7,
+      "tinte": [
+        0.6,
+        1.0,
+        0.95
+      ],
+      "pulso": 0.1,
+      "luz_color": [
+        0.3,
+        0.9,
+        0.8
+      ],
+      "luz_energia": 0.5
+    }
+  },
+  {
+    "id": "sapo_ciego",
+    "material_impacto": "carne",
+    "botin": "hierro",
+    "unidades_botin": 1,
+    "tipo": "saltador",
+    "nombre": "Sapo ciego",
+    "jefe": false,
+    "vida": 48,
+    "dano": 10,
+    "velocidad": 2.8,
+    "alcance_deteccion": 9,
+    "alcance_ataque": 1.3,
+    "cadencia_ataque": 1.4,
+    "niveles": [
+      6,
+      10
+    ],
+    "modelo": "res://assets/enemigos/sapo_ciego.glb",
+    "tamano": 0.5,
+    "medida": "largo",
+    "giro": 0
+  },
+  {
+    "id": "ciempies",
+    "material_impacto": "carne",
+    "botin": "hierro",
+    "unidades_botin": 2,
+    "tipo": "corredor",
+    "nombre": "Ciempiés gigante",
+    "jefe": false,
+    "vida": 70,
+    "dano": 11,
+    "velocidad": 4.6,
+    "alcance_deteccion": 10,
+    "alcance_ataque": 1.6,
+    "cadencia_ataque": 1.2,
+    "niveles": [
+      8,
+      13
+    ],
+    "modelo": "res://assets/enemigos/ciempies.glb",
+    "tamano": 1.5,
+    "medida": "largo",
+    "giro": 0
+  },
+  {
+    "id": "sapo_gigante",
+    "material_impacto": "carne",
+    "botin": "cuarzo",
+    "unidades_botin": 7,
+    "tipo": "saltador",
+    "nombre": "Sapo gigante",
+    "jefe": true,
+    "vida": 380,
+    "dano": 18,
+    "velocidad": 3.0,
+    "alcance_deteccion": 16,
+    "alcance_ataque": 2.4,
+    "cadencia_ataque": 1.6,
+    "niveles": [
+      10,
+      10
+    ],
+    "modelo": "res://assets/enemigos/sapo_gigante.glb",
+    "tamano": 2.0,
+    "medida": "largo",
+    "giro": 0,
+    "especial": "lengua"
+  },
+  {
+    "id": "arana_cristal",
+    "material_impacto": "cristal",
+    "botin": "cuarzo",
+    "unidades_botin": 2,
+    "guardia": true,
+    "tipo": "corredor",
+    "nombre": "Araña de cristal",
+    "jefe": false,
+    "vida": 90,
+    "dano": 13,
+    "velocidad": 4.8,
+    "alcance_deteccion": 11,
+    "alcance_ataque": 1.5,
+    "cadencia_ataque": 1.2,
+    "niveles": [
+      11,
+      15
+    ],
+    "modelo": "res://assets/enemigos/arana_cristal.glb",
+    "tamano": 0.8,
+    "medida": "largo",
+    "giro": 0,
+    "emision": {
+      "umbral_luz": 0.42,
+      "umbral_sat": 0.38,
+      "fuerza": 1.3,
+      "tinte": [
+        0.8,
+        0.95,
+        1.2
+      ],
+      "pulso": 0.1,
+      "luz_color": [
+        0.45,
+        0.6,
+        1.0
+      ],
+      "luz_energia": 0.8
+    }
+  },
+  {
+    "id": "polilla_luminosa",
+    "material_impacto": "carne",
+    "botin": "amatista",
+    "unidades_botin": 1,
+    "tipo": "volador",
+    "nombre": "Polilla luminosa",
+    "jefe": false,
+    "vida": 50,
+    "dano": 10,
     "velocidad": 4.2,
-    "alcance_deteccion": 10.0,
+    "alcance_deteccion": 11,
+    "alcance_ataque": 1.2,
+    "cadencia_ataque": 1.3,
+    "niveles": [
+      11,
+      15
+    ],
+    "modelo": "res://assets/enemigos/polilla_luminosa.glb",
+    "tamano": 0.4,
+    "medida": "largo",
+    "giro": 0,
+    "altura_vuelo": 1.6,
+    "emision": {
+      "umbral_luz": 0.3,
+      "umbral_sat": 0.4,
+      "fuerza": 1.6,
+      "tinte": [
+        0.8,
+        0.95,
+        1.2
+      ],
+      "pulso": 0.2,
+      "luz_color": [
+        0.4,
+        0.6,
+        1.0
+      ],
+      "luz_energia": 0.9
+    }
+  },
+  {
+    "id": "golem_cuarzo",
+    "material_impacto": "cristal",
+    "botin": "cuarzo",
+    "unidades_botin": 4,
+    "guardia": true,
+    "tipo": "pesado",
+    "nombre": "Gólem de cuarzo",
+    "jefe": false,
+    "vida": 190,
+    "dano": 18,
+    "velocidad": 1.9,
+    "alcance_deteccion": 10,
+    "alcance_ataque": 1.9,
+    "cadencia_ataque": 1.8,
+    "niveles": [
+      12,
+      15
+    ],
+    "modelo": "res://assets/enemigos/golem_cuarzo.glb",
+    "tamano": 1.6,
+    "medida": "alto",
+    "giro": 0,
+    "emision": {
+      "umbral_luz": 0.42,
+      "umbral_sat": 0.38,
+      "fuerza": 1.3,
+      "tinte": [
+        0.8,
+        0.95,
+        1.2
+      ],
+      "pulso": 0.1,
+      "luz_color": [
+        0.45,
+        0.6,
+        1.0
+      ],
+      "luz_energia": 0.8
+    }
+  },
+  {
+    "id": "arana_madre",
+    "material_impacto": "cristal",
+    "botin": "rubi",
+    "unidades_botin": 6,
+    "tipo": "corredor",
+    "nombre": "Araña madre",
+    "jefe": true,
+    "vida": 520,
+    "dano": 20,
+    "velocidad": 3.6,
+    "alcance_deteccion": 18,
+    "alcance_ataque": 2.2,
+    "cadencia_ataque": 1.3,
+    "niveles": [
+      15,
+      15
+    ],
+    "modelo": "res://assets/enemigos/arana_madre.glb",
+    "tamano": 2.5,
+    "medida": "largo",
+    "giro": 0,
+    "especial": "cristales",
+    "emision": {
+      "umbral_luz": 0.4,
+      "umbral_sat": 0.38,
+      "fuerza": 1.5,
+      "tinte": [
+        0.8,
+        0.95,
+        1.2
+      ],
+      "pulso": 0.1,
+      "luz_color": [
+        0.45,
+        0.6,
+        1.0
+      ],
+      "luz_energia": 0.8
+    }
+  },
+  {
+    "id": "salamandra_magma",
+    "material_impacto": "carne",
+    "botin": "rubi",
+    "unidades_botin": 1,
+    "tipo": "corredor",
+    "nombre": "Salamandra de magma",
+    "jefe": false,
+    "vida": 154,
+    "dano": 17,
+    "velocidad": 4.8,
+    "alcance_deteccion": 11,
     "alcance_ataque": 1.4,
     "cadencia_ataque": 1.1,
-    "niveles": [1, 10],
-    "modelo": ""
+    "niveles": [
+      16,
+      20
+    ],
+    "modelo": "res://assets/enemigos/salamandra_magma.glb",
+    "tamano": 1.0,
+    "medida": "largo",
+    "giro": 0,
+    "emision": {
+      "umbral_luz": 0.5,
+      "umbral_sat": 0.5,
+      "fuerza": 1.4,
+      "tinte": [
+        1.0,
+        0.7,
+        0.45
+      ],
+      "pulso": 0.12,
+      "luz_color": [
+        1.0,
+        0.45,
+        0.15
+      ],
+      "luz_energia": 0.9
+    }
   },
   {
-    "id": "babosa_humeda",
-    "tipo": "babosa",
-    "nombre": "Babosa musgosa",
-    "vida": 40.0,
-    "dano": 12.0,
-    "velocidad": 2.4,
-    "alcance_deteccion": 9.0,
-    "alcance_ataque": 1.5,
-    "cadencia_ataque": 1.4,
-    "niveles": [6, 15],
-    "modelo": ""
+    "id": "escorpion_ceniza",
+    "material_impacto": "roca",
+    "botin": "oro",
+    "unidades_botin": 2,
+    "guardia": true,
+    "tipo": "corredor",
+    "nombre": "Escorpión de ceniza",
+    "jefe": false,
+    "vida": 145,
+    "dano": 19,
+    "velocidad": 3.4,
+    "alcance_deteccion": 11,
+    "alcance_ataque": 1.6,
+    "cadencia_ataque": 1.3,
+    "niveles": [
+      16,
+      20
+    ],
+    "modelo": "res://assets/enemigos/escorpion_ceniza.glb",
+    "tamano": 1.0,
+    "medida": "largo",
+    "giro": 0,
+    "emision": {
+      "umbral_luz": 0.5,
+      "umbral_sat": 0.5,
+      "fuerza": 1.2,
+      "tinte": [
+        1.0,
+        0.7,
+        0.45
+      ],
+      "pulso": 0.12,
+      "luz_color": [
+        1.0,
+        0.45,
+        0.15
+      ],
+      "luz_energia": 0.9
+    }
   },
   {
-    "id": "centinela_cristal",
-    "tipo": "golem",
-    "nombre": "Centinela de cristal",
-    "vida": 65.0,
-    "dano": 16.0,
+    "id": "golem_magma",
+    "material_impacto": "roca",
+    "botin": "diamante",
+    "unidades_botin": 2,
+    "guardia": true,
+    "tipo": "pesado",
+    "nombre": "Gólem de magma",
+    "jefe": false,
+    "vida": 343,
+    "dano": 26,
+    "velocidad": 2.0,
+    "alcance_deteccion": 11,
+    "alcance_ataque": 2.1,
+    "cadencia_ataque": 1.8,
+    "niveles": [
+      18,
+      20
+    ],
+    "modelo": "res://assets/enemigos/golem_magma.glb",
+    "tamano": 2.0,
+    "medida": "alto",
+    "giro": 0,
+    "emision": {
+      "umbral_luz": 0.5,
+      "umbral_sat": 0.5,
+      "fuerza": 1.5,
+      "tinte": [
+        1.0,
+        0.7,
+        0.45
+      ],
+      "pulso": 0.12,
+      "luz_color": [
+        1.0,
+        0.45,
+        0.15
+      ],
+      "luz_energia": 0.9
+    }
+  },
+  {
+    "id": "gusano_magma",
+    "material_impacto": "roca",
+    "botin": "diamante",
+    "unidades_botin": 7,
+    "tipo": "corredor",
+    "nombre": "Gusano de magma",
+    "jefe": true,
+    "vida": 800,
+    "dano": 26,
     "velocidad": 3.2,
-    "alcance_deteccion": 11.0,
-    "alcance_ataque": 1.65,
-    "cadencia_ataque": 1.25,
-    "niveles": [11, 20],
-    "modelo": ""
-  },
-  {
-    "id": "brasa_errante",
-    "tipo": "magma",
-    "nombre": "Brasa errante",
-    "vida": 90.0,
-    "dano": 22.0,
-    "velocidad": 3.8,
-    "alcance_deteccion": 12.0,
-    "alcance_ataque": 1.75,
-    "cadencia_ataque": 1.15,
-    "niveles": [16, 20],
-    "modelo": ""
+    "alcance_deteccion": 20,
+    "alcance_ataque": 3.0,
+    "cadencia_ataque": 1.6,
+    "niveles": [
+      20,
+      20
+    ],
+    "modelo": "res://assets/enemigos/gusano_magma.glb",
+    "tamano": 4.0,
+    "medida": "largo",
+    "giro": 0,
+    "especial": "emerger",
+    "emision": {
+      "umbral_luz": 0.5,
+      "umbral_sat": 0.5,
+      "fuerza": 1.5,
+      "tinte": [
+        1.0,
+        0.7,
+        0.45
+      ],
+      "pulso": 0.12,
+      "luz_color": [
+        1.0,
+        0.45,
+        0.15
+      ],
+      "luz_energia": 0.9
+    }
   }
 ]

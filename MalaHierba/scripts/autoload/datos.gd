@@ -26,6 +26,17 @@ func _cargar_todo() -> void:
 	for o: Variant in _leer("objetos.json", []):
 		var d: Dictionary = o
 		_objetos[str(d["id"])] = d
+	var material_herreria: Array = _leer("equipo_combate.json", [])
+	var vende_herreria: Array[String] = []
+	var forja_herreria: Array[String] = []
+	for d: Dictionary in material_herreria:
+		var id := str(d["id"])
+		_objetos[id] = d
+		forja_herreria.append(id)
+		if int(d["precio_compra"]) > 0:
+			vende_herreria.append(id)
+	_tiendas["forja"] = {"id": "forja", "nombre": "Herrería de Clara", "vende": vende_herreria,
+		"forja": forja_herreria, "compra_tipos": []}
 	for c: Variant in _leer("cultivos.json", []):
 		var d: Dictionary = c
 		var est: Array[int] = []
@@ -108,6 +119,17 @@ static func normalizar_numeros(v: Variant) -> Variant:
 ## precio_compra, precio_venta, energia, color. Vacío si no existe.
 func objeto(id: String) -> Dictionary:
 	return _objetos.get(id, {})
+
+
+func detalle_equipo(o: Dictionary) -> String:
+	if o.get("tipo") == "arma":
+		return "%d de daño · %.2f m de alcance · %d de resistencia por golpe" % [
+			int(o.get("dano", 0)), float(o.get("alcance", 0)), int(o.get("coste", 0))]
+	if o.get("ranura_equipo") == "escudo":
+		return "Bloqueo: reduce el daño frontal un %d %%" % roundi(float(o.get("reduccion", 0)) * 100.0)
+	if o.has("defensa"):
+		return "%d de defensa" % int(o["defensa"])
+	return ""
 
 
 func muebles() -> Array[Dictionary]:

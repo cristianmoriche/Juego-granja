@@ -6,6 +6,7 @@ shader_type spatial;
 
 global uniform float nieve_estacion;
 global uniform float calidez_otono;
+global uniform float humedad_h03;
 
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D normal_tex : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
@@ -20,6 +21,7 @@ uniform float rug_mult = 1.0;
 uniform float rug_base = 0.8;           // rugosidad si no hay textura
 uniform float nitidez = 6.0;            // cuanto mayor, más brusco el cambio entre las tres proyecciones
 uniform float fuerza_normal = 1.0;
+uniform bool recibe_lluvia = false;
 
 varying vec3 pos_mundo;
 varying vec3 normal_mundo;
@@ -71,15 +73,16 @@ void fragment() {
 		vec3 blanco_nieve = mix(vec3(0.82, 0.87, 0.94), vec3(0.95, 0.97, 1.0), r);
 		col = mix(col, blanco_nieve, factor_nieve * 0.88);
 	}
-	ALBEDO = col;
+	float mojado = recibe_lluvia ? humedad_h03 * (0.60 + 0.40 * n.y * n.y) * (1.0 - factor_nieve) : 0.0;
+	ALBEDO = col * (1.0 - mojado * 0.20);
 
 	float rug = rug_base;
 	if (usa_rug) {
 		rug = texture(rug_tex, uvx).r * w.x + texture(rug_tex, uvy).r * w.y + texture(rug_tex, uvz).r * w.z;
 	}
-	ROUGHNESS = mix(clamp(rug * rug_mult, 0.68, 0.98), 0.84, factor_nieve);
+	ROUGHNESS = mix(clamp(rug * rug_mult, 0.68, 0.98) * (1.0 - mojado * 0.52), 0.84, factor_nieve);
 	METALLIC = 0.0;
-	SPECULAR = 0.20;
+	SPECULAR = 0.20 + mojado * 0.11;
 
 	if (usa_normal) {
 		vec3 tx = normal_tangente(texture(normal_tex, uvx));

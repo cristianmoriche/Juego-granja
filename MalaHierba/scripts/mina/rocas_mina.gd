@@ -9,7 +9,7 @@ extends Node3D
 ## Cuántas y cuáles: 20 en el nivel 1 (piedra, cobre, hierro) y 28 en el 2 (más hierro y además cuarzo), según
 ## `Juego.banderas["nivel_mina"]`. Salen siempre en los mismos sitios en cada nivel.
 ## Cada roca es un cuerpo sólido (capa 7, solo choca Leo) con una malla low-poly deformada de su mena, una marca de
-## `Interactuable` («E · Picar la roca de cobre») y también responde al pico (grupo «usable»: clic o espacio con el pico).
+## Cada `Interactuable` muestra «Clic · Picar» y exige el pico equipado.
 ## Golpes: piedra 2, cobre 3, hierro 3, cuarzo 4; cada nivel del pico quita uno (mínimo 1). Energía por golpe: 2, 1,5, 1.
 ## Las rotas se guardan en `Juego.estado_mapas["mina_interior"]` y vuelven a salir al día siguiente.
 
@@ -19,7 +19,7 @@ const PASO := 0.5
 const RADIO_CUERPO := 0.35
 const HOLGURA := 0.7
 const DIST_USO := 0.9
-const LIMITE_CELDAS := 18000
+const LIMITE_CELDAS := 24000
 const MASCARA_CUEVA := 1 | 64
 ## Se levanta la cápsula 30 cm al comprobar el suelo: los raíles y traviesas (más bajos) no cuentan como obstáculo.
 const ELEVACION := 0.3
@@ -174,7 +174,7 @@ static func estado() -> Dictionary:
 static func reparto_de_nivel(nv: int) -> Dictionary:
 	if REPARTO.has(nv):
 		return REPARTO[nv]
-	var total := 28 + (nv - 2) * 2
+	var total := 32 + (nv - 2) * 3
 	if nv <= 5:
 		return {
 			"piedra": maxi(5, total / 3),
@@ -264,8 +264,8 @@ func _explorar(origen: Vector3) -> void:
 			if celdas.has(n) or _rechazadas.has(n):
 				continue
 			var xz := _a_mundo(n)
-			var s := AyudasL4b.suelo(self, Vector3(xz.x, y_ref, xz.y), 0.9, 1.6)
-			if s == Vector3.INF or absf(s.y - y_ref) > 0.45 or not AyudasL4b.cabe(self, s, RADIO_CUERPO, ALTO_CUERPO, MASCARA_CUEVA, ELEVACION):
+			var s := AyudasL4b.suelo(self, Vector3(xz.x, y_ref, xz.y), 0.9, 1.8)
+			if s == Vector3.INF or absf(s.y - y_ref) > 0.55 or not AyudasL4b.cabe(self, s, RADIO_CUERPO, ALTO_CUERPO, MASCARA_CUEVA, ELEVACION):
 				_rechazadas[n] = true
 				continue
 			celdas[n] = s.y
@@ -290,11 +290,55 @@ func _sirve(c: Vector2i, radio: float, evitar: Array[Vector3], separacion: float
 	var antes: Dictionary = _bloqueadas.duplicate()
 	for n in nuevas:
 		_bloqueadas[n] = true
-	if _hay_camino():
+	if _anillo_local_conectado(nuevas) or _hay_camino():
 		return true
 	_bloqueadas = antes
 	descartadas += 1
 	return false
+
+
+## Si toda la frontera habitable alrededor de las celdas nuevas sigue conectada entre sí dentro de un radio
+## pequeño, esta roca no bloquea ningún corredor de larga distancia (evita recorrer todo el nivel en cada piedra).
+func _anillo_local_conectado(nuevas: Array[Vector2i]) -> bool:
+	if _bloqueadas.has(_inicio) or _bloqueadas.has(_fin):
+		return false
+	var caja := Rect2i(nuevas[0], Vector2i.ONE)
+	var conjunto_nuevo: Dictionary = {}
+	for n in nuevas:
+		conjunto_nuevo[n] = true
+		caja = caja.merge(Rect2i(n, Vector2i.ONE))
+	caja = caja.grow(3)
+	var dirs: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(-1, 1), Vector2i(1, -1), Vector2i(-1, -1)]
+	var anillo: Array[Vector2i] = []
+	var anillo_set: Dictionary = {}
+	for n in nuevas:
+		for d in dirs:
+			var v := n + d
+			if v == _inicio or v == _fin:
+				return false
+			if not conjunto_nuevo.has(v) and not anillo_set.has(v) and celdas.has(v) and not _bloqueadas.has(v):
+				anillo_set[v] = true
+				anillo.append(v)
+	if anillo.size() <= 1:
+		return false
+	var vistos: Dictionary = {anillo[0]: true}
+	var cola: Array[Vector2i] = [anillo[0]]
+	var alcanzados := 1
+	var head := 0
+	while head < cola.size():
+		var c := cola[head]
+		head += 1
+		for d in dirs:
+			var v := c + d
+			if not caja.has_point(v) or vistos.has(v) or not celdas.has(v) or _bloqueadas.has(v):
+				continue
+			vistos[v] = true
+			if anillo_set.has(v):
+				alcanzados += 1
+				if alcanzados == anillo.size():
+					return true
+			cola.append(v)
+	return alcanzados == anillo.size()
 
 
 func _celdas_de_roca(centro: Vector2, radio: float) -> Array[Vector2i]:
@@ -361,12 +405,13 @@ func _poner(tipo: String, c: Vector2i, radio: float, numero: int, azar: RandomNu
 	var p := Interactuable.new()
 	p.name = "Picar"
 	p.verbo = "Picar"
+	p.herramienta = "pico"
 	p.nombre_objeto = str(TIPOS[tipo]["nombre"])
 	p.radio = radio
 	p.altura_marca = radio * 0.8 + 0.9
 	p.mostrar_descripcion = false
 	p.nodo_visual = NodePath("..")
-	p.usado.connect(_picar_con_e.bind(r))
+	p.usado.connect(_picar_apuntada.bind(r))
 	cuerpo.add_child(p)
 
 	r.cuerpo = cuerpo
@@ -444,8 +489,8 @@ func usar(id_objeto: String, punto: Vector3, _jugador: Node3D) -> bool:
 	return golpear(r)
 
 
-## E sobre una roca: pica con el pico del inventario (haga falta o no tenerlo en la mano).
-func _picar_con_e(jugador: Node3D, r: Roca) -> void:
+## Golpea la roca concreta elegida por la mira.
+func _picar_apuntada(jugador: Node3D, r: Roca) -> void:
 	if Juego.cantidad("pico") <= 0:
 		Interfaz.mensaje("Necesitas un pico para picar la roca.")
 		return
@@ -524,10 +569,24 @@ static func _material(clave: String, color: Color, brillo: float, vertices: bool
 		return _materiales[clave]
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
-	m.roughness = 0.88
+	m.roughness = 0.88 if vertices else 0.22
+	if not vertices:
+		m.metallic = 0.32
+		m.specular = 0.78
 	if vertices:
 		m.vertex_color_use_as_albedo = true
 		m.vertex_color_is_srgb = true
+		const BASE := "res://assets/texturas/h04/rock_wall_08/rock_wall_08_%s_1k.jpg"
+		if ResourceLoader.exists(BASE % "diff"):
+			m.albedo_texture = load(BASE % "diff")
+		if ResourceLoader.exists(BASE % "nor_gl"):
+			m.normal_enabled = true
+			m.normal_texture = load(BASE % "nor_gl")
+			m.normal_scale = 0.75
+		if ResourceLoader.exists(BASE % "rough"):
+			m.roughness_texture = load(BASE % "rough")
+		m.uv1_triplanar = true
+		m.uv1_scale = Vector3(0.75, 0.75, 0.75)
 	if brillo > 0.0:
 		m.emission_enabled = true
 		m.emission = color
@@ -538,16 +597,15 @@ static func _material(clave: String, color: Color, brillo: float, vertices: bool
 	return m
 
 
-## Roca low-poly: una esfera de pocos polígonos aplastada, con los vértices movidos al azar y base plana, sombreado
-## plano y cada cara con un tono distinto. Las menas llevan encima pepitas (cobre, hierro) o cristales (cuarzo) que brillan.
+## Roca picable con relieve PBR y gemas/pepitas con brillo cristalino contenido (sin quemar blancos).
 static func _malla(tipo: String, semilla: int, radio: float) -> ArrayMesh:
 	var azar := RandomNumberGenerator.new()
 	azar.seed = semilla
 	var esfera := SphereMesh.new()
 	esfera.radius = 1.0
 	esfera.height = 2.0
-	esfera.radial_segments = 7
-	esfera.rings = 4
+	esfera.radial_segments = 11
+	esfera.rings = 6
 	var arr := esfera.get_mesh_arrays()
 	var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 	var ix: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
@@ -556,16 +614,16 @@ static func _malla(tipo: String, semilla: int, radio: float) -> ArrayMesh:
 	for v in vs:
 		var clave := Vector3i(roundi(v.x * 50.0), roundi(v.y * 50.0), roundi(v.z * 50.0))
 		if not ruido.has(clave):
-			ruido[clave] = azar.randf_range(0.72, 1.2)
-		var q := Vector3(v.x, v.y * 0.66, v.z * 0.92) * float(ruido[clave]) * radio
-		q.y = maxf(q.y, -0.12 * radio)
+			ruido[clave] = azar.randf_range(0.76, 1.18)
+		var q := Vector3(v.x, v.y * 0.64, v.z * 0.92) * float(ruido[clave]) * radio
+		q.y = maxf(q.y, -0.10 * radio)
 		def.append(q)
-	var base: Color = (TIPOS[tipo]["color"] as Color)
+	var base: Color = (TIPOS[tipo]["color"] as Color).lightened(0.24)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.set_smooth_group(-1)
+	st.set_smooth_group(0)
 	for t in range(0, ix.size(), 3):
-		var tono := azar.randf_range(0.8, 1.12)
+		var tono := azar.randf_range(0.86, 1.12)
 		st.set_color(Color(base.r * tono, base.g * tono, base.b * tono))
 		for k in 3:
 			st.add_vertex(def[ix[t + k]])
@@ -581,34 +639,34 @@ static func _malla(tipo: String, semilla: int, radio: float) -> ArrayMesh:
 	var cuantas := 4 if es_gema else 6
 	for i in cuantas:
 		var dir := Vector3(azar.randf_range(-1.0, 1.0), azar.randf_range(0.3, 1.0), azar.randf_range(-1.0, 1.0)).normalized()
-		var sobre := Vector3(dir.x, dir.y * 0.66, dir.z * 0.92) * radio * 0.97
+		var sobre := Vector3(dir.x, dir.y * 0.64, dir.z * 0.92) * radio * 0.96
 		if es_gema:
-			_cristal(st2, sobre, dir, radio * azar.randf_range(0.5, 0.85), radio * azar.randf_range(0.1, 0.16))
+			_cristal(st2, sobre, dir, radio * azar.randf_range(0.42, 0.72), radio * azar.randf_range(0.09, 0.14))
 		else:
-			_pepita(st2, sobre, radio * azar.randf_range(0.13, 0.22))
+			_pepita(st2, sobre, radio * azar.randf_range(0.12, 0.20))
 	st2.generate_normals()
 	st2.commit(malla)
-	var color_mena := Color(0.85, 0.52, 0.3)
-	var brillo := 0.9
+	var color_mena := Color(0.84, 0.44, 0.22)
+	var brillo := 0.35
 	match tipo:
 		"hierro":
-			color_mena = Color(0.62, 0.7, 0.8)
-			brillo = 0.35
+			color_mena = Color(0.54, 0.64, 0.78)
+			brillo = 0.22
 		"cuarzo":
-			color_mena = Color(0.78, 0.94, 1.0)
-			brillo = 1.7
+			color_mena = Color(0.72, 0.90, 0.98)
+			brillo = 0.78
 		"oro":
-			color_mena = Color(0.98, 0.80, 0.22)
-			brillo = 1.1
+			color_mena = Color(0.95, 0.72, 0.14)
+			brillo = 0.55
 		"amatista":
-			color_mena = Color(0.78, 0.45, 1.0)
-			brillo = 1.9
+			color_mena = Color(0.68, 0.32, 0.95)
+			brillo = 0.90
 		"rubi":
-			color_mena = Color(1.0, 0.28, 0.36)
-			brillo = 2.0
+			color_mena = Color(0.92, 0.14, 0.24)
+			brillo = 0.95
 		"diamante":
-			color_mena = Color(0.68, 0.96, 1.0)
-			brillo = 2.2
+			color_mena = Color(0.48, 0.88, 1.0)
+			brillo = 1.05
 	malla.surface_set_material(1, _material("mena_" + tipo, color_mena, brillo, false, true))
 	return malla
 

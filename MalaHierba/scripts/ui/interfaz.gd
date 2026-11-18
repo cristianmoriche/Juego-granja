@@ -18,6 +18,11 @@ var _negro: ColorRect
 var _l_carga: Label
 var _tween_fundido: Tween
 var _hud_visible: bool = false
+var _paneles: Array[Control] = []
+var _mira: MarcaMira
+## Estado de captura y mira que se puede consultar también sin ventana.
+var cursor_de_juego: bool = false
+var apuntando_decoracion: bool = false
 ## Cuántos avisos se han mostrado en total (el jugador lo usa para saber si algo ya explicó por qué no pasó nada).
 var avisos_emitidos: int = 0
 
@@ -34,6 +39,11 @@ func _ready() -> void:
 	_hud = Hud.new()
 	_hud.name = "Hud"
 	raiz.add_child(_hud)
+	_mira = MarcaMira.new()
+	_mira.name = "Mira"
+	_mira.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mira.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	raiz.add_child(_mira)
 	_dialogo = PanelDialogo.new()
 	_dialogo.name = "Dialogo"
 	raiz.add_child(_dialogo)
@@ -61,6 +71,9 @@ func _ready() -> void:
 	_ajustes = PanelAjustes.new()
 	_ajustes.name = "Ajustes"
 	raiz.add_child(_ajustes)
+	_paneles.assign([_dialogo, _pregunta, _inventario, _tienda, _pausa, _mapa_grande, _diario, _carpinteria, _ajustes])
+	for panel in _paneles:
+		panel.visibility_changed.connect(actualizar_cursor.call_deferred)
 	_capa_flotante = Control.new()
 	_capa_flotante.name = "CapaFlotante"
 	_capa_flotante.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -89,6 +102,42 @@ func _ready() -> void:
 	Juego.mensaje.connect(mensaje)
 	Juego.mensaje_objeto.connect(_al_mensaje_objeto)
 	Juego.nombre_jugador = Juego.nombre_jugador   # sin efecto: asegura que el autoload Juego ya existe
+
+
+class MarcaMira extends Control:
+	var objetivo := false:
+		set(v):
+			if objetivo != v:
+				objetivo = v
+				queue_redraw()
+
+	func _draw() -> void:
+		draw_circle(Vector2.ZERO, 3.2, Color(0.04, 0.03, 0.02, 0.8), true, -1.0, true)
+		var color := Color(1.0, 0.78, 0.37) if objetivo else Color(1.0, 0.98, 0.92, 0.92)
+		draw_circle(Vector2.ZERO, 1.7, color, true, -1.0, true)
+
+
+func enfocar_mira(objetivo: bool) -> void:
+	_mira.objetivo = objetivo
+
+
+func _process(_delta: float) -> void:
+	actualizar_cursor()
+
+
+func actualizar_cursor() -> void:
+	if _mira == null:
+		return
+	var foco := get_window().has_focus() or DisplayServer.get_name() == "headless"
+	var en_mundo := foco and _hud_visible and not ocupada() and not Escenas.en_transicion and not get_tree().paused
+	en_mundo = en_mundo and Escenas.jugador() != null
+	var deco := _decoracion_activa() if en_mundo else null
+	apuntando_decoracion = deco != null and bool(deco.call("esta_decorando"))
+	cursor_de_juego = en_mundo and not apuntando_decoracion
+	var modo := Input.MOUSE_MODE_CAPTURED if cursor_de_juego else Input.MOUSE_MODE_VISIBLE
+	if Input.mouse_mode != modo:
+		Input.mouse_mode = modo
+	_mira.visible = en_mundo
 
 
 # --- API pública ---------------------------------------------------------------------
@@ -266,6 +315,7 @@ func carpinteria_abierta() -> bool:
 ## Muestra u oculta el HUD de juego (reloj, energía, barra rápida). Los avisos siguen visibles.
 func mostrar_hud(v: bool) -> void:
 	_hud_visible = v
+	actualizar_cursor.call_deferred()
 	_hud.mostrar_juego(v)
 	if v:
 		_hud.refrescar()
@@ -277,9 +327,16 @@ func hud_visible() -> bool:
 	return _hud_visible
 
 
+func borde_inferior_info() -> float:
+	return _hud._panel_info.get_global_rect().end.y
+
+
 ## Hay un panel modal abierto: el jugador no se mueve y el tiempo se para.
 func ocupada() -> bool:
-	return _ajustes.visible or _dialogo.visible or _pregunta.visible or _inventario.visible or _tienda.visible or _pausa.visible or (_mapa_grande != null and _mapa_grande.visible) or (_diario != null and _diario.visible) or (_carpinteria != null and _carpinteria.visible)
+	for panel in _paneles:
+		if panel.visible:
+			return true
+	return false
 
 
 func cerrar_todo() -> void:
@@ -297,6 +354,7 @@ func cerrar_todo() -> void:
 	if _mapa_grande != null:
 		_mapa_grande.cerrar()
 	_hud.ocultar_accion()
+	actualizar_cursor.call_deferred()
 
 
 # --- Fundido y pantalla de carga --------------------------------------------------------

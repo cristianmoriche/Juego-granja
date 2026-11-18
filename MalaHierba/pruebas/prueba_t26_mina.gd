@@ -1,5 +1,5 @@
 extends Node
-## Prueba autónoma de T26-mina-20-niveles (con tope interno de 58 s -> quit(1)).
+## Prueba autónoma de T26-mina-20-niveles (con tope interno de 88 s -> quit(1)).
 
 var _fallos: Array[String] = []
 var _ok: int = 0
@@ -8,10 +8,10 @@ var _terminado: bool = false
 
 func _ready() -> void:
 	var arbol := get_tree()
-	var tope := arbol.create_timer(58.0)
+	var tope := arbol.create_timer(88.0)
 	tope.timeout.connect(func() -> void:
 		if not _terminado:
-			push_error("PruebaT26Mina: tiempo agotado (60 s)")
+			push_error("PruebaT26Mina: tiempo agotado (90 s)")
 			arbol.quit(1))
 	await _ejecutar()
 
@@ -69,19 +69,19 @@ func _ejecutar() -> void:
 	_comprobar(int(Datos.objeto("oro")["precio_venta"]) < int(Datos.objeto("amatista")["precio_venta"]) and int(Datos.objeto("amatista")["precio_venta"]) < int(Datos.objeto("rubi")["precio_venta"]) and int(Datos.objeto("rubi")["precio_venta"]) < int(Datos.objeto("diamante")["precio_venta"]), "valor creciente de oro y gemas")
 
 	var defs := Enemigo.cargar_definiciones()
-	_comprobar(defs.size() >= 4, "enemigos.json define >= 4 tipos de enemigo (%d)" % defs.size())
-	_comprobar(not Enemigo.ACTIVOS, "Enemigo.ACTIVOS es false hasta recibir modelos")
+	_comprobar(defs.size() >= 16, "enemigos.json define los 12 enemigos y 4 jefes (%d)" % defs.size())
+	_comprobar(Enemigo.ACTIVOS, "Enemigo.ACTIVOS es true: los enemigos ya están en la mina")
 	for d: Dictionary in defs:
 		_comprobar(not str(d.get("tipo", "")).is_empty() and float(d.get("vida", 0)) > 0.0 and float(d.get("dano", 0)) > 0.0 and float(d.get("velocidad", 0)) > 0.0, "enemigo %s tiene tipo/vida/daño/velocidad" % str(d.get("id", "?")))
-		_comprobar(str(d.get("modelo", "x")) == "", "enemigo %s tiene ruta de modelo vacía" % str(d.get("id", "?")))
+		_comprobar(ResourceLoader.exists(str(d.get("modelo", ""))), "enemigo %s tiene su modelo .glb" % str(d.get("id", "?")))
 		var nv: Array = d.get("niveles", [])
 		_comprobar(nv.size() == 2, "enemigo %s define rango de niveles" % str(d.get("id", "?")))
 
-	# 2. Barra de vida en HUD solo dentro de la mina
-	print("[2] HUD barra de vida solo dentro de la mina")
+	# 2. H02 mantiene el HUD de salud en todas las zonas.
+	print("[2] HUD de salud en granja y mina")
 	await _ir("granja", "Spawn_Protagonista")
 	var hud := Interfaz._hud as Hud
-	_comprobar(hud != null and not hud.barra_vida_visible(), "en la granja la barra de vida está oculta")
+	_comprobar(hud != null and hud.barra_vida_visible(), "en la granja la barra de vida está visible")
 
 	# 3. Recorrido por niveles representativos 1..20, ambientaciones, tamaño, minerales, antorchas y ascensor
 	print("[3] Niveles 1..20, tamaño 1x->3x, 4 ambientaciones y minerales")
@@ -105,13 +105,16 @@ func _ejecutar() -> void:
 		_comprobar(nm.ambientacion_id == NivelMina.id_ambientacion(nv), "nivel %d: ambientación correcta (%s)" % [nv, nm.ambientacion_id])
 		_comprobar(nm.posiciones_antorchas.size() >= 5, "nivel %d: antorchas con luz (%d)" % [nv, nm.posiciones_antorchas.size()])
 		_comprobar(nm.puntos_enemigos != null and nm.puntos_enemigos.get_child_count() >= 3, "nivel %d: puntos de aparición de enemigos (%d)" % [nv, nm.puntos_enemigos.get_child_count() if nm.puntos_enemigos != null else 0])
-		# Verificar que no hay enemigos activos spawneados mientras ACTIVOS = false
+		# Cada punto de aparición tiene ya su enemigo en la escena.
 		var enemigos_vivos := 0
+		var marcadores := 0
 		if nm.puntos_enemigos != null:
 			for h in nm.puntos_enemigos.get_children():
 				if h is Enemigo:
 					enemigos_vivos += 1
-		_comprobar(enemigos_vivos == 0, "nivel %d: ningún enemigo activo con ACTIVOS = false" % nv)
+				elif h is Marker3D:
+					marcadores += 1
+		_comprobar(enemigos_vivos == marcadores and enemigos_vivos >= 3, "nivel %d: un enemigo por punto de aparición (%d/%d)" % [nv, enemigos_vivos, marcadores])
 
 		var es_asc := nv in [1, 5, 10, 15, 20]
 		_comprobar((nm.nodo_ascensor != null) == es_asc, "nivel %d: ascensor cada 5 niveles (%s)" % [nv, str(es_asc)])
@@ -183,8 +186,11 @@ func _ejecutar() -> void:
 	var mapa12 := await _ir("mina_interior", "Llegada_Interior")
 	var nm12 := mapa12.get_node("Objetos/NivelMina") as NivelMina
 	var jugador := Escenas.jugador()
-	var enemigos := nm12.instanciar_enemigos_prueba(true)
-	_comprobar(not enemigos.is_empty(), "instanciar_enemigos_prueba crea enemigos de muestra")
+	var enemigos: Array[Enemigo] = []
+	for h in nm12.puntos_enemigos.get_children():
+		if h is Enemigo:
+			enemigos.append(h as Enemigo)
+	_comprobar(not enemigos.is_empty(), "el nivel 12 trae enemigos en sus puntos de aparición")
 	var en := enemigos[0]
 	_comprobar(en.marcador_capsula != null and not en.marcador_capsula.visible, "cápsula de marcador es invisible para el jugador")
 	en.global_position = jugador.global_position + Vector3(4.0, 0.0, 0.0)
@@ -194,14 +200,15 @@ func _ejecutar() -> void:
 	_comprobar(dist1 < dist0, "enemigo.perseguir acerca al enemigo a Leo (%.2f -> %.2f)" % [dist0, dist1])
 	en.global_position = jugador.global_position + Vector3(0.8, 0.0, 0.0)
 	var vida_antes := Juego.vida
+	en._enfriamiento = 0.0
 	var golpeo := en.atacar(jugador)
 	_comprobar(golpeo and Juego.vida < vida_antes, "enemigo.atacar daña a Leo (%.1f -> %.1f)" % [vida_antes, Juego.vida])
 	en.recibir_dano(en.vida_max)
 	_comprobar(en.muerto, "enemigo.morir marca muerto=true al agotar su vida")
 
-	# 6. Salir de la mina vuelve a ocultar la barra de vida y restaura nivel_mina=1 al salir por la boca
+	# 6. Salir conserva la barra de vida y restaura nivel_mina=1 al salir por la boca.
 	await _ir("mina_exterior", "Spawn_Protagonista")
-	_comprobar(not hud.barra_vida_visible(), "al salir de la mina la barra de vida se oculta otra vez")
+	_comprobar(hud.barra_vida_visible(), "al salir de la mina la barra de vida sigue visible")
 
 	_terminado = true
 	if _fallos.is_empty():

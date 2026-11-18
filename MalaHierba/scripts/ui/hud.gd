@@ -20,6 +20,16 @@ var _estilo_relleno: StyleBoxFlat
 var _barra_vida: ProgressBar
 var _l_vida: Label
 var _estilo_vida: StyleBoxFlat
+var _barra_resistencia: ProgressBar
+var _l_resistencia: Label
+var _panel_enemigo: PanelContainer
+var _l_enemigo: Label
+var _barra_enemigo: ProgressBar
+var _enemigo: Node3D
+var _combate: RefCounted
+var _vineta: ColorRect
+var _pulso_herida := 0.0
+var _t_latido := 0.0
 var _huecos: Array[Hueco] = []
 var _l_activo: Label
 var _cartel: PanelContainer
@@ -46,6 +56,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	theme = Estilo.tema()
+	_construir_vineta()
 	_minimapa = Minimapa.new()
 	_minimapa.name = "Minimapa"
 	_minimapa.position = Vector2(16, 12)
@@ -55,6 +66,7 @@ func _ready() -> void:
 	_construir_cartel()
 	_construir_avisos()
 	_construir_tutorial()
+	_construir_objetivo()
 	Juego.hora_cambiada.connect(func(_m: int) -> void: _actualizar_reloj())
 	Juego.dia_nuevo.connect(_actualizar_reloj)
 	Juego.clima_cambiado.connect(func(_c: String) -> void: _actualizar_reloj())
@@ -66,7 +78,9 @@ func _ready() -> void:
 	Misiones.actualizado.connect(_actualizar_mision)
 	Juego.energia_cambiada.connect(_actualizar_energia)
 	Juego.vida_cambiada.connect(_actualizar_vida)
-	Escenas.mapa_cargado.connect(func(_id: String) -> void: _actualizar_visibilidad_vida())
+	Juego.dano_recibido.connect(_al_recibir_dano)
+	Juego.resistencia_cambiada.connect(_actualizar_resistencia)
+	Escenas.mapa_cargado.connect(_conectar_jugador)
 	Juego.inventario_cambiado.connect(_actualizar_barra)
 	Juego.ranura_cambiada.connect(func(_r: int) -> void: _actualizar_barra())
 	Tutorial.actualizado.connect(refrescar_tutorial)
@@ -81,13 +95,18 @@ func refrescar() -> void:
 	_actualizar_evento()
 	_actualizar_energia(Juego.energia, Juego.energia_max)
 	_actualizar_vida(Juego.vida, Juego.vida_max)
+	_actualizar_resistencia(Juego.resistencia, Juego.RESISTENCIA_MAX)
 	_actualizar_visibilidad_vida()
 	_actualizar_barra()
 	_actualizar_mision()
 	refrescar_tutorial()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_actualizar_efectos_vida(delta)
+	if _panel_enemigo.visible:
+		var margen := _tutorial.position.y + _tutorial.size.y + 12.0 if _tutorial.visible else 22.0
+		_panel_enemigo.offset_top = margen
 	if _tutorial == null:
 		return
 	if Ajustes.ultimo_mando != _tut_ultimo_mando:
@@ -169,6 +188,20 @@ func _construir_info() -> void:
 	_l_vida.add_theme_constant_override("outline_size", 4)
 	_l_vida.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	_barra_vida.add_child(_l_vida)
+	_barra_resistencia = ProgressBar.new()
+	_barra_resistencia.name = "BarraResistencia"
+	_barra_resistencia.custom_minimum_size = Vector2(250, 20)
+	_barra_resistencia.show_percentage = false
+	_barra_resistencia.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_barra_resistencia.add_theme_stylebox_override("fill", Estilo.caja(Color(0.38, 0.58, 0.76), Color.TRANSPARENT, 0, 4, 0))
+	v.add_child(_barra_resistencia)
+	_l_resistencia = Estilo.etiqueta("Resistencia", Estilo.TAM_PEQUENO, Color.WHITE)
+	_barra_resistencia.add_child(_l_resistencia)
+	_l_resistencia.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_l_resistencia.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_l_resistencia.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_l_resistencia.add_theme_constant_override("outline_size", 4)
+	_l_resistencia.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	_l_evento = Estilo.etiqueta("", Estilo.TAM_PEQUENO, Estilo.COLOR_ACENTO)
 	_l_evento.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_l_evento.visible = false
@@ -319,7 +352,9 @@ func mostrar_juego(v: bool) -> void:
 	if _panel_mision != null:
 		_panel_mision.visible = v and not Misiones.mision_activa().is_empty()
 	_actualizar_visibilidad_vida(v)
+	_panel_enemigo.visible = v and is_instance_valid(_enemigo)
 	if not v:
+		_vineta.hide()
 		ocultar_accion()
 		if _tutorial != null:
 			_tutorial.visible = false
@@ -417,15 +452,111 @@ func _actualizar_visibilidad_vida(juego_visible: bool = true) -> void:
 	if _barra_vida == null:
 		return
 	var hud_on := juego_visible and (_panel_info == null or _panel_info.visible)
-	var en_mina := Juego.mapa_actual == "mina_interior"
-	if not en_mina:
-		var m := Escenas.mapa_actual_nodo()
-		en_mina = m != null and str(m.get("id_mapa")) == "mina_interior"
-	_barra_vida.visible = hud_on and en_mina
+	_barra_vida.visible = hud_on
+	_barra_resistencia.visible = hud_on
 
 
 func barra_vida_visible() -> bool:
 	return _barra_vida != null and _barra_vida.visible
+
+
+func _actualizar_resistencia(v: float, maximo: float) -> void:
+	_barra_resistencia.max_value = maximo
+	_barra_resistencia.value = v
+
+
+func _construir_vineta() -> void:
+	_vineta = ColorRect.new()
+	_vineta.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/vineta_herida.gdshader")
+	_vineta.material = mat
+	add_child(_vineta)
+	_vineta.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_vineta.hide()
+
+
+func _al_recibir_dano(n: float) -> void:
+	_pulso_herida = maxf(_pulso_herida, clampf(n / 45.0, 0.13, 0.46))
+
+
+func _actualizar_efectos_vida(delta: float) -> void:
+	_pulso_herida = move_toward(_pulso_herida, 0.0, delta * 0.72)
+	var jugando: bool = _panel_info != null and _panel_info.visible and Juego.partida_activa and not Interfaz.ocupada() and not Escenas.en_transicion
+	var baja: bool = jugando and Juego.vida > 0.0 and Juego.vida / Juego.vida_max < 0.29
+	var intensidad := (_pulso_herida + (0.075 if baja else 0.0)) if jugando else 0.0
+	if Ajustes.valores.reducir_movimiento:
+		intensidad *= 0.52
+	_vineta.visible = intensidad > 0.01
+	if _vineta.visible:
+		(_vineta.material as ShaderMaterial).set_shader_parameter("intensidad", intensidad)
+	if not baja:
+		_t_latido = 0.0
+	elif _t_latido <= 0.0:
+		_t_latido = lerpf(0.62, 1.15, clampf(Juego.vida / Juego.vida_max / 0.29, 0.0, 1.0))
+		Audio.reproducir("combate_latido", 0.0)
+	else:
+		_t_latido -= delta
+
+
+func _construir_objetivo() -> void:
+	_panel_enemigo = PanelContainer.new()
+	_panel_enemigo.name = "VidaObjetivo"
+	_panel_enemigo.anchor_left = 0.5
+	_panel_enemigo.anchor_right = 0.5
+	_panel_enemigo.offset_top = 22
+	_panel_enemigo.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_panel_enemigo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	Estilo.estilo_panel(_panel_enemigo, Color(0.065, 0.052, 0.054, 0.90), Color(0.47, 0.31, 0.25), 9)
+	add_child(_panel_enemigo)
+	var v := VBoxContainer.new()
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel_enemigo.add_child(v)
+	_l_enemigo = Estilo.etiqueta("", Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO)
+	_l_enemigo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(_l_enemigo)
+	_barra_enemigo = ProgressBar.new()
+	_barra_enemigo.show_percentage = false
+	_barra_enemigo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_barra_enemigo.add_theme_stylebox_override("fill", Estilo.caja(Color(0.75, 0.26, 0.22), Color.TRANSPARENT, 0, 3, 0))
+	v.add_child(_barra_enemigo)
+	_panel_enemigo.hide()
+
+
+func _conectar_jugador(_id: String) -> void:
+	if _combate != null and _combate.is_connected("objetivo_cambiado", _cambiar_objetivo):
+		_combate.disconnect("objetivo_cambiado", _cambiar_objetivo)
+	_cambiar_objetivo(null)
+	var jugador := Escenas.jugador()
+	_combate = jugador.get("combate") as RefCounted if jugador != null else null
+	if _combate != null:
+		_combate.connect("objetivo_cambiado", _cambiar_objetivo)
+	_actualizar_visibilidad_vida()
+
+
+func _cambiar_objetivo(enemigo: Node3D) -> void:
+	if is_instance_valid(_enemigo) and _enemigo.is_connected("vida_cambiada", _poner_vida_enemigo):
+		_enemigo.disconnect("vida_cambiada", _poner_vida_enemigo)
+	_enemigo = enemigo
+	if not is_instance_valid(enemigo):
+		_panel_enemigo.hide()
+		return
+	var jefe := bool(enemigo.get("es_jefe"))
+	_barra_enemigo.custom_minimum_size = Vector2(485, 13) if jefe else Vector2(220, 8)
+	var ancho := _barra_enemigo.custom_minimum_size.x + 22.0
+	_panel_enemigo.offset_left = -ancho * 0.5
+	_panel_enemigo.offset_right = ancho * 0.5
+	_l_enemigo.text = str(enemigo.get("nombre_visible"))
+	if _combate != null and _combate.get("objetivo_fijado") == enemigo:
+		_l_enemigo.text += "  ·  Fijado"
+	enemigo.connect("vida_cambiada", _poner_vida_enemigo)
+	_poner_vida_enemigo(float(enemigo.get("vida")), float(enemigo.get("vida_max")))
+	_panel_enemigo.visible = _panel_info.visible
+
+
+func _poner_vida_enemigo(actual: float, maximo: float) -> void:
+	_barra_enemigo.max_value = maximo
+	_barra_enemigo.value = actual
 
 
 func _actualizar_barra() -> void:

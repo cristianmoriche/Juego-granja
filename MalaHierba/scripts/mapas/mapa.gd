@@ -14,9 +14,10 @@ const RUTA_DATOS_MAPA := "res://assets/mapas/%s/marcadores.json"
 const RUTA_PUNTOS := "res://datos/puntos_interes.json"
 ## Capa 6 «limites»: los muros invisibles del borde del mapa solo los nota el jugador (la cámara y los rayos no).
 const CAPA_LIMITES := 32
-## Capa 7 «solo_jugador»: en las cuevas, la colisión del techo invisible y de las maderas, raíles y objetos; la cámara (capa 1)
-## no choca con ella, el jugador sí. En la capa 1 queda solo la roca.
+## Capa 7 «solo_jugador»: en las cuevas, techo, maderas, raíles y objetos. Leo y la cámara
+## también comprueban esta capa. En la capa 1 queda la roca.
 const CAPA_SOLO_JUGADOR := 64
+const CAPA_SOLO_CAMARA := 128
 const SEPARACION_POSTES := 2.6
 
 @export var id_mapa: String = ""
@@ -48,10 +49,19 @@ var _nieve: GPUParticles3D = null
 var _raiz_reparar: Node3D = null
 var _mercader: Node3D = null
 var _es_tormenta_lluvia: bool = false
+var _relampago: DirectionalLight3D
+var _espera_relampago := 0.0
+var _fase_relampago := 0.0
+var _salpicaduras: GPUParticles3D
+var _espera_salpicadura := 0.0
+var _azar_lluvia := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
 	add_to_group("mapa")
+	if not interior:
+		var estacion := clampi(Juego.estacion, 0, 3)
+		CieloH03.solicitar_hora(Juego.minutos, CicloDia.AMANECER[estacion], CicloDia.ATARDECER[estacion])
 	_crear_cargador()
 	if cargador == null:
 		_al_cargar()
@@ -86,7 +96,7 @@ func _al_cargar() -> void:
 		_suelo_de_emergencia()
 	var nm := get_node_or_null("Objetos/NivelMina")
 	if interior and cargador != null:
-		_ocultar_techos()
+		_mostrar_techos()
 		_separar_colisiones_de_cueva()
 		if id_mapa == "mina_interior":
 			_alisar_paredes_de_llegada()
@@ -102,16 +112,24 @@ func _al_cargar() -> void:
 	_construir_vallas_y_puntos()   # necesita colisiones ya registradas: espera unos fotogramas de física
 
 
-## Los techos de cueva (Techo_roca…) deben verse solo como sombra, pero el importador de glTF los nombra «Techo_roca_001»
-## y el cargador (que busca por nombre exacto) no los reconoce: aquí se corrige para que la cámara cenital vea al jugador.
-func _ocultar_techos() -> void:
-	for mi: Node in cargador.find_children("Techo*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+## Las vistas de ojos y hombro dejan ver los techos originales, con sus materiales y colisión.
+func _mostrar_techos() -> void:
+	for nodo: Node in cargador.find_children("Techo*", "MeshInstance3D", true, false):
+		var mi := nodo as MeshInstance3D
+		if mi.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY:
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			mi.layers = FotoCenital.CAPA_TECHOS
+			for i in mi.mesh.get_surface_count():
+				var material := mi.get_active_material(i) as BaseMaterial3D
+				if material != null:
+					var interior_techo := material.duplicate() as BaseMaterial3D
+					interior_techo.cull_mode = BaseMaterial3D.CULL_DISABLED
+					if id_mapa == "mina_interior" and interior_techo.albedo_texture == null:
+						CargadorMapa.aplicar_pbr_techo_roca(interior_techo)
+					mi.set_surface_override_material(i, interior_techo)
 
 
-## En las cuevas, el techo (no se ve, solo da sombra) y las maderas, raíles y objetos tenían su colisión en la capa 1, y la cámara
-## orbital chocaba con ellos y se quedaba pegada a Leo. Se pasan a la capa 7: Leo sigue chocando con todo (máscara del
-## jugador); la cámara, solo con la roca (formas «col_*Roca*»).
+## Conserva en la capa 1 la roca (formas «col_*Roca*»). El resto va a la capa 7.
 func _separar_colisiones_de_cueva() -> void:
 	var colisiones: Variant = cargador.get("colisiones")
 	if not (colisiones is Node):
@@ -121,16 +139,21 @@ func _separar_colisiones_de_cueva() -> void:
 	solo_jugador.collision_layer = CAPA_SOLO_JUGADOR
 	solo_jugador.collision_mask = 0
 	add_child(solo_jugador)
+	var solo_camara: StaticBody3D
+	if id_mapa == "mina_interior":
+		solo_camara = StaticBody3D.new()
+		solo_camara.name = "ColisionSoloCamara"
+		solo_camara.collision_layer = CAPA_SOLO_CAMARA
+		solo_camara.collision_mask = 0
+		add_child(solo_camara)
 	for hijo: Node in (colisiones as Node).get_children():
 		if not (hijo is CollisionShape3D):
 			continue
 		var nom := String(hijo.name)
 		if id_mapa == "mina_interior":
-			# Los faroles (latón y hierro) cuelgan de las vigas a 1,3 m: con colisión tapaban los pasos estrechos del túnel
-			# (Leo se quedaba enganchado y las rocas no se repartían más allá). Son adorno: se quedan sin colisión.
-			if nom.contains("Prop_int_Laton") or nom.contains("Prop_int_Hierro"):
-				(hijo as CollisionShape3D).disabled = true
-				hijo.queue_free()
+			# Los faroles bajos dejan pasar a Leo y conservan la colisión de cámara.
+			if nom.contains("Prop_int_Laton") or nom.contains("Prop_int_Hierro") or nom.contains("Prop_int_Cristal_farol"):
+				hijo.reparent(solo_camara, true)
 			elif not nom.contains("Roca"):
 				hijo.reparent(solo_jugador, true)
 		else:
@@ -207,9 +230,16 @@ func marcadores_de_tipo(tipo: String) -> Array[Marker3D]:
 
 
 func aabb_mapa() -> AABB:
+	var nm := get_node_or_null("Objetos/NivelMina")
+	var caja := AABB(Vector3(-30, -1, -30), Vector3(60, 12, 60))
 	if cargador != null and cargador.has_method("aabb_mapa"):
-		return cargador.call("aabb_mapa")
-	return AABB(Vector3(-30, -1, -30), Vector3(60, 12, 60))
+		caja = cargador.call("aabb_mapa")
+	if nm != null and nm.has_method("aabb_nivel"):
+		var extr: AABB = nm.call("aabb_nivel")
+		if extr.has_volume():
+			var nv := int(nm.get("nivel"))
+			caja = caja.merge(extr) if nv <= 2 else extr
+	return caja
 
 
 ## Giro (radianes alrededor de Y) con el que la cámara de juego mira, según el marcador Camara_juego.
@@ -304,34 +334,23 @@ func _configurar_entorno() -> void:
 			env.fog_enabled = false
 		else:
 			env.background_mode = Environment.BG_COLOR
-			env.background_color = Color(0.014, 0.016, 0.024)
+			env.background_color = Color(0.008, 0.010, 0.016)
 			env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-			env.ambient_light_color = Color(0.25, 0.28, 0.38)
-			env.ambient_light_energy = 0.52
+			env.ambient_light_color = Color(0.22, 0.23, 0.29)
+			env.ambient_light_energy = 0.20
 			var ambiente := _info("info_ambiente")
 			if not ambiente.is_empty():
-				var amb_map := _color(ambiente.get("color"), Color(0.16, 0.14, 0.12)).linear_to_srgb()
-				env.ambient_light_color = Color(0.25, 0.28, 0.38).lerp(amb_map, 0.30)
-				env.ambient_light_energy = clampf(float(ambiente.get("energia", 0.45)) * 0.52, 0.44, 0.58)
+				var amb_map := _color(ambiente.get("color"), Color(0.14, 0.13, 0.12)).linear_to_srgb()
+				env.ambient_light_color = Color(0.22, 0.23, 0.29).lerp(amb_map, 0.22)
+				env.ambient_light_energy = clampf(float(ambiente.get("energia", 0.40)) * 0.45, 0.17, 0.24)
 			env.fog_enabled = true
-			env.fog_light_color = Color(0.025, 0.028, 0.042)
-			env.fog_density = maxf(densidad, 0.015)
+			env.fog_light_color = Color(0.016, 0.019, 0.030)
+			env.fog_density = maxf(densidad, 0.016)
 	else:
 		var cielo := Sky.new()
-		var hdri_ruta := str(info_cielo.get("hdri", ""))
 		fuerza_cielo = float(info_cielo.get("fuerza", 1.0))
-		if not hdri_ruta.is_empty() and ResourceLoader.exists(hdri_ruta):
-			var pm := PanoramaSkyMaterial.new()
-			pm.panorama = load(hdri_ruta) as Texture2D
-			mat_cielo = pm
-		else:
-			var ps := ProceduralSkyMaterial.new()
-			ps.sky_top_color = Color(0.27, 0.46, 0.78)
-			ps.sky_horizon_color = Color(0.66, 0.78, 0.92)
-			ps.ground_horizon_color = Color(0.56, 0.60, 0.56)
-			ps.ground_bottom_color = Color(0.24, 0.28, 0.24)
-			mat_cielo = ps
-		cielo.sky_material = mat_cielo
+		cielo.process_mode = Sky.PROCESS_MODE_INCREMENTAL
+		cielo.radiance_size = Sky.RADIANCE_SIZE_128
 		env.background_mode = Environment.BG_SKY
 		env.sky = cielo
 		env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
@@ -341,7 +360,10 @@ func _configurar_entorno() -> void:
 		env.fog_light_color = color_niebla
 		env.fog_density = densidad * 0.78
 		env.fog_sky_affect = 0.24
+	GraficaH03.preparar_entorno(env, interior, id_mapa == "mina_interior")
 	_entorno.environment = env
+	_entorno.camera_attributes = GraficaH03.exposicion(interior)
+	GraficaH03.ajustar_entorno(_entorno, int(Ajustes.valores.calidad))
 
 	if _sol.has_method("configurar"):
 		_sol.call("configurar", info_sol, env, mat_cielo, interior, color_niebla, fuerza_cielo, densidad * 0.78, cargador)
@@ -749,6 +771,7 @@ func _actualizar_precipitacion() -> void:
 		return
 	var debe_llover := Juego.esta_lloviendo()
 	var tormenta := Juego.clima == "tormenta"
+	_ajustar_relampagos(tormenta)
 	if debe_llover and (_lluvia == null or not is_instance_valid(_lluvia) or _es_tormenta_lluvia != tormenta):
 		if _lluvia != null and is_instance_valid(_lluvia):
 			if _lluvia.get_parent() != null:
@@ -761,6 +784,7 @@ func _actualizar_precipitacion() -> void:
 			_lluvia.get_parent().remove_child(_lluvia)
 		_lluvia.queue_free()
 		_lluvia = null
+		_salpicaduras = null
 
 	var debe_nevar := Juego.esta_nevando()
 	if debe_nevar and (_nieve == null or not is_instance_valid(_nieve)):
@@ -771,6 +795,36 @@ func _actualizar_precipitacion() -> void:
 		_nieve.queue_free()
 		_nieve = null
 	set_process((_lluvia != null and is_instance_valid(_lluvia)) or (_nieve != null and is_instance_valid(_nieve)))
+
+
+func _ajustar_relampagos(tormenta: bool) -> void:
+	if tormenta and _relampago == null:
+		_relampago = DirectionalLight3D.new()
+		_relampago.name = "Relampago"
+		_relampago.rotation_degrees = Vector3(-48, -66, 0)
+		_relampago.light_color = Color(0.78, 0.86, 1.0)
+		_relampago.light_energy = 0.0
+		_relampago.light_volumetric_fog_energy = 0.48
+		_relampago.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+		add_child(_relampago)
+		_espera_relampago = randf_range(6.5, 14.0)
+		_fase_relampago = 0.0
+	elif not tormenta and _relampago != null:
+		_relampago.queue_free()
+		_relampago = null
+
+
+func _actualizar_relampago(delta: float) -> void:
+	if _relampago == null:
+		return
+	_espera_relampago -= delta
+	if _espera_relampago <= 0.0:
+		_fase_relampago = 0.25
+		_espera_relampago = randf_range(16.0, 38.0)
+		_relampago.rotation_degrees.y = randf_range(-180.0, 180.0)
+	var t := 0.25 - _fase_relampago
+	_relampago.light_energy = 0.78 * exp(-t * 37.0) + 0.24 * exp(-absf(t - 0.093) * 50.0) if _fase_relampago > 0.0 else 0.0
+	_fase_relampago = maxf(0.0, _fase_relampago - delta)
 
 
 func _crear_lluvia(tormenta: bool = false) -> void:
@@ -808,6 +862,66 @@ func _crear_lluvia(tormenta: bool = false) -> void:
 	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(p)
 	_lluvia = p
+	_crear_salpicaduras()
+
+
+func _crear_salpicaduras() -> void:
+	var gotas := GPUParticles3D.new()
+	gotas.name = "Salpicaduras"
+	gotas.amount = 96
+	gotas.lifetime = 0.22
+	gotas.local_coords = false
+	gotas.emitting = false
+	gotas.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	gotas.visibility_aabb = AABB(Vector3(-9, -5, -9), Vector3(18, 10, 18))
+	var movimiento := ParticleProcessMaterial.new()
+	movimiento.gravity = Vector3(0, -9.8, 0)
+	gotas.process_material = movimiento
+
+	var color := Gradient.new()
+	color.offsets = PackedFloat32Array([0.0, 0.42, 1.0])
+	color.colors = PackedColorArray([
+		Color(0.82, 0.88, 0.91, 0.72), Color(0.67, 0.75, 0.81, 0.35), Color(0.67, 0.75, 0.81, 0.0),
+	])
+	var textura := GradientTexture2D.new()
+	textura.width = 16
+	textura.height = 16
+	textura.fill = GradientTexture2D.FILL_RADIAL
+	textura.fill_from = Vector2(0.5, 0.5)
+	textura.fill_to = Vector2(1, 0.5)
+	textura.gradient = color
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_texture = textura
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	var malla := QuadMesh.new()
+	malla.size = Vector2(0.022, 0.024)
+	malla.material = material
+	gotas.draw_pass_1 = malla
+	_lluvia.add_child(gotas)
+	_salpicaduras = gotas
+
+
+func _salpicar_suelo(delta: float, centro: Vector3) -> void:
+	_salpicaduras.global_position = centro
+	_espera_salpicadura -= delta
+	if _espera_salpicadura > 0.0 or int(Ajustes.valores.calidad) < 2:
+		return
+	_espera_salpicadura = 0.024 if _es_tormenta_lluvia else 0.045
+	var lado := Vector2.from_angle(_azar_lluvia.randf_range(0.0, TAU)) * _azar_lluvia.randf_range(1.0, 6.5)
+	var punto := centro + Vector3(lado.x, 0.0, lado.y)
+	var rayo := PhysicsRayQueryParameters3D.create(punto + Vector3.UP * 2.5, punto + Vector3.DOWN * 4.0, 1)
+	var choque := get_world_3d().direct_space_state.intersect_ray(rayo)
+	if choque.is_empty() or choque.normal.y < 0.4:
+		return
+	var contacto: Vector3 = choque.position + choque.normal * 0.018
+	var flags := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG_VELOCITY
+	for _gota in 3:
+		var salto := Vector3(
+			_azar_lluvia.randf_range(-0.7, 0.7), _azar_lluvia.randf_range(0.55, 1.05), _azar_lluvia.randf_range(-0.7, 0.7),
+		)
+		_salpicaduras.emit_particle(Transform3D(Basis.IDENTITY, contacto), salto, Color.WHITE, Color(0, 0, 0, 0), flags)
 
 
 func _crear_nieve() -> void:
@@ -999,9 +1113,11 @@ func _centro_precipitacion() -> Vector3:
 	return Vector3.ZERO
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_actualizar_relampago(delta)
 	var centro := _centro_precipitacion()
 	if _lluvia != null and is_instance_valid(_lluvia):
 		_lluvia.global_position = centro + Vector3(0, 13, 0)
+		_salpicar_suelo(delta, centro)
 	if _nieve != null and is_instance_valid(_nieve):
 		_nieve.global_position = centro + Vector3(0, 10, 0)
