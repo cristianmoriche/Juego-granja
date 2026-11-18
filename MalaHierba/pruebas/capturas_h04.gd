@@ -24,6 +24,7 @@ func _ejecutar() -> void:
 	Ajustes.poner("calidad", 2)
 	Ajustes.poner("pantalla_completa", false)
 	Ajustes.poner("resolucion", 2)
+	Ajustes.poner("tutorial", false)
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	Engine.max_fps = 0
 	Juego.nueva_partida("CapturasH04")
@@ -59,7 +60,7 @@ func _ejecutar() -> void:
 			pos_v = objetivo["pos"]
 			yaw_v = float(objetivo["yaw"])
 		j.colocar(pos_v, 0.0, yaw_v)
-		j.camara.pitch = deg_to_rad(8.0)
+		j.camara.pitch = deg_to_rad(13.0) if nv in [2, 8, 20] else deg_to_rad(8.0)
 		nm.revelar_niebla_en(Vector2(pos_v.x, pos_v.z), 13.5)
 		await _frames(10)
 

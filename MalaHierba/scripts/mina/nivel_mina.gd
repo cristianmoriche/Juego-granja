@@ -68,17 +68,18 @@ const RADIO_REVELAR := 13.5
 const SHADER_AGUA_MINA := """shader_type spatial;
 uniform sampler2D onda_norm : hint_normal, filter_linear_mipmap, repeat_enable;
 void fragment() {
-	vec2 uv1 = UV * 3.5 + vec2(TIME * 0.03, TIME * 0.02);
-	vec2 uv2 = UV * 5.0 + vec2(-TIME * 0.025, TIME * 0.035);
+	vec2 uv1 = UV * 3.2 + vec2(TIME * 0.025, TIME * 0.018);
+	vec2 uv2 = UV * 4.8 + vec2(-TIME * 0.02, TIME * 0.028);
 	vec3 n = normalize(mix(texture(onda_norm, uv1).rgb * 2.0 - 1.0, texture(onda_norm, uv2).rgb * 2.0 - 1.0, 0.5));
-	ALBEDO = vec3(0.08, 0.28, 0.38);
-	ALPHA = 0.80;
-	ROUGHNESS = 0.08;
-	METALLIC = 0.18;
-	SPECULAR = 0.82;
+	float r = length(UV - vec2(0.5)) * 2.0;
+	float borde = 1.0 - smoothstep(0.62, 0.98, r);
+	ALBEDO = mix(vec3(0.02, 0.07, 0.10), vec3(0.04, 0.13, 0.18), 1.0 - r * 0.5);
+	ALPHA = 0.84 * borde;
+	ROUGHNESS = 0.06;
+	METALLIC = 0.22;
+	SPECULAR = 0.88;
 	NORMAL_MAP = n * 0.5 + 0.5;
-	NORMAL_MAP_DEPTH = 0.55;
-	EMISSION = vec3(0.03, 0.14, 0.20);
+	NORMAL_MAP_DEPTH = 0.60;
 }
 """
 
@@ -756,25 +757,25 @@ func _colocar_ambientacion_especifica(azar: RandomNumberGenerator) -> void:
 				var h := _altura_celda(c)
 				var disco := MeshInstance3D.new()
 				disco.name = "Charco_%d" % i
-				var cm := CylinderMesh.new()
-				cm.top_radius = azar.randf_range(0.95, 1.45)
-				cm.bottom_radius = cm.top_radius * 1.05
-				cm.height = 0.04
-				cm.radial_segments = 16
-				disco.mesh = cm
+				var pm := PlaneMesh.new()
+				var lado := azar.randf_range(1.9, 2.7)
+				pm.size = Vector2(lado, lado * azar.randf_range(0.85, 1.15))
+				disco.mesh = pm
 				disco.material_override = mat_agua
-				disco.position = Vector3(p.x, h + 0.025, p.y)
+				disco.position = Vector3(p.x, h + 0.015, p.y)
+				disco.rotation.y = azar.randf_range(0.0, TAU)
 				disco.visibility_range_end = 58.0
 				_geometria_proc.add_child(disco)
 		"cristal":
 			var mats: Array[StandardMaterial3D] = []
-			for col_c in [Color(0.68, 0.34, 0.98), Color(0.28, 0.86, 1.0)]:
+			for col_c in [Color(0.62, 0.28, 0.92), Color(0.22, 0.76, 0.94)]:
 				var mc := StandardMaterial3D.new()
 				mc.albedo_color = col_c
 				mc.emission_enabled = true
 				mc.emission = col_c
-				mc.emission_energy_multiplier = 1.9
-				mc.roughness = 0.16
+				mc.emission_energy_multiplier = 0.95
+				mc.roughness = 0.14
+				mc.metallic = 0.25
 				mats.append(mc)
 			var n_c := mini(10 + nivel / 2, borde_celdas.size())
 			for i in n_c:
@@ -1037,7 +1038,7 @@ func _poner_antorcha(pos: Vector3) -> void:
 	luz.light_energy = 1.55
 	luz.omni_range = 10.5
 	luz.omni_attenuation = 1.35
-	if posiciones_antorchas.size() <= 6:
+	if posiciones_antorchas.size() <= 3:
 		luz.set_meta("sombra_h03", true)
 	else:
 		luz.set_meta("sin_sombra", true)
@@ -1373,8 +1374,7 @@ func _actualizar_textura_overlay_niebla() -> void:
 		for x in TAM_NIEBLA:
 			var v := float(_niebla_bytes[z * TAM_NIEBLA + x]) / 255.0
 			var a := (1.0 - v) * 0.94
-			var g := 0.055 + 0.015 * sin(float(x) * 0.9 + float(z) * 0.7)
-			_niebla_overlay_img.set_pixel(x, z, Color(g, g * 0.96, g * 1.15, a))
+			_niebla_overlay_img.set_pixel(x, z, Color(0.045, 0.045, 0.058, a))
 	_niebla_overlay_tex.update(_niebla_overlay_img)
 
 

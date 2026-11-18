@@ -706,8 +706,9 @@ static func construir_geometria(nm: Node3D, raiz: Node3D, plan: Dictionary, biom
 	# Alturas de esquina compartidas para uniones estancas entre salas y rampas.
 	var esq_y: Dictionary = _calcular_alturas_esquina(celdas_info, simas, rampa_info)
 
-	# Acumular triángulos por trozo de 20×20 m.
+	# Acumular triángulos visuales y caras simplificadas de colisión por trozo de 20×20 m.
 	var chunks_suelo: Dictionary = {}
+	var chunks_col_s: Dictionary = {}
 	var chunks_techo: Dictionary = {}
 	var aabb_total := AABB()
 	var primero_aabb := true
@@ -716,7 +717,7 @@ static func construir_geometria(nm: Node3D, raiz: Node3D, plan: Dictionary, biom
 	for c in celdas_info:
 		todas_abiertas[c] = celdas_info[c]
 	for s_c in simas:
-		todas_abiertas[s_c] = {"h0": -7.5, "tipo": "sima", "techo": 8.4}
+		todas_abiertas[s_c] = {"h0": -4.2, "tipo": "sima", "techo": 12.2}
 
 	var half := PASO * 0.5
 	for c: Vector2i in todas_abiertas:
@@ -726,15 +727,17 @@ static func construir_geometria(nm: Node3D, raiz: Node3D, plan: Dictionary, biom
 		var th := float(info["techo"])
 		var es_sima := tipo == "sima"
 		var es_puente := tipo == "puente"
-		var y_base := -7.2 if (es_sima or es_puente) else h0
+		var y_base := -4.2 if (es_sima or es_puente) else h0
 
 		var wx := origen.x + float(c.x) * PASO
 		var wz := origen.y + float(c.y) * PASO
 		var chunk_id := Vector2i(floori(wx / TAM_TROZO), floori(wz / TAM_TROZO))
 		if not chunks_suelo.has(chunk_id):
 			chunks_suelo[chunk_id] = PackedVector3Array()
+			chunks_col_s[chunk_id] = PackedVector3Array()
 			chunks_techo[chunk_id] = PackedVector3Array()
 		var tris_s: PackedVector3Array = chunks_suelo[chunk_id]
+		var tris_cs: PackedVector3Array = chunks_col_s[chunk_id]
 		var tris_t: PackedVector3Array = chunks_techo[chunk_id]
 
 		var y_tl := y_base if (es_sima or es_puente) else float(esq_y.get(Vector2i(c.x, c.y), h0))
@@ -747,22 +750,24 @@ static func construir_geometria(nm: Node3D, raiz: Node3D, plan: Dictionary, biom
 		var p_br := Vector3(wx + half, y_br, wz + half)
 		var p_bl := Vector3(wx - half, y_bl, wz + half)
 
-		# Suelo (en las simas/puentes va abajo a -7.2 m para revelar el abismo debajo).
-		tris_s.append_array(PackedVector3Array([p_tl, p_tr, p_br, p_tl, p_br, p_bl]))
+		# Suelo (en las simas/puentes va abajo a -4.2 m para revelar el abismo debajo).
+		var suelo_tris := PackedVector3Array([p_tl, p_tr, p_br, p_tl, p_br, p_bl])
+		tris_s.append_array(suelo_tris)
+		tris_cs.append_array(suelo_tris)
 
 		# Techo abovedado con relieve natural orgánico (oculto para el minimapa cenital).
-		var yc := maxf(h0, 0.0) + th
+		var yc := (-4.2 + th) if es_sima else (maxf(h0, 0.0) + th)
 		var c_tl := _vert_techo(Vector3(wx - half, yc, wz - half), th)
 		var c_tr := _vert_techo(Vector3(wx + half, yc, wz - half), th)
 		var c_br := _vert_techo(Vector3(wx + half, yc, wz + half), th)
 		var c_bl := _vert_techo(Vector3(wx - half, yc, wz + half), th)
 		tris_t.append_array(PackedVector3Array([c_tl, c_bl, c_br, c_tl, c_br, c_tr]))
 
-		var caja_c := AABB(Vector3(wx - half, minf(y_base, -7.2), wz - half), Vector3(PASO, yc + 8.0, PASO))
+		var caja_c := AABB(Vector3(wx - half, minf(y_base, -4.5), wz - half), Vector3(PASO, yc + 8.0, PASO))
 		aabb_total = caja_c if primero_aabb else aabb_total.merge(caja_c)
 		primero_aabb = false
 
-		# Paredes hacia las celdas sólidas no cavadas, y escalones de faldón si un vecino tiene otra cota.
+		# Paredes hacia roca sólida, cierres de desnivel de techo entre salas/ramales y faldones de sima.
 		for pair in [
 			[Vector2i(0, -1), p_tl, p_tr, c_tl, c_tr],
 			[Vector2i(0, 1), p_br, p_bl, c_br, c_bl],
@@ -778,29 +783,54 @@ static func construir_geometria(nm: Node3D, raiz: Node3D, plan: Dictionary, biom
 			if es_ala and c == Vector2i(0, 0) and dir == Vector2i(-1, 0):
 				continue   # El lado oeste del bloque de acceso enlaza directo con la cueva clásica x=434
 			if not todas_abiertas.has(vc):
-				# Pared rocosa natural con punto medio ligeramente desplazado hacia la roca sólida.
+				# Colisión plana y rápida de 2 triángulos + malla visual estratificada de 6 triángulos.
+				tris_cs.append_array(PackedVector3Array([a, ca, cb, a, cb, b]))
 				var dir_f := Vector3(float(dir.x), 0.0, float(dir.y))
-				var mid := (a + b) * 0.5 + dir_f * (_ruido(wx + dir.x, wz + dir.y) * 0.28)
-				var mid_u := Vector3(mid.x, ((ca.y + cb.y) * 0.5 + (a.y + b.y) * 0.5) * 0.5, mid.z)
-				mid_u += dir_f * (_ruido(wx + 3.1, wz - 2.4) * 0.22)
-				tris_s.append_array(PackedVector3Array([a, mid_u, b, a, ca, mid_u, mid_u, ca, cb, b, mid_u, cb]))
-			elif (es_sima or es_puente) and not (str(todas_abiertas[vc]["tipo"]) in ["sima", "puente"]):
-				# Faldón de acantilado bajo los bordes sólidos que asoman a la sima.
-				var h_vec := float(todas_abiertas[vc]["h0"])
-				var sa := Vector3(a.x, h_vec, a.z)
-				var sb := Vector3(b.x, h_vec, b.z)
-				tris_s.append_array(PackedVector3Array([b, a, sa, b, sa, sb]))
+				var emp_a := dir_f * maxf(0.12, 0.24 + _ruido(a.x, a.z) * 0.22)
+				var emp_b := dir_f * maxf(0.12, 0.24 + _ruido(b.x, b.z) * 0.22)
+				var mid_m := (a + b) * 0.5 + dir_f * maxf(0.18, 0.34 + _ruido(wx + dir.x, wz + dir.y) * 0.26)
+				var h_m := Vector3(mid_m.x, lerpf((a.y + b.y) * 0.5, (ca.y + cb.y) * 0.5, 0.52), mid_m.z)
+				var h_a := a.lerp(ca, 0.54) + emp_a
+				var h_b := b.lerp(cb, 0.54) + emp_b
+				tris_s.append_array(PackedVector3Array([
+					a, h_a, h_m, a, h_m, b, b, h_m, h_b,
+					h_a, ca, h_m, h_m, ca, cb, h_b, h_m, cb,
+				]))
+			else:
+				var info_v: Dictionary = todas_abiertas[vc]
+				var tipo_v := str(info_v["tipo"])
+				var h_v := float(info_v["h0"])
+				var th_v := float(info_v["techo"])
+				var yc_v := (-4.2 + th_v) if tipo_v == "sima" else (maxf(h_v, 0.0) + th_v)
+				# Cerrar el tabique superior cuando una cámara alta enlaza con una galería baja.
+				if yc > yc_v + 0.08:
+					var ca_low := Vector3(ca.x, _vert_techo(Vector3(ca.x, yc_v, ca.z), th_v).y - 0.04, ca.z)
+					var cb_low := Vector3(cb.x, _vert_techo(Vector3(cb.x, yc_v, cb.z), th_v).y - 0.04, cb.z)
+					tris_s.append_array(PackedVector3Array([ca_low, ca, cb, ca_low, cb, cb_low]))
+				if (es_sima or es_puente) and not (tipo_v in ["sima", "puente"]):
+					# Faldón rocoso bajo los bordes sólidos que asoman a la sima.
+					var sa := Vector3(a.x, h_v, a.z)
+					var sb := Vector3(b.x, h_v, b.z)
+					var faldon := PackedVector3Array([b, a, sa, b, sa, sb])
+					tris_s.append_array(faldon)
+					tris_cs.append_array(faldon)
+		chunks_suelo[chunk_id] = tris_s
+		chunks_col_s[chunk_id] = tris_cs
+		chunks_techo[chunk_id] = tris_t
 
 	# Enlace plano de entrada cuando es el ala este de N1/N2.
 	if es_ala:
 		var cid0 := Vector2i(floori(434.0 / TAM_TROZO), floori(-15.9 / TAM_TROZO))
-		if not chunks_suelo.has(cid0):
-			chunks_suelo[cid0] = PackedVector3Array()
-		var ts0: PackedVector3Array = chunks_suelo[cid0]
-		ts0.append_array(PackedVector3Array([
+		var losa := PackedVector3Array([
 			Vector3(430.5, 0.015, -17.5), Vector3(435.3, 0.015, -17.5), Vector3(435.3, 0.015, -14.3),
 			Vector3(430.5, 0.015, -17.5), Vector3(435.3, 0.015, -14.3), Vector3(430.5, 0.015, -14.3),
-		]))
+		])
+		var ts_e: PackedVector3Array = chunks_suelo.get(cid0, PackedVector3Array())
+		ts_e.append_array(losa)
+		chunks_suelo[cid0] = ts_e
+		var tcs_e: PackedVector3Array = chunks_col_s.get(cid0, PackedVector3Array())
+		tcs_e.append_array(losa)
+		chunks_col_s[cid0] = tcs_e
 
 	# Instanciar trozos (StaticBody3D + MeshInstance3D por chunk de 20×20 m).
 	var nodos_chunk: Dictionary = {}
@@ -811,6 +841,7 @@ static func construir_geometria(nm: Node3D, raiz: Node3D, plan: Dictionary, biom
 		nodos_chunk[cid] = chunk_n
 
 		var caras_s: PackedVector3Array = chunks_suelo[cid]
+		var caras_cs: PackedVector3Array = chunks_col_s.get(cid, caras_s)
 		if not caras_s.is_empty():
 			var cuerpo_s := StaticBody3D.new()
 			cuerpo_s.name = "ColSueloParedes"
@@ -819,7 +850,7 @@ static func construir_geometria(nm: Node3D, raiz: Node3D, plan: Dictionary, biom
 			var cs_s := CollisionShape3D.new()
 			var sh_s := ConcavePolygonShape3D.new()
 			sh_s.backface_collision = true
-			sh_s.set_faces(caras_s)
+			sh_s.set_faces(caras_cs)
 			cs_s.shape = sh_s
 			cuerpo_s.add_child(cs_s)
 			chunk_n.add_child(cuerpo_s)
@@ -869,19 +900,27 @@ static func construir_geometria(nm: Node3D, raiz: Node3D, plan: Dictionary, biom
 			var poza := MeshInstance3D.new()
 			poza.name = "Magma_Sima_%d_%d" % [c_p.x, c_p.y]
 			var pm := PlaneMesh.new()
-			pm.size = Vector2(PASO * 2.2, PASO * 2.2)
+			pm.size = Vector2(PASO * 2.8, PASO * 2.8)
 			poza.mesh = pm
 			poza.material_override = material_magma()
-			poza.position = Vector3(wx, y_p - 6.7, wz)
+			poza.position = Vector3(wx, -3.95, wz)
 			raiz.add_child(poza)
+			var l_lava := OmniLight3D.new()
+			l_lava.light_color = Color(1.0, 0.36, 0.08)
+			l_lava.light_energy = 1.65
+			l_lava.omni_range = 10.5
+			l_lava.shadow_enabled = false
+			l_lava.set_meta("sin_sombra", true)
+			l_lava.position = Vector3(wx, -2.5, wz)
+			raiz.add_child(l_lava)
 		elif bioma == "humeda":
 			var agua := MeshInstance3D.new()
 			agua.name = "Charco_Sima_%d_%d" % [c_p.x, c_p.y]
 			var pm := PlaneMesh.new()
-			pm.size = Vector2(PASO * 2.2, PASO * 2.2)
+			pm.size = Vector2(PASO * 2.8, PASO * 2.8)
 			agua.mesh = pm
 			agua.material_override = nm.material_agua_subterranea() if nm.has_method("material_agua_subterranea") else null
-			agua.position = Vector3(wx, y_p - 6.7, wz)
+			agua.position = Vector3(wx, -3.95, wz)
 			raiz.add_child(agua)
 
 	# Entibados de madera y raíles + vagonetas.

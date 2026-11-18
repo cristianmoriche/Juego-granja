@@ -572,7 +572,7 @@ static func _material(clave: String, color: Color, brillo: float, vertices: bool
 	m.roughness = 0.88 if vertices else 0.22
 	if not vertices:
 		m.metallic = 0.32
-		m.specular = 0.78
+		m.metallic_specular = 0.78
 	if vertices:
 		m.vertex_color_use_as_albedo = true
 		m.vertex_color_is_srgb = true
@@ -604,8 +604,8 @@ static func _malla(tipo: String, semilla: int, radio: float) -> ArrayMesh:
 	var esfera := SphereMesh.new()
 	esfera.radius = 1.0
 	esfera.height = 2.0
-	esfera.radial_segments = 11
-	esfera.rings = 6
+	esfera.radial_segments = 8
+	esfera.rings = 4
 	var arr := esfera.get_mesh_arrays()
 	var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 	var ix: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
