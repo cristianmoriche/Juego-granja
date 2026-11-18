@@ -8,6 +8,11 @@ const HUESOS_CABEZA := ["DEF-spine.004", "DEF-spine.005", HUESO_CABEZA]
 static var _cuerpo: ArrayMesh
 static var _cabeza: ArrayMesh
 
+
+static func olvidar() -> void:
+	_cuerpo = null
+	_cabeza = null
+
 var ancla_ojos: BoneAttachment3D
 var malla: MeshInstance3D
 var sombra: MeshInstance3D

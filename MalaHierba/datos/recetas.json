@@ -315,5 +315,39 @@
     "bufo": {"tipo": "dano", "valor": 0.35, "duracion_min": 360, "etiqueta": "+35 % daño"},
     "origen": {"tipo": "mision", "mision": "p5_sendas_sierra_robledal"},
     "pista_origen": "Completa la expedición «Las sendas altas del valle»."
+  },
+  {
+    "id": "revuelto_huevos",
+    "nombre": "Revuelto del corral",
+    "modelo_mano": "plato_comida",
+    "categoria": "campo",
+    "descripcion": "Huevos frescos batidos a fuego lento con setas de monte.",
+    "ingredientes": [
+      {"id": "huevo_pardo", "cantidad": 2},
+      {"id": "seta_silvestre", "cantidad": 2}
+    ],
+    "energia": 72,
+    "vida": 38,
+    "resistencia": 65,
+    "bufo": {"tipo": "dano", "valor": 0.16, "duracion_min": 210, "etiqueta": "+16 % daño"},
+    "origen": {"tipo": "inicial"},
+    "pista_origen": "Receta básica del corral."
+  },
+  {
+    "id": "flan_miel",
+    "nombre": "Crema dorada de miel",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "festin",
+    "descripcion": "Postre suave de huevos de corral glaseado con miel pura del valle.",
+    "ingredientes": [
+      {"id": "huevo_pardo", "cantidad": 2},
+      {"id": "tarro_miel", "cantidad": 1}
+    ],
+    "energia": 90,
+    "vida": 48,
+    "resistencia": 90,
+    "bufo": {"tipo": "velocidad", "valor": 0.20, "duracion_min": 260, "etiqueta": "+20 % velocidad"},
+    "origen": {"tipo": "tienda", "tienda": "tienda_mateo", "precio": 95},
+    "pista_origen": "A la venta en Ultramarinos de Don Mateo (95 €)."
   }
 ]

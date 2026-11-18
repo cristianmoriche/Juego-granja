@@ -31,7 +31,7 @@ func _verificar(cond: bool, msg: String) -> void:
 func _ejecutar() -> void:
 	# 1. Metadatos e iconos en ProjectSettings.
 	_verificar(str(ProjectSettings.get_setting("application/config/name", "")) == "Mala Hierba", "nombre de aplicacion")
-	_verificar(str(ProjectSettings.get_setting("application/config/version", "")) == "0.2.0", "version 0.2.0")
+	_verificar(str(ProjectSettings.get_setting("application/config/version", "")) == "0.3.0", "version 0.3.0")
 	_verificar(not str(ProjectSettings.get_setting("application/config/description", "")).is_empty(), "descripcion")
 	_verificar(str(ProjectSettings.get_setting("application/config/icon", "")) == "res://assets/ui/icono.png", "icono png en project.godot")
 	_verificar(str(ProjectSettings.get_setting("application/config/windows_native_icon", "")) == "res://assets/ui/icono.ico", "icono ico windows en project.godot")
@@ -50,8 +50,8 @@ func _ejecutar() -> void:
 	if err_cf == OK:
 		_verificar(bool(cf.get_value("preset.0.options", "application/modify_resources", false)), "modify_resources activo")
 		_verificar(str(cf.get_value("preset.0.options", "application/icon", "")) == "res://assets/ui/icono.ico", "icono ico en export_presets")
-		_verificar(str(cf.get_value("preset.0.options", "application/file_version", "")) == "0.2.0.0", "file_version 0.2.0.0")
-		_verificar(str(cf.get_value("preset.0.options", "application/product_version", "")) == "0.2.0", "product_version 0.2.0")
+		_verificar(str(cf.get_value("preset.0.options", "application/file_version", "")) == "0.3.0.0", "file_version 0.3.0.0")
+		_verificar(str(cf.get_value("preset.0.options", "application/product_version", "")) == "0.3.0", "product_version 0.3.0")
 		_verificar("Cristian" in str(cf.get_value("preset.0.options", "application/company_name", "")), "autores en company_name")
 		_verificar(str(cf.get_value("preset.0.options", "application/product_name", "")) == "Mala Hierba", "product_name")
 		_verificar(not str(cf.get_value("preset.0.options", "application/copyright", "")).is_empty(), "copyright")
@@ -78,10 +78,10 @@ func _ejecutar() -> void:
 	var etiquetas := _recoger_etiquetas(menu)
 	var tiene_pie := false
 	for lb in etiquetas:
-		if "Versión 0.2.0" in lb.text:
+		if "Versión 0.3.0" in lb.text:
 			tiene_pie = true
 			break
-	_verificar(tiene_pie, "pie del menu muestra Version 0.2.0")
+	_verificar(tiene_pie, "pie del menu muestra Version 0.3.0")
 
 	var btn_cred := _buscar_boton(menu, "Créditos")
 	_verificar(btn_cred != null and btn_cred.visible, "boton Creditos visible en MenuPrincipal")

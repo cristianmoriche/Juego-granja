@@ -17,6 +17,13 @@ const PALABRAS_ROPA: Array[String] = ["chal", "falda", "chaleco", "bufanda", "pa
 ## y una de oficio distinta en cada uno (Hammer_Forge, Count_Coins…). Se dan de alta con los nombres del juego.
 const ALIAS_ANIM := {"reposo": ["Idle"], "andar": ["Walk"], "saludar": ["Wave_Greeting", "Talk"], "hablar": ["Talk"]}
 const ANIMS_BASE: Array[String] = ["Idle", "Walk", "Talk", "Wave_Greeting", "reposo", "andar", "saludar", "hablar", "RESET"]
+const PUESTOS_TRABAJO := {
+	"mateo": {"mapa": "tienda", "marcador": "Puesto_Mateo", "desde": 540, "hasta": 1140},
+	"clara": {"mapa": "herreria", "marcador": "Puesto_Clara", "desde": 480, "hasta": 1080},
+	"ramon": {"mapa": "taberna", "marcador": "Puesto_Ramon", "desde": 720, "hasta": 1440},
+	"anselmo": {"mapa": "casa_alcalde", "marcador": "Puesto_Anselmo", "desde": 480, "hasta": 780},
+	"tomas": {"mapa": "mina_exterior", "marcador": "Spawn_Minero", "desde": 360, "hasta": 1080},
+}
 
 var datos: Dictionary = {}
 var id: String = ""
@@ -50,6 +57,9 @@ var _alto_visible: float = 1.75
 var _listo: bool = false
 var _mapa: Node = null          # el mapa en el que está (para no salirse del área jugable)
 var _saliendo: bool = false
+var ruta_diaria: Array[Vector3] = []
+var ruta_dia_clave: int = -1
+var _indice_ruta: int = 0
 
 
 ## Crea un vecino con sus datos (aún sin añadir al árbol).
@@ -107,6 +117,29 @@ func ir_a(pos: Vector3, clave_sitio: String) -> void:
 	_atasco = 0.0
 
 
+func fijar_ruta_diaria(puntos: Array[Vector3], dia_clave: int) -> void:
+	ruta_diaria = puntos.duplicate()
+	ruta_dia_clave = dia_clave
+	_indice_ruta = 0
+
+
+func es_oficio_comercial() -> bool:
+	return PUESTOS_TRABAJO.has(id)
+
+
+## Solo habilita tienda/forja/barra/deuda/minerales cuando el NPC atiende en su lugar y horario de trabajo.
+func en_lugar_trabajo() -> bool:
+	if not PUESTOS_TRABAJO.has(id) or _saliendo:
+		return false
+	var cfg: Dictionary = PUESTOS_TRABAJO[id]
+	var id_m := str(_mapa.get("id_mapa")) if _mapa != null else Juego.mapa_actual
+	if id_m != str(cfg["mapa"]):
+		return false
+	if not sitio_actual.begins_with(str(cfg["marcador"]) + "|"):
+		return false
+	return Juego.minutos >= int(cfg["desde"]) and Juego.minutos < int(cfg["hasta"])
+
+
 ## Leo ha empezado a hablar: se detiene, lo mira y saluda.
 func empezar_charla(jugador: Node3D) -> void:
 	_t_charla = 1.0
@@ -157,7 +190,7 @@ func _al_usar(jugador: Node3D) -> void:
 func _physics_process(delta: float) -> void:
 	if not _listo:
 		return
-	var quieto_forzado := Interfaz.ocupada() or Escenas.en_transicion
+	var quieto_forzado: bool = Interfaz.ocupada() or Escenas.en_transicion
 	if Interfaz.ocupada() and _t_charla > 0.0:
 		_t_charla = 1.0
 	elif _t_charla > 0.0:
@@ -222,6 +255,23 @@ func _paseo(delta: float) -> Vector3:
 
 
 func _elegir_destino() -> void:
+	if ruta_diaria.size() >= 2:
+		var vueltas := ruta_diaria.size()
+		for k in vueltas:
+			_indice_ruta = (_indice_ruta + 1) % ruta_diaria.size()
+			var base_r := ruta_diaria[_indice_ruta]
+			var des := Vector3(randf_range(-0.65, 0.65), 0.0, randf_range(-0.65, 0.65))
+			var s := AyudasL4b.suelo(self, base_r + des, 1.5, 4.0)
+			if s == Vector3.INF or absf(s.y - base_r.y) > 0.9:
+				continue
+			if _mapa != null and _mapa.has_method("punto_dentro") and not bool(_mapa.call("punto_dentro", s, 1.2)):
+				continue
+			if not AyudasL4b.cabe(self, s, 0.45):
+				continue
+			_destino = s
+			_estado = "andando"
+			_atasco = 0.0
+			return
 	for i in 8:
 		var a := randf() * TAU
 		var r := randf_range(0.8, maxf(radio, 1.0))

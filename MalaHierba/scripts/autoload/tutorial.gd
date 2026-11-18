@@ -120,6 +120,9 @@ func contenido_de(id: String) -> Dictionary:
 		"mejoras":
 			titulo = "Mejorar herramientas"
 			texto = "Tienes dinero suficiente para mejorar herramientas: habla (%s) con Clara en el pueblo y tráele mineral de la mina." % Ajustes.pista("interactuar")
+		"noche_farol":
+			titulo = "Noche en zonas salvajes"
+			texto = "De noche merodean patrullas nocturnas con botín raro (gemas y cebos). Enciende tu farol (%s) para mantenerlas a raya o monta un campamento portátil." % Ajustes.pista("alternar_luz")
 	return {"id": id, "titulo": titulo, "texto": texto, "cerrar": cerrar}
 
 
@@ -199,6 +202,10 @@ func avisar_combate() -> void:
 	if _actual == "mina" and not esta_visto("combate"):
 		_actual = ""
 	_encolar("combate", true)
+
+
+func avisar_noche_salvaje() -> void:
+	_encolar("noche_farol", true)
 
 
 func _puede_mostrar_ahora() -> bool:

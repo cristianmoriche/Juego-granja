@@ -1,6 +1,8 @@
 class_name PanelDiario
 extends Control
-## Diario de misiones (T22) con sección extensible «Hoy» para encargos diarios (T23).
+## Diario de misiones (T22/T23/H11/H14) con sección «Hoy», habilidades, álbum de pesca y logros.
+
+const Logros := preload("res://scripts/objetos/logros_h14.gd")
 
 signal cerrado
 
@@ -61,9 +63,9 @@ func _ready() -> void:
 	cab.add_child(_l_resumen)
 
 	var tabs := HBoxContainer.new()
-	tabs.add_theme_constant_override("separation", 10)
+	tabs.add_theme_constant_override("separation", 8)
 	v.add_child(tabs)
-	for clave: String in ["curso", "completadas", "todas", "hoy", "habilidades"]:
+	for clave: String in ["curso", "completadas", "todas", "hoy", "habilidades", "pesca", "logros"]:
 		var rotulo := ""
 		match clave:
 			"curso":
@@ -76,7 +78,11 @@ func _ready() -> void:
 				rotulo = "Hoy (Tablón)"
 			"habilidades":
 				rotulo = "Habilidades"
-		var b := Estilo.boton(rotulo, 148.0)
+			"pesca":
+				rotulo = "Álbum pesca"
+			"logros":
+				rotulo = "Logros"
+		var b := Estilo.boton(rotulo, 118.0)
 		b.pressed.connect(func() -> void: _seleccionar_tab(clave))
 		tabs.add_child(b)
 		_b_tabs[clave] = b
@@ -223,9 +229,11 @@ func _refrescar() -> void:
 
 	var es_hoy := (_tab == "hoy")
 	var es_hab := (_tab == "habilidades")
-	_scroll_lista.visible = not es_hoy and not es_hab
-	_panel_detalle.visible = not es_hoy and not es_hab
-	_panel_hoy.visible = es_hoy or es_hab
+	var es_pesca := (_tab == "pesca")
+	var es_logros := (_tab == "logros")
+	_scroll_lista.visible = not es_hoy and not es_hab and not es_pesca and not es_logros
+	_panel_detalle.visible = not es_hoy and not es_hab and not es_pesca and not es_logros
+	_panel_hoy.visible = es_hoy or es_hab or es_pesca or es_logros
 	if es_hoy:
 		_b_activar.visible = false
 		_rellenar_hoy()
@@ -234,6 +242,16 @@ func _refrescar() -> void:
 	if es_hab:
 		_b_activar.visible = false
 		_rellenar_habilidades()
+		Interfaz.limitar_foco.call_deferred(self)
+		return
+	if es_pesca:
+		_b_activar.visible = false
+		_rellenar_album_pesca()
+		Interfaz.limitar_foco.call_deferred(self)
+		return
+	if es_logros:
+		_b_activar.visible = false
+		_rellenar_logros()
 		Interfaz.limitar_foco.call_deferred(self)
 		return
 
@@ -451,6 +469,128 @@ func _rellenar_habilidades() -> void:
 			var b := bufos[k] as Dictionary
 			var rest := int(b.get("restante", 0))
 			lista.add_child(Estilo.etiqueta("★ %s: %s (%dh %02dmin)" % [str(b.get("origen", "")), str(b.get("etiqueta", "")), rest / 60, rest % 60], Estilo.TAM_PEQUENO, Estilo.COLOR_BUENO))
+
+
+func _rellenar_album_pesca() -> void:
+	for h in _vbox_hoy.get_children():
+		h.queue_free()
+	var album := Juego.album_pesca()
+	var descubiertas := 0
+	for sid: String in PescaAvanzada.ESPECIES_ORDEN:
+		if album.has(sid):
+			descubiertas += 1
+	var cab := HBoxContainer.new()
+	cab.add_theme_constant_override("separation", 12)
+	_vbox_hoy.add_child(cab)
+	var titulo := Estilo.etiqueta("Álbum de pesca (%d / %d especies)" % [descubiertas, PescaAvanzada.ESPECIES_ORDEN.size()], Estilo.TAM_GRANDE, Estilo.COLOR_ACENTO)
+	titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cab.add_child(titulo)
+	var cebo := Juego.cebo_activo()
+	cab.add_child(Estilo.etiqueta("Cebo activo: %s" % (Datos.nombre_objeto(cebo) if not cebo.is_empty() else "Ninguno"), Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO_SUAVE))
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 340)
+	_vbox_hoy.add_child(scroll)
+	var lista := VBoxContainer.new()
+	lista.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lista.add_theme_constant_override("separation", 8)
+	scroll.add_child(lista)
+
+	for sid: String in PescaAvanzada.ESPECIES_ORDEN:
+		var sp: Dictionary = PescaAvanzada.ESPECIES[sid]
+		var reg: Dictionary = album.get(sid, {}) as Dictionary
+		var capturado := not reg.is_empty()
+		var card := PanelContainer.new()
+		Estilo.estilo_panel(card, Color(0.15, 0.12, 0.09, 0.94) if capturado else Color(0.10, 0.08, 0.07, 0.72), Estilo.COLOR_BORDE_SUAVE, 10)
+		lista.add_child(card)
+		var fila := HBoxContainer.new()
+		fila.add_theme_constant_override("separation", 10)
+		card.add_child(fila)
+		var ic := Hueco.new(48, false)
+		if capturado:
+			ic.poner({"id": sid, "cantidad": int(reg.get("capturas", 1))})
+		else:
+			ic.modulate = Color(0.2, 0.2, 0.22, 0.5)
+		fila.add_child(ic)
+		var dv := VBoxContainer.new()
+		dv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		fila.add_child(dv)
+		var nom := str(sp["nombre"]) if capturado else "??? (Especie por descubrir)"
+		var rar := str(sp["rareza"])
+		dv.add_child(Estilo.etiqueta("%s  ·  %s" % [nom, rar], Estilo.TAM_TEXTO, Estilo.COLOR_ACENTO if capturado else Estilo.COLOR_TEXTO_SUAVE))
+		if capturado:
+			dv.add_child(Estilo.etiqueta("Récord: %.1f cm · %.2f kg  |  Última: %s (%s)" % [
+				float(reg.get("max_cm", 0.0)), float(reg.get("max_kg", 0.0)), str(reg.get("zona", "-")), str(reg.get("momento", "-"))
+			], Estilo.TAM_PEQUENO, Estilo.COLOR_BUENO))
+		else:
+			dv.add_child(Estilo.etiqueta(str(sp["desc"]), Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO_SUAVE))
+
+
+func _rellenar_logros() -> void:
+	for h in _vbox_hoy.get_children():
+		h.queue_free()
+	Juego.evaluar_logros(false)
+	var mapa_desb := Juego.logros_desbloqueados()
+	var total := Logros.total()
+	var desb := 0
+	for d: Dictionary in Logros.DEFINICIONES:
+		if mapa_desb.has(str(d["id"])):
+			desb += 1
+
+	var cab := HBoxContainer.new()
+	cab.add_theme_constant_override("separation", 12)
+	_vbox_hoy.add_child(cab)
+	var titulo := Estilo.etiqueta("Tablero de logros (%d / %d completados)" % [desb, total], Estilo.TAM_GRANDE, Estilo.COLOR_ACENTO)
+	titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cab.add_child(titulo)
+	var pct := roundi(100.0 * float(desb) / maxf(1.0, float(total)))
+	cab.add_child(Estilo.etiqueta("%d %% completado" % pct, Estilo.TAM_PEQUENO, Estilo.COLOR_BUENO if desb > 0 else Estilo.COLOR_TEXTO_SUAVE))
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 340)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_vbox_hoy.add_child(scroll)
+	var rejilla := GridContainer.new()
+	rejilla.name = "RejillaLogros"
+	rejilla.columns = 2
+	rejilla.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rejilla.add_theme_constant_override("h_separation", 10)
+	rejilla.add_theme_constant_override("v_separation", 8)
+	scroll.add_child(rejilla)
+
+	for d: Dictionary in Logros.DEFINICIONES:
+		var lid := str(d["id"])
+		var reg: Dictionary = mapa_desb.get(lid, {}) as Dictionary
+		var hecho := not reg.is_empty()
+		var card := PanelContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var fondo := Color(0.16, 0.13, 0.09, 0.96) if hecho else Color(0.09, 0.08, 0.07, 0.72)
+		var borde := Estilo.COLOR_ACENTO if hecho else Estilo.COLOR_BORDE_SUAVE
+		Estilo.estilo_panel(card, fondo, borde, 10)
+		rejilla.add_child(card)
+		var fila := HBoxContainer.new()
+		fila.add_theme_constant_override("separation", 10)
+		card.add_child(fila)
+		var ic := TextureRect.new()
+		ic.texture = Datos.icono(str(d.get("icono", "logro_leyenda")))
+		ic.custom_minimum_size = Vector2(52, 52)
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.modulate = Color.WHITE if hecho else Color(0.32, 0.32, 0.34, 0.55)
+		fila.add_child(ic)
+		var dv := VBoxContainer.new()
+		dv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		dv.add_theme_constant_override("separation", 2)
+		fila.add_child(dv)
+		var cat := str(d.get("categoria", "General"))
+		var estado_txt := ("Desbloqueado · %s" % str(reg.get("momento", ""))) if hecho else ("%s · Bloqueado" % cat)
+		dv.add_child(Estilo.etiqueta(str(d["nombre"]), Estilo.TAM_TEXTO, Estilo.COLOR_ACENTO if hecho else Estilo.COLOR_TEXTO_SUAVE))
+		var desc_l := Estilo.etiqueta(str(d["descripcion"]), Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO if hecho else Estilo.COLOR_TEXTO_SUAVE)
+		desc_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		dv.add_child(desc_l)
+		dv.add_child(Estilo.etiqueta(estado_txt, 12, Estilo.COLOR_BUENO if hecho else Estilo.COLOR_TEXTO_SUAVE))
 
 
 func _unhandled_input(event: InputEvent) -> void:

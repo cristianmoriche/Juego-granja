@@ -486,6 +486,7 @@ func cosechar(k: String) -> bool:
 		Juego.mensaje.emit("La plaga ha rebajado la calidad de %s: vale la mitad en tienda." % Datos.nombre_objeto(id).to_lower())
 	Juego.estadisticas["cosechado"] = int(Juego.estadisticas.get("cosechado", 0)) + n
 	Juego.estadisticas["cosechas"] = int(Juego.estadisticas.get("cosechas", 0)) + n
+	Juego.evaluar_logros()
 	Misiones.registrar_cosecha(id, n)
 	var rebrota := int(def.get("rebrota", 0))
 	if rebrota > 0:

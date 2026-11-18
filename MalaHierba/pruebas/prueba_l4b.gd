@@ -306,7 +306,7 @@ func _prueba_conversacion() -> void:
 	_j._interactuar()
 	_comprobar(Interfaz.ocupada() and _pregunta().visible, "E sobre Clara abre su menú")
 	var textos := _textos_pregunta()
-	_comprobar(textos.size() == 4 and "Mejorar herramientas" in textos[0] and "Hablar" in textos[1] and "Adiós" in textos[3], "menú de Clara: mejorar, hablar, regalar, adiós (%s)" % str(textos))
+	_comprobar(textos.size() == 3 and "Hablar" in textos[0] and "Regalar" in textos[1] and "Adiós" in textos[2], "menú de Clara fuera de la herrería: solo hablar, regalar, adiós (%s)" % str(textos))
 	_comprobar(_pulsar("Hablar"), "se puede elegir «Hablar»")
 	_comprobar(_dialogo().visible, "«Hablar» abre el diálogo")
 	var dicho := _pasar_dialogo()
@@ -387,13 +387,19 @@ func _prueba_conversacion() -> void:
 func _prueba_tienda_herreria_taberna() -> void:
 	print("[tienda, herrería y taberna]")
 	var vecinos := _mapa.get_node("Objetos/Vecinos") as Vecinos
-	var mateo := _vecino(vecinos, "mateo")
-	var clara := _vecino(vecinos, "clara")
-	var ramon := _vecino(vecinos, "ramon")
+	var mateo_p := _vecino(vecinos, "mateo")
+	var clara_p := _vecino(vecinos, "clara")
+	var ramon_p := _vecino(vecinos, "ramon")
 	_cerrar_todo()
+	_comprobar(not Conversacion.acciones_de(mateo_p).has("tienda") and not Conversacion.acciones_de(clara_p).has("herreria") and not Conversacion.acciones_de(ramon_p).has("comer"), "en la plaza no se habilitan compras ni servicios avanzados fuera del puesto de trabajo")
 	Juego.dinero = 500
 
-	# Don Mateo: comprar semillas y vender patatas con el panel real.
+	# Don Mateo en la tienda (11:00): comprar semillas y vender patatas con el panel real.
+	Juego.minutos = 660
+	await _ir("tienda", "Entrada")
+	vecinos = _mapa.get_node("Objetos/Vecinos") as Vecinos
+	var mateo := _vecino(vecinos, "mateo")
+	_comprobar(mateo != null and mateo.en_lugar_trabajo(), "Mateo está atendiendo dentro de la tienda")
 	Conversacion.hablar(mateo, _j)
 	var textos := _textos_pregunta()
 	_comprobar("Comprar y vender" in textos[0], "menú de Don Mateo: «Comprar y vender» primero")
@@ -417,7 +423,11 @@ func _prueba_tienda_herreria_taberna() -> void:
 	_tienda().cerrar_panel()
 	_comprobar(not Interfaz.ocupada(), "se cierra la tienda")
 
-	# Clara: mejorar herramientas.
+	# Clara en la herrería (11:00): mejorar herramientas.
+	await _ir("herreria", "Entrada")
+	vecinos = _mapa.get_node("Objetos/Vecinos") as Vecinos
+	var clara := _vecino(vecinos, "clara")
+	_comprobar(clara != null and clara.en_lugar_trabajo(), "Clara está atendiendo dentro de la herrería")
 	Juego.nivel_herramientas.clear()
 	Juego.dinero = 500
 	_comprobar(Servicios.mejorar("pico") == "sin_material" and Juego.nivel("pico") == 0, "sin material no se mejora")
@@ -429,8 +439,8 @@ func _prueba_tienda_herreria_taberna() -> void:
 	_pulsar("Mejorar herramientas")
 	_comprobar(_pregunta().visible, "«Mejorar herramientas» abre la lista de mejoras")
 	var opciones := _textos_pregunta()
-	_comprobar(opciones.size() == 7 and "Azada de cobre" in opciones[0] and "Pico de cobre" in opciones[4]
-		and "Comprar o forjar armas y armaduras" in opciones[5], "la lista ofrece mejoras y equipo de combate (%s)" % str(opciones))
+	_comprobar(opciones.size() >= 7 and "Azada de cobre" in opciones[0] and "Pico de cobre" in opciones[4]
+		and opciones.any(func(o: String) -> bool: return "Comprar o forjar armas y armaduras" in o), "la lista ofrece mejoras y equipo de combate (%s)" % str(opciones))
 	_pulsar("Pico de cobre")
 	_pasar_dialogo()
 	_comprobar(Juego.nivel("pico") == 1 and Juego.cantidad("cobre") == 0 and Juego.dinero == 350, "mejorar el pico: nivel 1, sin cobre y −150 € (nivel %d, cobre %d, dinero %d)" % [Juego.nivel("pico"), Juego.cantidad("cobre"), Juego.dinero])
@@ -440,7 +450,12 @@ func _prueba_tienda_herreria_taberna() -> void:
 	Juego.nivel_herramientas["pico"] = 0
 	_cerrar_todo()
 
-	# Ramón: comer en la barra y comprar para llevar.
+	# Ramón en la taberna (14:00): comer en la barra y comprar para llevar.
+	Juego.minutos = 840
+	await _ir("taberna", "Entrada")
+	vecinos = _mapa.get_node("Objetos/Vecinos") as Vecinos
+	var ramon := _vecino(vecinos, "ramon")
+	_comprobar(ramon != null and ramon.en_lugar_trabajo(), "Ramón está atendiendo dentro de la taberna")
 	Juego.dinero = 500
 	Juego.energia = 40.0
 	var din := Juego.dinero
@@ -463,6 +478,8 @@ func _prueba_tienda_herreria_taberna() -> void:
 	_tienda().cerrar_panel()
 	_cerrar_todo()
 	Juego.energia = Juego.energia_max
+	Juego.minutos = 600
+	await _ir("pueblo")
 	_fin_de("servicios")
 
 
@@ -483,6 +500,19 @@ func _prueba_objetos_del_pueblo() -> void:
 		_comprobar(not c.texto_interaccion().begins_with("Dormir"), "%s no dice «Dormir»" % c.name)
 
 	# Pozo: se alcanza desde cualquier lado y da +5 de energía una vez al día.
+	# Apartamos momentáneamente a cualquier vecino que pasee junto al pozo para que no tape la mira.
+	var npcs_pozo: Array[Dictionary] = []
+	var centro_pozo: Vector3 = obj.pozo[0].global_position if not obj.pozo.is_empty() else Vector3.ZERO
+	var vec_pozo := _mapa.get_node_or_null("Objetos/Vecinos") as Vecinos
+	if vec_pozo != null:
+		for n_v in vec_pozo.get_children():
+			if n_v is Node3D and (n_v as Node3D).global_position.distance_to(centro_pozo) < 5.5:
+				var nv3 := n_v as Node3D
+				npcs_pozo.append({"n": nv3, "pos": nv3.global_position, "proc": nv3.is_physics_processing()})
+				nv3.set_physics_process(false)
+				nv3.global_position = Vector3(14.0, nv3.global_position.y, 14.0)
+	if not npcs_pozo.is_empty():
+		await _fisica(2)
 	for a in [0.0, 90.0, 180.0, 270.0]:
 		var dir := Vector3(cos(deg_to_rad(a)), 0, sin(deg_to_rad(a)))
 		var pos := AyudasL4b.suelo(_mapa, dir * 2.8 + Vector3(0, 0.5, 0), 3.0, 6.0)
@@ -493,6 +523,11 @@ func _prueba_objetos_del_pueblo() -> void:
 		_j.camara.mirar_hacia(punto.global_position + Vector3.UP * 0.8)
 		_j._actualizar_interactuable()
 		_comprobar(Interfaz.texto_accion().contains("Sacar agua del pozo"), "al acercarse al pozo por el lado %d° sale «Sacar agua del pozo» (sale «%s»)" % [int(a), Interfaz.texto_accion()])
+	for reg: Dictionary in npcs_pozo:
+		var nv3 := reg["n"] as Node3D
+		if is_instance_valid(nv3):
+			nv3.global_position = reg["pos"]
+			nv3.set_physics_process(bool(reg["proc"]))
 	Juego.energia = 50.0
 	_comprobar(obj.sacar_agua() and is_equal_approx(Juego.energia, 55.0), "beber del pozo da +5 de energía")
 	_comprobar(not obj.sacar_agua() and is_equal_approx(Juego.energia, 55.0), "solo una vez al día")

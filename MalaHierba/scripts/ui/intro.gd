@@ -16,6 +16,7 @@ func _ready() -> void:
 	theme = Estilo.tema()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	Interfaz.mostrar_hud(false)
+	Escenas.precargar_mapa("granja")
 	_preparar_paginas()
 	_construir()
 	_mostrar_pagina(0)

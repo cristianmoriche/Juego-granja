@@ -1,12 +1,12 @@
 # Créditos y licencias de Mala Hierba
 
-**Mala Hierba** (versión 0.3.0-preview.1) — *El Granado*.  
+**Mala Hierba** (versión 0.3.0) — *El Granado*.\
 Juego de granja y mina en 3D ambientado en un valle rural español.
 
 ## Equipo de desarrollo
 
 - **Autores**: Cristian, Juan José y Daniel.
-- **Apoyo técnico y generación de recursos**: asistentes de programación (Codex y Gemini CLI) empleados para herramientas reproducibles en Python/Blender, mecánicas en GDScript e iconografía del proyecto.
+- **Apoyo técnico y generación de recursos**: asistentes de programación (Codex, Claude y Gemini CLI) empleados para herramientas reproducibles en Python/Blender, mecánicas en GDScript e iconografía del proyecto.
 
 ## Motor y tecnología
 
@@ -47,6 +47,14 @@ Descargados desde [Poly Haven](https://polyhaven.com) bajo licencia **CC0 1.0 Un
 - **Agua (H03)**. Mapa normal de ondas `assets/agua/ondas_normal.png`, generado con `juego/herramientas/generar_normal_agua_h03.py`. Trabajo del proyecto con apoyo de Codex, **CC0 1.0**.
 - **Minas grandes (H04)**. Vagoneta de mina `assets/mina/vagoneta_mina.glb` (`juego/exportar/preparar_mina_h04.py`, reutiliza texturas PBR CC0 existentes) y 4 efectos de sonido PCM en `assets/audio/mina_*.wav` (`juego/herramientas/generar_audio_mina_h04.py`), **CC0 1.0**.
 - **Mapa grande y zonas nuevas (H05)**. Modelos y texturas CC0 1.0 optimizados desde `recursos-cc0-2026-11-17/` (`rocky_trail`, `aerial_grass_rock`, `leaves_forest_ground`, `mud_forest`, `grass_path_2`, `grassy_cobblestone`, `cliff_side`, `withered_grass`, `namaqualand_cliff_01/02`, `namaqualand_boulder_02/04`, `stone_01`, `moss_01`, `dead_tree_trunk_02`, `tree_stump_02`, `root_cluster_01`, `pine_roots`, `shrub_02`, `shrub_03`, `nettle_plant`, `grass_medium_02`), además de arcos/pilares/muela/hito/roble/recolectables e iconos en `assets/naturaleza/`, `assets/texturas/h05/` y `assets/iconos/` (`juego/exportar/preparar_naturaleza_h05.py`, `juego/exportar/ampliar_zonas_h05.py`), **CC0 1.0**.
+- **Granja ganadera (H12)**. Gallinero (`gallinero_roto/reparado.glb`), colmenas de corcho y de cuadros, panales, tarros de miel, huevos e iconos `128×128` preparados en Blender (`entregas/H12-granja-ganadera/`). Incorporan tres texturas PBR de Poly Haven (**CC0 1.0**): `rock_wall_08` y `dark_rock` (Amal Kumar, https://polyhaven.com/a/rock_wall_08 y https://polyhaven.com/a/dark_rock) y `rock_pitted_mossy` (Dimitrios Savva y Rico Cilliers, https://polyhaven.com/a/rock_pitted_mossy). Iconos de consumibles/herramientas (`ahumador`, `pienso_aves`, `revuelto_huevos`, `flan_miel`) y efectos PCM propios (`gallinas_cacareo`, `abejas_zumbido`, `huevo_recoger`, `abeja_picadura`, `juego/exportar/preparar_h12.py`, `juego/exportar/generar_audio_h12.py`), **CC0 1.0**.
+- **Cocina y habilidades (H06)**. Modelos 3D de platos y iconos `128×128` en `assets/comida/` y `assets/iconos/` (`juego/exportar/preparar_h06.py`), **CC0 1.0**.
+- **Modo foto y farol (H07)**. Modelo 3D e iluminación del farol de mano (`assets/herramientas/farol_mano.glb`, `juego/exportar/preparar_h07.py`), efecto `paso_agua.wav` y modos de captura en `scripts/ui/modo_foto.gd`, **CC0 1.0**.
+- **Combate a distancia (H09)**. Arcos (`arco_leo.glb`, `arco_caza.glb`), carcaj (`carcaj_leo.glb`), proyectil (`flecha_proyectil.glb`), 7 iconos de arquería y 5 efectos de sonido PCM (`juego/exportar/preparar_arco_h09.py`, `juego/exportar/generar_audio_h09.py`), **CC0 1.0**.
+- **Forja avanzada y gemas (H10)**. Horno de fundición 3D (`assets/pueblo/horno_fundicion.glb`), 4 iconos de carbón/lingotes y 2 efectos de sonido PCM (`juego/exportar/preparar_h10.py`, `juego/exportar/generar_audio_h10.py`), **CC0 1.0**.
+- **Pesca avanzada (H11)**. Modelo 3D de pez en mano (`assets/herramientas/pez_mano.glb`), 11 iconos de cebos y especies nuevas y 3 efectos PCM (`juego/exportar/preparar_h11.py`, `juego/exportar/generar_audio_h11.py`), **CC0 1.0**.
+- **Campamento y eventos nocturnos (H13)**. Tienda, hoguera y caldero 3D (`assets/naturaleza/campamento_h13.glb`), icono `kit_campamento.png` y 3 efectos PCM nocturnos (`juego/exportar/preparar_h13.py`), **CC0 1.0**.
+- **Ranuras de aventura y logros (H14)**. Diez medallones `128×128` (`logro_*.png`) y sintonía de logro (`logro_desbloqueado.wav`, `juego/exportar/preparar_h14.py`, `juego/exportar/generar_audio_h14.py`), **CC0 1.0**.
 
 ## Recursos externos pendientes de verificación
 

@@ -27,12 +27,13 @@ const MAPAS_EXTERIORES: Array[String] = [
 	"granja", "pueblo", "mina_exterior", "bosque_norte", "costa_lago",
 	"sierra_mirador", "robledal_niebla", "ruinas_valle",
 ]
-const TAM_CELDA := 24.0                 # metros: tamaño de cada trozo de MultiMesh (permite recortar lo que no se ve)
+const TAM_CELDA := 36.0                 # metros: tamaño de cada trozo de MultiMesh (permite recortar lo que no se ve)
 const ALCANCE_PLANTAS := 75.0           # distancia a partir de la cual desaparecen las plantas pequeñas
 const ALTO_CILINDRO_TRONCO := 4.0
 const ENERGIA_LUZ_MAX := 1.45
 const ENERGIA_LUZ_EXT_MAX := 1.35
 const ALCANCE_LUZ := 12.0
+const MAX_SOMBRAS_EXT := 4              # máx. luces puntuales con sombra dinámica por mapa exterior
 
 var listo: bool = false
 var geometria: Node3D
@@ -59,8 +60,10 @@ var _luces_ventana_h03: Array[SpotLight3D] = []
 var _mat_nieve_corteza: ShaderMaterial = null
 var _cache_forma_malla: Dictionary = {}
 var _cache_protos: Dictionary = {}
+var _sombras_ext_activas: int = 0
 
 static var _cache_rutas_mapa: Dictionary = {}
+static var _pedidas_hilo: Array[String] = []
 
 
 static func solicitar_recurso(ruta: String) -> void:
@@ -69,6 +72,7 @@ static func solicitar_recurso(ruta: String) -> void:
 	var st := ResourceLoader.load_threaded_get_status(ruta)
 	if st == ResourceLoader.THREAD_LOAD_IN_PROGRESS or st == ResourceLoader.THREAD_LOAD_LOADED:
 		return
+	_pedidas_hilo.append(ruta)
 	ResourceLoader.load_threaded_request(ruta, "", false)
 
 
@@ -82,10 +86,21 @@ static func obtener_recurso(ruta: String) -> Resource:
 		return null
 	var st := ResourceLoader.load_threaded_get_status(ruta)
 	if st == ResourceLoader.THREAD_LOAD_IN_PROGRESS or st == ResourceLoader.THREAD_LOAD_LOADED:
+		_pedidas_hilo.erase(ruta)
 		var r := ResourceLoader.load_threaded_get(ruta)
 		if r != null:
 			return r
 	return load(ruta)
+
+
+## Libera solicitudes pendientes de hilos y tablas de rutas al volver al menú principal.
+static func limpiar_cache_menu() -> void:
+	for r: String in _pedidas_hilo:
+		var st := ResourceLoader.load_threaded_get_status(r)
+		if st == ResourceLoader.THREAD_LOAD_IN_PROGRESS or st == ResourceLoader.THREAD_LOAD_LOADED:
+			var _descargado := ResourceLoader.load_threaded_get(r)
+	_pedidas_hilo.clear()
+	_cache_rutas_mapa.clear()
 
 
 static func rutas_mapa(id: String) -> PackedStringArray:
@@ -306,6 +321,7 @@ func _crear_nodos() -> void:
 	_mats_nieve.clear()
 	_mats_ventana.clear()
 	_luces_mapa.clear()
+	_sombras_ext_activas = 0
 	geometria = _nodo("Geometria")
 	colisiones = StaticBody3D.new()
 	colisiones.name = "Colisiones"
@@ -408,6 +424,11 @@ func _ajustar_luz(l: Light3D) -> void:
 		var s := l as SpotLight3D
 		s.spot_range = ALCANCE_LUZ
 		s.light_energy = clampf(s.light_energy, 0.2, tope)
+	if _es_exterior():
+		if _sombras_ext_activas >= MAX_SOMBRAS_EXT or l.light_energy < 0.45:
+			l.set_meta("sin_sombra", true)
+		else:
+			_sombras_ext_activas += 1
 	_luces_mapa.append({"luz": l, "base": l.light_energy})
 	GraficaH03.ajustar_luz(l, int(Ajustes.valores.calidad))
 
@@ -822,12 +843,12 @@ func _instanciar_celda_arbol(p: String, ts: Array, mesh_lod0: Mesh, mesh_lod1: M
 		var base_nom := "arb_%s_%d_%d_%d" % [p, celda.x, celda.y, idx]
 		idx += 1
 		if tiene_lods:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L1", mesh_lod1, xf, 0.0, 14.0, 0.0, 2.5, 0.25, true))
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L2", mesh_lod1, xf, 11.5, 158.0, 2.5, 16.0, 0.060, false))
+			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L1", mesh_lod1, xf, 0.0, 12.5, 0.0, 1.5, 0.25, true))
+			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L2", mesh_lod1, xf, 11.5, 122.0, 1.5, 12.0, 0.060, false))
 		elif "dead_tree" in p or "stump" in p:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 130.0, 0.0, 12.0, 0.12, true))
+			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 110.0, 0.0, 10.0, 0.12, "dead_tree" in p))
 		else:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 34.0, 0.0, 6.0, 0.065, false))
+			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 32.0, 0.0, 5.0, 0.065, false))
 
 
 static func _ruta_proto(base: String, rel: String) -> String:
@@ -958,9 +979,19 @@ func _mesh_proto(ruta: String) -> Mesh:
 	if mi != null:
 		mesh = mi.mesh
 		for i in mesh.get_surface_count():
-			var nm := _material_para(mesh.surface_get_material(i))
+			var mat_orig := mesh.surface_get_material(i)
+			var nm := _material_para(mat_orig)
 			if nm != null:
 				mesh.surface_set_material(i, nm)
+			elif mat_orig is StandardMaterial3D:
+				var sm := mat_orig as StandardMaterial3D
+				if ruta.ends_with("grass_medium_02.glb"):
+					sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+					sm.alpha_scissor_threshold = 0.5
+					sm.cull_mode = BaseMaterial3D.CULL_DISABLED
+				elif ruta.ends_with("roble_viejo.glb") and i == 0:
+					sm.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+					sm.cull_mode = BaseMaterial3D.CULL_BACK
 	n.free()
 	_cache_protos[ruta] = mesh
 	return mesh

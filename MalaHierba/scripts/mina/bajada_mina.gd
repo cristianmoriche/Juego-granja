@@ -12,6 +12,7 @@ const LLEGADA := "Llegada_Interior"
 
 var punto: Interactuable = null
 var nivel: int = 1
+var _barra_sello: MeshInstance3D = null
 
 
 func _ready() -> void:
@@ -48,7 +49,42 @@ func colocar(mapa: Node) -> void:
 		punto.activo = false
 		return
 	punto.global_position = m.global_position
-	if nivel == 1:
+	var nm := mapa.get_node_or_null("Objetos/NivelMina") as NivelMina
+	if nm != null and not nm.jefe_derrotado.is_connected(_al_derrotar_jefe):
+		nm.jefe_derrotado.connect(_al_derrotar_jefe.bind(mapa))
+	_actualizar_texto_bajada(nm)
+	punto.activo = true
+	if nivel == 2:
+		oscurecer(mapa)
+
+
+func _al_derrotar_jefe(mapa: Node) -> void:
+	var nm := mapa.get_node_or_null("Objetos/NivelMina") as NivelMina if is_instance_valid(mapa) else null
+	_actualizar_texto_bajada(nm)
+
+
+func _actualizar_texto_bajada(nm: NivelMina) -> void:
+	var bloqueada := nm != null and nm.salida_habitual_bloqueada()
+	if _barra_sello != null and is_instance_valid(_barra_sello):
+		_barra_sello.visible = bloqueada
+	elif bloqueada:
+		_barra_sello = MeshInstance3D.new()
+		_barra_sello.name = "SelloSalidaHabitual"
+		var bm := BoxMesh.new()
+		bm.size = Vector3(1.15, 0.16, 1.15)
+		_barra_sello.mesh = bm
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color(0.58, 0.16, 0.14)
+		mat.emission_enabled = true
+		mat.emission = Color(0.75, 0.22, 0.12)
+		mat.emission_energy_multiplier = 0.85
+		_barra_sello.material_override = mat
+		punto.add_child(_barra_sello)
+		_barra_sello.position = Vector3(0.0, 0.45, 0.0)
+	if bloqueada:
+		punto.verbo = "Sellada"
+		punto.nombre_objeto = "la salida habitual (guardián vivo)"
+	elif nivel == 1:
 		punto.verbo = "Bajar"
 		punto.nombre_objeto = "al nivel 2"
 	elif nivel == 2:
@@ -60,12 +96,14 @@ func colocar(mapa: Node) -> void:
 	else:
 		punto.verbo = "Subir"
 		punto.nombre_objeto = "al nivel %d" % (nivel - 1)
-	punto.activo = true
-	if nivel == 2:
-		oscurecer(mapa)
 
 
 func preguntar() -> void:
+	var mapa := _mapa()
+	var nm := mapa.get_node_or_null("Objetos/NivelMina") as NivelMina if mapa != null else null
+	if nm != null and nm.salida_habitual_bloqueada():
+		Interfaz.mostrar_dialogo("Salida sellada", ["Un sello de piedra bloquea la salida habitual mientras el guardián de esta planta siga con vida."])
+		return
 	if nivel == 1:
 		Interfaz.preguntar("Una escalera de madera baja por el pozo. Abajo se oye gotear el agua. ¿Bajar al nivel 2?", ["Bajar al nivel 2", "Todavía no"], func(i: int) -> void:
 			if i == 0:

@@ -13,7 +13,10 @@ var _mapa_grande: MapaGrande
 var _diario: PanelDiario
 var _carpinteria: PanelCarpinteria
 var _cocina: PanelCocina
+var _herreria: PanelHerreria
+var _pesca: PanelPesca
 var _modo_foto: ModoFoto
+var _debug: PanelDebug
 var _capa_flotante: Control
 var _capa_negra: CanvasLayer
 var _negro: ColorRect
@@ -30,6 +33,7 @@ var avisos_emitidos: int = 0
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 10
 	var raiz := Control.new()
 	raiz.name = "Raiz"
@@ -70,16 +74,28 @@ func _ready() -> void:
 	_cocina = PanelCocina.new()
 	_cocina.name = "Cocina"
 	raiz.add_child(_cocina)
+	_herreria = PanelHerreria.new()
+	_herreria.name = "Herreria"
+	raiz.add_child(_herreria)
+	_pesca = PanelPesca.new()
+	_pesca.name = "Pesca"
+	raiz.add_child(_pesca)
 	_modo_foto = ModoFoto.new()
 	_modo_foto.name = "ModoFoto"
 	raiz.add_child(_modo_foto)
+	_debug = PanelDebug.new()
+	_debug.name = "Debug"
+	raiz.add_child(_debug)
 	_pregunta = PanelPregunta.new()
 	_pregunta.name = "Pregunta"
 	raiz.add_child(_pregunta)
 	_ajustes = PanelAjustes.new()
 	_ajustes.name = "Ajustes"
 	raiz.add_child(_ajustes)
-	_paneles.assign([_dialogo, _pregunta, _inventario, _tienda, _pausa, _mapa_grande, _diario, _carpinteria, _cocina, _modo_foto, _ajustes])
+	_paneles.assign([_dialogo, _pregunta, _inventario, _tienda, _pausa, _mapa_grande, _diario, _carpinteria, _cocina, _herreria, _pesca, _modo_foto, _ajustes, _debug])
+	Escenas.mapa_cargado.connect(func(_id: String) -> void:
+		if _debug != null and Juego.debug_hitboxes:
+			_debug.sincronizar_hitboxes.call_deferred())
 	Juego.habilidad_subida.connect(func(_id: String, _nv: int, _ven: String) -> void:
 		Audio.reproducir("mision_hecha"))
 	for panel in _paneles:
@@ -111,6 +127,8 @@ func _ready() -> void:
 	mostrar_hud(false)
 	Juego.mensaje.connect(mensaje)
 	Juego.mensaje_objeto.connect(_al_mensaje_objeto)
+	if Juego.has_signal("logro_desbloqueado"):
+		Juego.logro_desbloqueado.connect(_al_logro_desbloqueado)
 	Juego.nombre_jugador = Juego.nombre_jugador   # sin efecto: asegura que el autoload Juego ya existe
 
 
@@ -198,6 +216,43 @@ func numeros_flotantes_activos() -> int:
 
 func avisos_activos() -> int:
 	return _hud.avisos_activos() if _hud != null else 0
+
+
+func _al_logro_desbloqueado(datos: Dictionary) -> void:
+	if _capa_flotante == null:
+		return
+	avisos_emitidos += 1
+	var tarjeta := PanelContainer.new()
+	tarjeta.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	Estilo.estilo_panel(tarjeta, Color(0.08, 0.06, 0.05, 0.96), Estilo.COLOR_ACENTO, 14)
+	var fila := HBoxContainer.new()
+	fila.add_theme_constant_override("separation", 12)
+	fila.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tarjeta.add_child(fila)
+	var tr := TextureRect.new()
+	tr.texture = Datos.icono(str(datos.get("icono", "logro_leyenda")))
+	tr.custom_minimum_size = Vector2(44, 44)
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fila.add_child(tr)
+	var textos := VBoxContainer.new()
+	textos.add_theme_constant_override("separation", 2)
+	textos.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fila.add_child(textos)
+	textos.add_child(Estilo.etiqueta("LOGRO DESBLOQUEADO", 13, Estilo.COLOR_ACENTO))
+	textos.add_child(Estilo.etiqueta(str(datos.get("nombre", "Logro")), Estilo.TAM_TEXTO, Estilo.COLOR_TEXTO))
+	_capa_flotante.add_child(tarjeta)
+	var vp := get_viewport().get_visible_rect().size if get_viewport() != null else Vector2(1280, 720)
+	var ancho := 356.0
+	tarjeta.custom_minimum_size = Vector2(ancho, 0)
+	tarjeta.position = Vector2(maxf(20.0, (vp.x - ancho) * 0.5), 14.0)
+	tarjeta.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	var t := tarjeta.create_tween()
+	t.tween_property(tarjeta, "modulate:a", 1.0, 0.22)
+	t.tween_interval(2.8)
+	t.tween_property(tarjeta, "modulate:a", 0.0, 0.45)
+	t.tween_callback(tarjeta.queue_free)
 
 
 ## Cuadro de diálogo. `lineas`: textos (String) o diccionarios {"nombre", "texto"}.
@@ -336,6 +391,38 @@ func cocina_abierta() -> bool:
 	return _cocina != null and _cocina.visible
 
 
+func abrir_herreria(solapa: int = 0) -> void:
+	if _herreria == null:
+		return
+	if _herreria.visible:
+		_herreria.cerrar()
+	elif not ocupada():
+		Audio.reproducir("ui_menu")
+		_herreria.abrir(solapa)
+
+
+func herreria_abierta() -> bool:
+	return _herreria != null and _herreria.visible
+
+
+func iniciar_pesca(zona: String, ejemplar: Dictionary, cebo: String) -> PanelPesca:
+	if _pesca == null:
+		return null
+	_pesca.iniciar_pesca(zona, ejemplar, cebo)
+	return _pesca
+
+
+func abrir_cebos() -> void:
+	if _pesca == null or ocupada():
+		return
+	Audio.reproducir("ui_menu")
+	_pesca.abrir_cebos()
+
+
+func pescando_activa() -> bool:
+	return _pesca != null and _pesca.esta_activa()
+
+
 func abrir_modo_foto() -> void:
 	if _modo_foto == null:
 		return
@@ -343,6 +430,22 @@ func abrir_modo_foto() -> void:
 		_modo_foto.cerrar_panel()
 	elif not ocupada() and Escenas.jugador() != null:
 		_modo_foto.abrir()
+
+
+func alternar_debug() -> void:
+	if _debug == null:
+		return
+	if _debug.visible:
+		_debug.cerrar()
+		actualizar_cursor()
+	elif Escenas.jugador() != null and not Escenas.en_transicion:
+		cerrar_todo()
+		_debug.abrir()
+		actualizar_cursor()
+
+
+func debug_panel() -> PanelDebug:
+	return _debug
 
 
 func modo_foto_abierto() -> bool:
@@ -358,6 +461,20 @@ func mostrar_hud(v: bool) -> void:
 		_hud.refrescar()
 	else:
 		_hud.limpiar_avisos()
+
+
+func limpiar_estado_menu() -> void:
+	Juego.limpiar_debug()
+	if _debug != null:
+		_debug.cerrar()
+		_debug.sincronizar_hitboxes()
+	if _hud != null and _hud._minimapa != null:
+		_hud._minimapa.limpiar()
+	if _mapa_grande != null:
+		_mapa_grande.minimapa = null
+	if _capa_flotante != null:
+		for h in _capa_flotante.get_children():
+			h.queue_free()
 
 
 func hud_visible() -> bool:
@@ -390,8 +507,15 @@ func cerrar_todo() -> void:
 		_carpinteria.cerrar_panel()
 	if _cocina != null:
 		_cocina.cerrar_panel()
+	if _herreria != null:
+		_herreria.cerrar()
+	if _pesca != null:
+		_pesca.cerrar_cebos()
+		_pesca.cancelar()
 	if _modo_foto != null:
 		_modo_foto.cerrar_panel()
+	if _debug != null:
+		_debug.cerrar()
 	if _mapa_grande != null:
 		_mapa_grande.cerrar()
 	_hud.ocultar_accion()
@@ -436,6 +560,25 @@ func _decoracion_activa() -> Node:
 	if get_tree() == null:
 		return null
 	return get_tree().get_first_node_in_group("decoracion_casa")
+
+
+func _input(event: InputEvent) -> void:
+	if Escenas.en_transicion or Escenas.jugador() == null:
+		return
+	if event is InputEventKey:
+		var ek_dbg := event as InputEventKey
+		if ek_dbg.pressed and not ek_dbg.echo:
+			var pulsa_f9 := ek_dbg.keycode == KEY_F9 or ek_dbg.physical_keycode == KEY_F9
+			var pulsa_f10 := ek_dbg.keycode == KEY_F10 or ek_dbg.physical_keycode == KEY_F10
+			var pulsa_csd := ek_dbg.ctrl_pressed and ek_dbg.shift_pressed and (ek_dbg.keycode == KEY_D or ek_dbg.physical_keycode == KEY_D)
+			if pulsa_f9 or pulsa_f10 or pulsa_csd:
+				alternar_debug()
+				get_viewport().set_input_as_handled()
+				return
+	if _debug != null and _debug.visible and (event.is_action_pressed("pausa") or event.is_action_pressed("ui_cancel")):
+		_debug.cerrar()
+		actualizar_cursor()
+		get_viewport().set_input_as_handled()
 
 
 func _unhandled_input(event: InputEvent) -> void:

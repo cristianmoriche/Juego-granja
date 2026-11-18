@@ -123,7 +123,10 @@ func _ejecutar() -> void:
 			_comprobar(nm.nodo_escalera_profunda != null, "nivel 2: tiene escalera profunda hacia el nivel 3")
 			_comprobar("Subir al nivel 1" in bajada.punto.texto_interaccion(), "nivel 2: mantiene Subir al nivel 1 en Bajada_Nivel_2")
 		elif nv < 20:
-			_comprobar("Bajar al nivel %d" % (nv + 1) in bajada.punto.texto_interaccion(), "nivel %d: escalera de bajada al %d" % [nv, nv + 1])
+			if nv % 5 == 0 and nm.salida_habitual_bloqueada():
+				_comprobar("Sellada" in bajada.punto.texto_interaccion() and nm.nodo_puerta_oculta != null, "nivel %d: salida habitual sellada con jefe vivo y puerta oculta presente" % nv)
+			else:
+				_comprobar("Bajar al nivel %d" % (nv + 1) in bajada.punto.texto_interaccion(), "nivel %d: escalera de bajada al %d" % [nv, nv + 1])
 
 		var poly: PackedVector2Array = mapa.get("poligono_limites")
 		var area_p := _area_poligono(poly)

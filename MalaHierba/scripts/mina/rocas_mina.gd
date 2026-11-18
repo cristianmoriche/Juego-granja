@@ -133,7 +133,7 @@ func construir() -> void:
 
 	var indice_candidata := 0
 	var colocadas := 0
-	var separacion := 1.25 if tipos.size() <= 22 else 0.7
+	var separacion := 1.25 if tipos.size() <= 22 else 0.92
 	for tipo in tipos:
 		var radio := azar.randf_range(0.5, 0.78)
 		var puesta := false
@@ -397,17 +397,18 @@ func _poner(tipo: String, c: Vector2i, radio: float, numero: int, azar: RandomNu
 	mi.mesh = _malla(tipo, azar.randi(), radio)
 	cuerpo.add_child(mi)
 	var cs := CollisionShape3D.new()
-	var esfera := SphereShape3D.new()
-	esfera.radius = radio * 0.85
-	cs.shape = esfera
-	cs.position = Vector3(0, radio * 0.4, 0)
+	var cil := CylinderShape3D.new()
+	cil.radius = clampf(radio * 0.62, 0.24, 0.42)
+	cil.height = clampf(radio * 1.15, 0.72, 1.05)
+	cs.shape = cil
+	cs.position = Vector3(0.0, cil.height * 0.5, 0.0)
 	cuerpo.add_child(cs)
 	var p := Interactuable.new()
 	p.name = "Picar"
 	p.verbo = "Picar"
 	p.herramienta = "pico"
 	p.nombre_objeto = str(TIPOS[tipo]["nombre"])
-	p.radio = radio
+	p.radio = maxf(radio * 1.15, 0.72)
 	p.altura_marca = radio * 0.8 + 0.9
 	p.mostrar_descripcion = false
 	p.nodo_visual = NodePath("..")

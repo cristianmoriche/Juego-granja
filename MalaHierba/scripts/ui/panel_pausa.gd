@@ -75,7 +75,7 @@ func abrir() -> void:
 	Audio.reproducir("ui_menu")
 	var lineas := PackedStringArray(Datos.texto("controles", []))
 	_controles.text = "\n".join(lineas)
-	_resumen.text = "%s  ·  %s  ·  %s" % [Juego.texto_fecha(), Juego.texto_hora(), Estilo.euros(Juego.dinero)]
+	_resumen.text = "Ranura %d  ·  %s  ·  %s  ·  %s" % [Juego.ranura_guardado_activa, Juego.texto_fecha(), Juego.texto_hora(), Estilo.euros(Juego.dinero)]
 	visible = true
 	_b_continuar.grab_focus.call_deferred()
 	Interfaz.limitar_foco.call_deferred(self)

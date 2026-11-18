@@ -5,10 +5,10 @@
     "vende": [
       "semilla_patata", "semilla_zanahoria", "semilla_haba", "semilla_tomate", "semilla_pimiento", "semilla_melon", "semilla_calabaza", "semilla_col", "semilla_boniato", "semilla_ajo", "semilla_espinaca", "semilla_nabo", "remedio_plaga", "pan", "bocadillo",
       "mesa_roble", "mesa_redonda", "mesita_noche", "silla_roble", "taburete_madera", "banco_entrada", "sillon_campo", "estanteria_alta", "estanteria_baja",
-      "alfombra_roja", "alfombra_verde", "alfombra_pasillo", "lampara_pie", "farol_mesa", "maceta_helecho", "maceta_flor", "cuadro_valle", "cuadro_girasoles", "baul_roble", "chimenea_piedra", "cana", "antorcha", "farol_mano", "flecha_normal"
+      "alfombra_roja", "alfombra_verde", "alfombra_pasillo", "lampara_pie", "farol_mesa", "maceta_helecho", "maceta_flor", "cuadro_valle", "cuadro_girasoles", "baul_roble", "chimenea_piedra", "cana", "antorcha", "farol_mano", "flecha_normal", "carbon", "cebo_lombriz", "cebo_masilla", "ahumador", "pienso_aves", "huevo_pardo", "tarro_miel", "kit_campamento"
     ],
     "compra_tipos": ["cultivo", "mineral", "recurso", "mueble", "pescado", "recolectable", "comida"],
-    "recetas": ["crema_calabaza", "boniato_miel"]
+    "recetas": ["crema_calabaza", "boniato_miel", "flan_miel"]
   },
   {
     "id": "taberna",
@@ -20,7 +20,7 @@
   {
     "id": "comerciante_ambulante",
     "nombre": "Puesto del mercader ambulante",
-    "vende": ["semilla_azafran", "elixir_sierra", "ambar_valle", "remedio_plaga", "semilla_espinaca", "semilla_nabo", "arco_cristal", "flecha_cristal", "flecha_fuego"],
+    "vende": ["semilla_azafran", "elixir_sierra", "ambar_valle", "remedio_plaga", "semilla_espinaca", "semilla_nabo", "arco_cristal", "flecha_cristal", "flecha_fuego", "cebo_mosca", "cebo_luminoso"],
     "compra_tipos": ["cultivo", "mineral", "recurso", "recolectable", "comida", "municion"],
     "recetas": ["tonico_explorador"]
   },

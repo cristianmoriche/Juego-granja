@@ -38,27 +38,34 @@ static func hablar(npc: Npc, jugador: Node3D) -> void:
 		textos.append(texto_accion(a, npc))
 	var rol := str(npc.datos.get("rol", ""))
 	var cabecera := "%s · %s · %s" % [npc.nombre, rol, NOMBRES_NIVEL[Juego.nivel_amistad(npc.id)]]
+	if npc.es_oficio_comercial() and not npc.en_lugar_trabajo():
+		cabecera += " · (Fuera de su puesto)"
 	Interfaz.preguntar(cabecera, textos, func(i: int) -> void:
 		if i >= 0 and i < acciones.size():
 			ejecutar(acciones[i], npc))
 
 
-## Acciones del menú de un vecino, según su oficio. «adios» siempre va la última.
+## Acciones del menú de un vecino, según su oficio. Compras y servicios avanzados solo en su lugar de trabajo.
 static func acciones_de(npc: Npc) -> Array[String]:
 	var r: Array[String] = []
+	var en_puesto := npc.en_lugar_trabajo()
 	match npc.id:
 		"mateo":
-			r.append("tienda")
+			if en_puesto:
+				r.append("tienda")
 		"clara":
-			r.append("herreria")
+			if en_puesto:
+				r.append("herreria")
 		"ramon":
-			r.append("comer")
-			r.append("llevar")
+			if en_puesto:
+				r.append("comer")
+				r.append("llevar")
 		"anselmo":
-			if Juego.deuda > 0:
+			if en_puesto and Juego.deuda > 0:
 				r.append("deuda")
 		"tomas":
-			r.append("minerales")
+			if en_puesto:
+				r.append("minerales")
 			r.append("mina")
 	r.append("hablar")
 	r.append("regalar")
@@ -97,6 +104,9 @@ static func texto_accion(accion: String, _npc: Npc) -> String:
 
 ## Ejecuta una acción del menú (se puede llamar a mano, por ejemplo desde las pruebas).
 static func ejecutar(accion: String, npc: Npc) -> void:
+	if accion in ["tienda", "herreria", "comer", "llevar", "deuda", "minerales"] and not npc.en_lugar_trabajo():
+		Interfaz.mostrar_dialogo(npc.nombre, ["Pásate por mi lugar de trabajo en mi horario de atención, Leo."])
+		return
 	match accion:
 		"tienda":
 			Interfaz.abrir_tienda(str(npc.datos.get("tienda", "tienda_mateo")))

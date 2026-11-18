@@ -15,6 +15,7 @@ var rompe_guardia: bool = false
 var aturde: float = 0.14
 var critico_extra: float = 0.0
 var es_fuego: bool = false
+var robo_vida: float = 0.0
 var prob_recupera: float = 0.7
 var origen_disparo: Vector3 = Vector3.ZERO
 var excluir_rids: Array[RID] = []
@@ -144,7 +145,9 @@ func _procesar_impacto(impacto: Dictionary, v_actual: Vector3) -> void:
 			if enemigo.has_method("reaccionar_flechazo"):
 				enemigo.call("reaccionar_flechazo", origen_disparo)
 			if es_fuego:
-				_aplicar_quemadura(enemigo)
+				aplicar_quemadura(self, enemigo, 4.0)
+			if robo_vida > 0.0:
+				Juego.curar_vida(robo_vida)
 			Audio.reproducir_posicional("flecha_clavada", hit_pos, self)
 			_clavar_en(enemigo, hit_pos)
 		else:
@@ -218,18 +221,20 @@ func _habilitar_recogida() -> void:
 		queue_free())
 
 
-func _aplicar_quemadura(enemigo: Enemigo) -> void:
+static func aplicar_quemadura(dueno: Node, enemigo: Enemigo, dano_tick: float = 4.0) -> void:
+	if dueno == null or not is_instance_valid(enemigo):
+		return
 	var t := Timer.new()
 	t.wait_time = 0.85
 	t.one_shot = false
 	var ticks := {"n": 4}
-	add_child(t)
+	dueno.add_child(t)
 	t.timeout.connect(func() -> void:
 		if ticks["n"] <= 0 or not is_instance_valid(enemigo) or enemigo.muerto:
 			t.queue_free()
 			return
 		ticks["n"] -= 1
-		enemigo.recibir_golpe(4.0, Vector3.ZERO, false, 0.0, enemigo.global_position))
+		enemigo.recibir_golpe(dano_tick, Vector3.ZERO, false, 0.0, enemigo.global_position))
 	t.start()
 
 

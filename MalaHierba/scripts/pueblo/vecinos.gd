@@ -229,6 +229,7 @@ func sincronizar(inicial: bool = false) -> void:
 			existente = npcs[id] as Npc
 		if aqui:
 			var clave := clave_sitio(ub)
+			var clave_dia := AyudasL4b.clave_dia()
 			var radio_efectivo: float = 0.0 if bool(ub.get("fijo", false)) else float(ub.get("radio", d.get("radio", 3.0)))
 			if existente == null:
 				var d_inst := d.duplicate()
@@ -238,14 +239,20 @@ func sincronizar(inicial: bool = false) -> void:
 				n.animo = animo_pueblo
 				add_child(n)
 				npcs[id] = n
-				n.colocar_en(_posicion(ub, n), clave)
+				var p_ini := _posicion(ub, n)
+				n.colocar_en(p_ini, clave)
+				n.fijar_ruta_diaria(_construir_ruta_diaria(d, ub, p_ini, radio_efectivo, clave_dia), clave_dia)
 				if not inicial:
 					n.aparecer()
 			else:
 				existente.animo = animo_pueblo
 				existente.radio = radio_efectivo
 				if existente.sitio_actual != clave:
-					existente.ir_a(_posicion(ub, existente), clave)
+					var p_dest := _posicion(ub, existente)
+					existente.ir_a(p_dest, clave)
+					existente.fijar_ruta_diaria(_construir_ruta_diaria(d, ub, p_dest, radio_efectivo, clave_dia), clave_dia)
+				elif existente.ruta_dia_clave != clave_dia:
+					existente.fijar_ruta_diaria(_construir_ruta_diaria(d, ub, existente.centro, radio_efectivo, clave_dia), clave_dia)
 		elif existente != null:
 			npcs.erase(id)
 			if inicial:
@@ -287,3 +294,57 @@ func _libre_de_vecinos(p: Vector3, quien: Npc) -> bool:
 		if Vector2(o.x - p.x, o.z - p.z).length() < SEPARACION:
 			return false
 	return true
+
+
+## Construye un circuito diario determinista distinto cada día del año cuando el NPC pasea por exteriores.
+func _construir_ruta_diaria(d: Dictionary, ub: Dictionary, centro_base: Vector3, radio_eff: float, clave_dia: int) -> Array[Vector3]:
+	var ruta: Array[Vector3] = []
+	if bool(ub.get("fijo", false)) or radio_eff <= 0.2:
+		return ruta
+	var mapa := _mapa()
+	if mapa == null or bool(mapa.get("interior")):
+		return ruta
+	var id_npc := str(d.get("id", ""))
+	var azar := RandomNumberGenerator.new()
+	azar.seed = int(id_npc.hash()) + clave_dia * 131 + 19
+
+	if id_mapa == "pueblo":
+		var candidatos := [
+			"Spawn_Tendera", "Spawn_Herrero", "Spawn_Tabernero", "Spawn_Alcalde",
+			"Spawn_Nino", "Puerta_Tienda", "Puerta_Herreria", "Puerta_Taberna",
+			"Puerta_Alcalde", "Puerta_Capilla",
+		]
+		# Baraja según el día para que cada jornada visite zonas distintas del pueblo.
+		for i in range(candidatos.size() - 1, 0, -1):
+			var j := azar.randi_range(0, i)
+			var tmp: String = candidatos[i]
+			candidatos[i] = candidatos[j]
+			candidatos[j] = tmp
+		ruta.append(centro_base)
+		for nom_mk: String in candidatos:
+			if ruta.size() >= 4:
+				break
+			var mk := mapa.call("marcador", nom_mk) as Marker3D
+			if mk == null:
+				continue
+			var ang := azar.randf_range(0.0, TAU)
+			var dist := azar.randf_range(1.2, 3.0)
+			var cand := mk.global_position + Vector3(cos(ang) * dist, 0.0, sin(ang) * dist)
+			if Vector2(cand.x, cand.z).length() < 4.5:
+				continue
+			var s := AyudasL4b.sitio_libre(self, cand)
+			if s != Vector3.INF and mapa.punto_dentro(s, 1.2):
+				ruta.append(s)
+		return ruta
+
+	# Otros mapas exteriores (como mina_exterior): puntos variados alrededor del centro según el día.
+	ruta.append(centro_base)
+	var base_ang := azar.randf_range(0.0, TAU)
+	for i in 3:
+		var a := base_ang + float(i) * (TAU / 3.0) + azar.randf_range(-0.4, 0.4)
+		var r := clampf(radio_eff * azar.randf_range(0.55, 1.15), 1.0, 4.0)
+		var cand := centro_base + Vector3(cos(a) * r, 0.0, sin(a) * r)
+		var s := AyudasL4b.sitio_libre(self, cand)
+		if s != Vector3.INF and (not mapa.has_method("punto_dentro") or bool(mapa.call("punto_dentro", s, 1.0))):
+			ruta.append(s)
+	return ruta

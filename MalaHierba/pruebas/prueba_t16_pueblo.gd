@@ -159,10 +159,20 @@ func _ejecutar() -> void:
 			_ok(Conversacion.escena_pendiente(id_npc).is_empty(), "%s no repite la escena %d justo después" % [id_npc, paso + 1])
 		npc_ficticio.queue_free()
 
-	# 5. Abono de deuda y evolución visible del pueblo por tramos pagados.
+	# 5. Abono de deuda (solo en su lugar de trabajo) y evolución visible del pueblo por tramos pagados.
 	Juego.dinero = 6000
 	var ans_npc := vec.npcs["anselmo"] as Npc
-	_ok(Conversacion.acciones_de(ans_npc).has("deuda"), "Con deuda pendiente, Don Anselmo ofrece abonar la deuda")
+	_ok(not Conversacion.acciones_de(ans_npc).has("deuda"), "En la plaza (fuera del ayuntamiento) no sale abonar deuda")
+	var m_alc := await _cargar_mapa("casa_alcalde")
+	var vec_alc := m_alc.get_node("Objetos/Vecinos") as Vecinos
+	var ans_alc := vec_alc.npcs["anselmo"] as Npc
+	_ok(ans_alc.en_lugar_trabajo() and Conversacion.acciones_de(ans_alc).has("deuda"), "En el ayuntamiento (puesto de trabajo), Don Anselmo ofrece abonar la deuda")
+	await _sincronizar_en_pueblo(0, 2, 690, "sol")
+	mp = Escenas.mapa_actual_nodo()
+	vec = mp.get_node("Objetos/Vecinos") as Vecinos
+	ans_npc = vec.npcs["anselmo"] as Npc
+	var obj_p2 := mp.get_node("Objetos/ObjetosPueblo") as ObjetosPueblo
+	vp = obj_p2.vida_pueblo
 	_ok(vp.get_node("DecoracionPlaza").get_node_or_null("Jardinera") == null and vp.puesto_panaderia == null, "Tramo 0 (deuda 5000): aún no hay jardineras ni panadería")
 
 	var abono1 := Juego.pagar_deuda(1500)

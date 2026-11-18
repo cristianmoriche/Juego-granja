@@ -61,6 +61,17 @@ var _mat_foto: ShaderMaterial = null
 var _nivel_mina: Node3D = null
 
 
+func limpiar() -> void:
+	textura = null
+	id_mapa = ""
+	nombre_mapa = ""
+	jugador = null
+	camara = null
+	_mapa_actual = null
+	_nivel_mina = null
+	_poligono = PackedVector2Array()
+
+
 ## Capa que dibuja solo la foto (lleva el shader que deja oscuro lo que cae fuera de la imagen).
 class CapaFoto extends Control:
 	var dueno: Minimapa

@@ -105,12 +105,12 @@
     },
     {
       "marcador": "Interaccion_fragua",
-      "verbo": "Examinar",
-      "nombre": "la fragua encendida",
+      "verbo": "Usar",
+      "nombre": "el horno de fundición y fragua",
       "malla": "Fragua_piedra",
       "radio": 1.55,
-      "accion": "",
-      "descripcion": "El carbón arde al rojo vivo bajo el tiro de la campana de piedra. El calor se nota a dos pasos de distancia."
+      "accion": "horno_forja",
+      "descripcion": "El horno de piedra arde al rojo vivo bajo la campana. Aquí fundes lingotes de cobre, hierro u oro y engastas gemas."
     },
     {
       "marcador": "Interaccion_herramientas",

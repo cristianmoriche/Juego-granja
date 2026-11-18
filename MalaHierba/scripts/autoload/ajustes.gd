@@ -16,7 +16,7 @@ const ACCIONES := {"mover_arriba": "Avanzar", "mover_abajo": "Retroceder", "move
 	"esquivar": "Esquivar", "fijar_objetivo": "Fijar objetivo",
 	"inventario": "Inventario", "mapa": "Mapa", "diario": "Diario de misiones",
 	"pausa": "Pausa", "alternar_vista": "Cambiar de vista", "camara_reiniciar": "Centrar cámara", "pantalla_completa": "Pantalla completa",
-	"cerrar_tutorial": "Cerrar aviso",
+	"modo_foto": "Modo foto", "alternar_luz": "Antorcha o farol", "cerrar_tutorial": "Cerrar aviso",
 	"decorar": "Decorar la casa",
 	"ranura_1": "Ranura 1", "ranura_2": "Ranura 2", "ranura_3": "Ranura 3", "ranura_4": "Ranura 4",
 	"ranura_5": "Ranura 5", "ranura_6": "Ranura 6", "ranura_7": "Ranura 7", "ranura_8": "Ranura 8",
@@ -207,10 +207,10 @@ func _escala_render() -> void:
 		escala *= minf(float(resolucion_elegida().x) / maxf(1, ventana.x), float(resolucion_elegida().y) / maxf(1, ventana.y))
 	var visor := get_viewport()
 	if RenderingServer.get_current_rendering_method() == "forward_plus":
+		visor.use_taa = calidad >= 2 and escala >= 1.0
 		visor.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR2 if calidad >= 2 and escala < 1.0 else Viewport.SCALING_3D_MODE_FSR
 		if escala >= 1.0:
 			visor.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
-		visor.use_taa = calidad >= 2 and escala >= 1.0
 		visor.msaa_3d = Viewport.MSAA_DISABLED
 		visor.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if calidad < 2 else Viewport.SCREEN_SPACE_AA_DISABLED
 	visor.scaling_3d_scale = clampf(escala, 0.25, 2.0)

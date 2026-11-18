@@ -184,13 +184,22 @@ func _mostrar_info(i: int) -> void:
 	var o := Datos.objeto(id)
 	var c := int(d.get("cantidad", 1))
 	var suf_cal := " (calidad baja)" if cal == "baja" else ""
-	_l_nombre.text = str(o.get("nombre", id)) + suf_cal + ("  ×%d" % c if c > 1 else "")
+	var temple_inv := int(d.get("temple", 0))
+	var suf_temple := " (+%d temple)" % temple_inv if temple_inv > 0 else ""
+	_l_nombre.text = str(o.get("nombre", id)) + suf_cal + suf_temple + ("  ×%d" % c if c > 1 else "")
 	_l_desc.text = str(o.get("descripcion", ""))
 	var venta := Juego.precio_venta_item(id, cal)
 	var partes: Array[String] = []
 	var detalle := Datos.detalle_equipo(o)
 	if not detalle.is_empty():
 		partes.append(detalle)
+	var gem_arr: Array = d.get("gemas", []) if d.get("gemas") is Array else []
+	if Herreria.es_engastable(id):
+		var noms_g: Array[String] = []
+		for g: Variant in gem_arr:
+			noms_g.append(Datos.nombre_objeto(str(g)))
+		var g_txt := ", ".join(PackedStringArray(noms_g)) if not noms_g.is_empty() else "ninguna"
+		partes.append("Gemas (%d/%d): %s" % [gem_arr.size(), Herreria.huecos_para(id), g_txt])
 	_b_equipo.visible = o.has("ranura_equipo")
 	if venta > 0:
 		var msg_v := "Se vende por %s" % Estilo.euros(venta)

@@ -98,6 +98,7 @@ var _arco_primera: Node3D = null
 var _herramienta_nodo: Node3D = null
 var _objeto_en_mano: String = ""
 var _nivel_en_mano: int = -1
+var _meta_en_mano: String = ""
 var _modelos_mano: Dictionary = {}
 var _vista_leo := VISTA_LEO.new()
 var _farol_soporte_cadera: Node3D = null
@@ -111,13 +112,17 @@ var _farol_energia_base: float = 2.5
 var _farol_tiempo: float = 0.0
 var _luz_manual: int = 0   # 0 auto, 1 forzada encendida, -1 forzada apagada
 var _t_respiracion: float = 0.0
+var _mascara_colision_base: int = 0
 
 
 func _ready() -> void:
 	combate = CombateJugador.new(self)
 	floor_snap_length = 0.5
 	floor_max_angle = deg_to_rad(55.0)
+	wall_min_slide_angle = 0.0
+	safe_margin = 0.015
 	collision_mask |= CAPA_LIMITES | CAPA_SOLO_JUGADOR
+	_mascara_colision_base = collision_mask
 	# Tamaño: modelo y cápsula a la escala común de los personajes. La forma se duplica para poder cambiarle la altura.
 	_modelo.scale = Vector3.ONE * EscalaPersonaje.ESCALA
 	_colision = $Colision
@@ -148,6 +153,8 @@ func _ready() -> void:
 		Juego.partida_cambiada.connect(_actualizar_objeto_en_mano)
 	Juego.equipo_cambiado.connect(_actualizar_escudo)
 	Juego.equipo_cambiado.connect(_actualizar_carcaj)
+	Juego.gemas_cambiadas.connect(_actualizar_objeto_en_mano)
+	Juego.gemas_cambiadas.connect(_actualizar_escudo)
 	Juego.equipo_cambiado.connect(_actualizar_estado_luz)
 	Juego.hora_cambiada.connect(func(_m: int) -> void: _actualizar_estado_luz())
 	_actualizar_escudo()
@@ -183,8 +190,24 @@ func colocar(pos: Vector3, _giro_cuerpo: float, giro_camara: float) -> void:
 func configurar_para_mapa(mapa: Node) -> void:
 	_mapa = mapa
 	_luz_manual = 0
+	var es_mina := str(mapa.get("id_mapa")) == "mina_interior" if mapa != null else false
+	floor_block_on_wall = not es_mina
 	_actualizar_estado_luz()
+	aplicar_modo_vuelo(Juego.debug_vuelo)
 	camara.poner_interior(bool(mapa.get("interior")) if mapa != null else false)
+
+
+func aplicar_modo_vuelo(activo: bool) -> void:
+	if activo:
+		motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
+		collision_mask = 0
+		velocity = Vector3.ZERO
+	else:
+		motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
+		if _mascara_colision_base != 0:
+			collision_mask = _mascara_colision_base
+		_t_atasco_aire = 0.0
+		_pos_ant = global_position
 
 
 func _actualizar_estado_luz() -> void:
@@ -244,6 +267,10 @@ func alternar_luz_equipable() -> bool:
 func fijar_energia_base_farol(energia: float) -> void:
 	_farol_energia_base = energia
 	_farol.light_energy = energia
+
+
+func farol_encendido() -> bool:
+	return _farol != null and _farol.visible
 
 
 ## ¿Está Leo dentro del área jugable del mapa (datos/limites.json)? Sin límites o sin mapa, sí.
@@ -445,7 +472,7 @@ func _actualizar_pose(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if not _activo:
 		return
-	var libre_ui: bool = not Interfaz.ocupada() and not Escenas.en_transicion
+	var libre_ui: bool = not Interfaz.ocupada() and not Escenas.en_transicion and not bool(Interfaz.call("pescando_activa"))
 	if libre_ui:
 		camara.entrada_mando(Input.get_vector("camara_izquierda", "camara_derecha", "camara_arriba", "camara_abajo"), delta)
 	var libre_combate: bool = libre_ui and not Interfaz.apuntando_decoracion and Juego.vida > 0.0
@@ -455,12 +482,41 @@ func _physics_process(delta: float) -> void:
 	_t_bufer_salto = maxf(_t_bufer_salto - delta, 0.0)
 	_t_aterrizaje = maxf(_t_aterrizaje - delta, 0.0)
 
-	# Agacharse: Ctrl mantenido. Al soltar se levanta, salvo que haya techo encima.
-	_actualizar_agachado(libre_ui and Input.is_action_pressed("agachar"))
+	# Agacharse: Ctrl mantenido. Al soltar se levanta, salvo que haya techo encima (no en vuelo debug).
+	if not Juego.debug_vuelo:
+		_actualizar_agachado(libre_ui and Input.is_action_pressed("agachar"))
+	elif agachado:
+		agachado = false
+		_poner_altura(EscalaPersonaje.ALTURA_PIE)
 
 	var entrada := Vector2.ZERO
 	if libre:
 		entrada = Input.get_vector("mover_izquierda", "mover_derecha", "mover_arriba", "mover_abajo")
+	if Juego.debug_vuelo:
+		var vel_vuelo := 22.0 if Input.is_action_pressed("correr") else 12.0
+		var h_vel := Vector3.ZERO
+		if entrada.length() > 0.01:
+			var dir_v := Vector3(entrada.x, 0.0, entrada.y).rotated(Vector3.UP, camara.yaw)
+			h_vel = dir_v * vel_vuelo
+			direccion = dir_v.normalized()
+		var sub_baj := 0.0
+		if libre:
+			if Input.is_action_pressed("saltar"):
+				sub_baj += 1.0
+			if Input.is_action_pressed("agachar"):
+				sub_baj -= 1.0
+		velocity = Vector3(h_vel.x, sub_baj * 10.0, h_vel.z)
+		if camara.primera_persona:
+			direccion = Vector3.FORWARD.rotated(Vector3.UP, camara.yaw)
+		move_and_slide()
+		estado_mov = "suelo"
+		_pos_segura = global_position
+		_modelo.rotation.y = lerp_angle(_modelo.rotation.y, atan2(direccion.x, direccion.z), 1.0 - exp(-14.0 * delta))
+		_animar_estado(Vector2(velocity.x, velocity.z).length(), Input.is_action_pressed("correr"))
+		_actualizar_pose(delta)
+		_altura_cam = lerpf(_altura_cam, _forma.height / EscalaPersonaje.ALTURA_PIE, 1.0 - exp(-9.0 * delta))
+		camara.altura_relativa = _altura_cam
+		return
 	var objetivo_vel := Vector3.ZERO
 	var corriendo := false
 	if _correr_sin_aire and Juego.resistencia >= 17.0:
@@ -767,6 +823,12 @@ func _usar(desde_entrada: bool = false) -> void:
 	if datos.get("tipo", "") == "comida":
 		Juego.comer(id)
 		return
+	if datos.get("tipo", "") == "cebo":
+		Interfaz.call("abrir_cebos")
+		return
+	if datos.get("tipo", "") == "campamento":
+		RecursosExteriores.montar_campamento_jugador(self)
+		return
 	if Datos.es_mueble(id):
 		var deco := get_tree().get_first_node_in_group("decoracion_casa") if get_tree() != null else null
 		if deco != null:
@@ -783,7 +845,15 @@ func _usar(desde_entrada: bool = false) -> void:
 		if parcelas != null and not parcelas.celda_apuntada(objetivo_mira).is_empty():
 			destino = parcelas
 	if id == "cana" and destino == null:
-		destino = get_tree().get_first_node_in_group("zona_pesca")
+		var mejor_zp: Node = null
+		var mejor_d := INF
+		for n_zp in get_tree().get_nodes_in_group("zona_pesca"):
+			if n_zp is Node3D:
+				var dj := global_position.distance_squared_to((n_zp as Node3D).global_position)
+				if dj < mejor_d:
+					mejor_d = dj
+					mejor_zp = n_zp
+		destino = mejor_zp
 		if destino != null:
 			punto = _lance_de_pesca()
 	var avisos_antes: int = Interfaz.avisos_emitidos
@@ -997,10 +1067,14 @@ func _actualizar_objeto_en_mano() -> void:
 	var obj := Juego.objeto_activo()
 	var id := str(obj.get("id", ""))
 	var nivel := Juego.nivel(id) if not id.is_empty() else 0
-	if id == _objeto_en_mano and nivel == _nivel_en_mano:
+	var gemas: Array = obj.get("gemas", []) if obj.get("gemas") is Array else []
+	var temple := int(obj.get("temple", 0))
+	var meta_sig := "%s|%d" % [",".join(PackedStringArray(gemas)), temple]
+	if id == _objeto_en_mano and nivel == _nivel_en_mano and meta_sig == _meta_en_mano:
 		return
 	_objeto_en_mano = id
 	_nivel_en_mano = nivel
+	_meta_en_mano = meta_sig
 	if _herramienta_nodo != null and is_instance_valid(_herramienta_nodo):
 		if _herramienta_nodo.get_parent() != null:
 			_herramienta_nodo.get_parent().remove_child(_herramienta_nodo)
@@ -1036,16 +1110,25 @@ func _actualizar_objeto_en_mano() -> void:
 	_aplicar_nivel_herramienta(inst, id, nivel)
 	if es_arma:
 		_aplicar_temple(inst, int(datos.get("grado", 0)))
+		_aplicar_brillo_gemas(inst, gemas, temple)
 	if es_arco:
 		inst.rotation_degrees = Vector3(0.0, 180.0, -10.0)
 		inst.scale = Vector3.ONE * 0.88
 		_tenido_arco(inst, id)
+		_aplicar_brillo_gemas(inst, gemas, temple)
 	_mano_soporte.add_child(inst)
 	_herramienta_nodo = inst
-	if str(datos.get("tipo", "")) == "comida" and camara != null and camara.camara != null:
+	var tipo_mano := str(datos.get("tipo", ""))
+	if tipo_mano == "pescado":
+		_tenido_pez(inst, id)
+	if tipo_mano in ["comida", "pescado"] and camara != null and camara.camara != null:
 		_crear_plato_primera(clave, id)
+		if tipo_mano == "pescado" and _plato_primera != null:
+			_tenido_pez(_plato_primera, id)
 	elif es_arco and camara != null and camara.camara != null:
 		_crear_arco_primera(clave, id)
+		if _arco_primera != null:
+			_aplicar_brillo_gemas(_arco_primera, gemas, temple)
 	_actualizar_visibilidad_farol()
 
 
@@ -1053,9 +1136,13 @@ func _actualizar_escudo() -> void:
 	if _izquierda_soporte == null:
 		return
 	var id := str(Juego.equipo.get("escudo", ""))
-	if id == _escudo_actual:
+	var eq_meta := Juego._h10_equipo_meta().get("escudo", {}) as Dictionary
+	var gs_eq: Array = eq_meta.get("gemas", []) if eq_meta.get("gemas") is Array else []
+	var tmp_eq := int(eq_meta.get("temple", 0))
+	var sig := "%s|%s|%d" % [id, ",".join(PackedStringArray(gs_eq)), tmp_eq]
+	if sig == _escudo_actual:
 		return
-	_escudo_actual = id
+	_escudo_actual = sig
 	if is_instance_valid(_escudo_nodo):
 		_izquierda_soporte.remove_child(_escudo_nodo)
 		_escudo_nodo.queue_free()
@@ -1066,6 +1153,7 @@ func _actualizar_escudo() -> void:
 	var escena := load("res://assets/combate/escudo.glb") as PackedScene
 	_escudo_nodo = escena.instantiate() as Node3D
 	_aplicar_temple(_escudo_nodo, int(Datos.objeto(id).get("grado", 0)))
+	_aplicar_brillo_gemas(_escudo_nodo, gs_eq, tmp_eq)
 	_izquierda_soporte.add_child(_escudo_nodo)
 	_reubicar_farol_tercera()
 
@@ -1321,6 +1409,52 @@ func _aplicar_temple(raiz: Node3D, grado: int) -> void:
 				mi.set_surface_override_material(i, acabado)
 
 
+func _aplicar_brillo_gemas(raiz: Node3D, gemas: Array, temple: int) -> void:
+	if raiz == null or (gemas.is_empty() and temple <= 0):
+		return
+	var tint := Color(0.0, 0.0, 0.0)
+	var peso := 0
+	for g: Variant in gemas:
+		var gd: Dictionary = Herreria.GEMAS.get(str(g), {}) as Dictionary
+		if not gd.is_empty():
+			tint += gd.get("color", Color.WHITE) as Color
+			peso += 1
+	if peso > 0:
+		tint /= float(peso)
+	elif temple > 0:
+		tint = Color(0.88, 0.92, 1.0)
+	var fuerza := 0.55 + float(mini(peso, 3)) * 0.25 + float(temple) * 0.12
+	for mi: MeshInstance3D in raiz.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null:
+			continue
+		for i in mi.mesh.get_surface_count():
+			var mat_actual := mi.get_active_material(i) as BaseMaterial3D
+			if mat_actual == null or mat_actual.resource_name == "CuerdaArco":
+				continue
+			var nuevo := mat_actual.duplicate() as BaseMaterial3D
+			if peso > 0:
+				nuevo.emission_enabled = true
+				nuevo.emission = tint
+				nuevo.emission_energy_multiplier = maxf(nuevo.emission_energy_multiplier, fuerza)
+			if temple > 0:
+				nuevo.metallic = clampf(nuevo.metallic + 0.08 * float(temple), 0.0, 1.0)
+				nuevo.roughness = clampf(nuevo.roughness - 0.05 * float(temple), 0.15, 1.0)
+			mi.set_surface_override_material(i, nuevo)
+
+
+func _tenido_pez(raiz: Node3D, id: String) -> void:
+	if raiz == null:
+		return
+	var col := Color(str(Datos.objeto(id).get("color", "#7ca69a")))
+	for mi: MeshInstance3D in raiz.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh != null and mi.mesh.get_surface_count() > 0:
+			var m0 := mi.get_active_material(0) as BaseMaterial3D
+			if m0 != null:
+				var c := m0.duplicate() as BaseMaterial3D
+				c.albedo_color = col
+				mi.set_surface_override_material(0, c)
+
+
 func _modelo_para_objeto(id: String) -> String:
 	match id:
 		"pico", "hacha", "azada", "regadera", "hoz", "cana":
@@ -1331,6 +1465,8 @@ func _modelo_para_objeto(id: String) -> String:
 			return "madera_mano"
 		"piedra", "cobre", "hierro", "cuarzo", "ambar_valle":
 			return "mineral"
+		"huevo_pardo", "huevo_blanco", "tarro_miel":
+			return id
 		"remedio_plaga", "elixir_sierra", "cafe", "caldo":
 			return "frasco"
 	var rec := Datos.receta(id)
@@ -1339,6 +1475,8 @@ func _modelo_para_objeto(id: String) -> String:
 	var tipo := str(Datos.objeto(id).get("tipo", ""))
 	if tipo == "comida":
 		return "cuenco_guiso" if id in ["caldo", "guiso"] else "plato_comida"
+	if tipo == "pescado":
+		return "pez_mano"
 	if tipo == "semilla":
 		return "semillas"
 	if not id.is_empty():

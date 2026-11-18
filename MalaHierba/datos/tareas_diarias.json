@@ -9,5 +9,7 @@
   {"id": "tarea_regalar_plaza", "npc": "anselmo", "tipo": "regalar", "icono": "bocadillo", "texto": "Reparte {n} regalos entre los vecinos de la plaza hoy.", "pide": "", "cantidad": 2, "dinero": 24, "amistad": 14},
   {"id": "tarea_pescar_rio", "npc": "ramon", "tipo": "pescar", "icono": "pan", "texto": "Pesca {n} piezas frescas en el río o la costa para la cena.", "pide": "", "cantidad": 2, "dinero": 20, "amistad": 10},
   {"id": "tarea_pescar_costa", "npc": "mateo", "tipo": "pescar", "icono": "pan", "texto": "Consigue {n} capturas con la caña antes del anochecer.", "pide": "", "cantidad": 3, "dinero": 26, "amistad": 12},
-  {"id": "tarea_recolectar_valle", "npc": "ramon", "tipo": "recolectar", "icono": "seta_silvestre", "texto": "Recoge {n} brotes de setas, hierbas o moras silvestres por el valle.", "pide": "", "cantidad": 2, "dinero": 24, "amistad": 10}
+  {"id": "tarea_recolectar_valle", "npc": "ramon", "tipo": "recolectar", "icono": "seta_silvestre", "texto": "Recoge {n} brotes de setas, hierbas o moras silvestres por el valle.", "pide": "", "cantidad": 2, "dinero": 24, "amistad": 10},
+  {"id": "tarea_recoger_huevos", "npc": "mateo", "tipo": "huevos", "icono": "huevo_pardo", "texto": "Recoge {n} huevos frescos de los nidales del gallinero hoy.", "pide": "", "cantidad": 2, "dinero": 22, "amistad": 10},
+  {"id": "tarea_cosechar_miel", "npc": "ramon", "tipo": "miel", "icono": "tarro_miel", "texto": "Cosecha {n} tarro de miel del valle para El Candil.", "pide": "", "cantidad": 1, "dinero": 26, "amistad": 12}
 ]

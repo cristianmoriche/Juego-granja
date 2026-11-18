@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Mala Hierba"
-config/version="0.3.0-preview.1"
+config/version="0.3.0"
 config/description="Juego de granja en 3D: Leo hereda El Granado y tiene un año para sacarlo adelante."
 run/main_scene="res://escenas/menu_principal.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")

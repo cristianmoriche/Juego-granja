@@ -87,6 +87,14 @@ func construir() -> void:
 
 		add_child(c)
 		c.global_position = m.global_position
+		if nom_marc == "Interaccion_fragua":
+			var luz_fragua := OmniLight3D.new()
+			luz_fragua.light_color = Color(1.0, 0.44, 0.14)
+			luz_fragua.light_energy = 1.5
+			luz_fragua.omni_range = 4.2
+			luz_fragua.shadow_enabled = false
+			luz_fragua.position = Vector3(0.0, 0.72, 0.25)
+			c.add_child(luz_fragua)
 		if not accion.is_empty():
 			c.usado.connect(func(_j: Node3D) -> void: ejecutar_accion(accion, d))
 		puntos.append(c)
@@ -132,6 +140,10 @@ func ejecutar_accion(accion: String, d: Dictionary = {}) -> String:
 		return "dormir"
 	if accion == "mejoras":
 		return usar_yunque()
+	if accion == "horno_forja":
+		if Interfaz.has_method("abrir_herreria"):
+			Interfaz.call("abrir_herreria", 0)
+		return "horno_forja"
 	if accion.begins_with("tienda:"):
 		var id_t := accion.get_slice(":", 1)
 		if id_t == "tienda_mateo":

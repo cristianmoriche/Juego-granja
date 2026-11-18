@@ -126,6 +126,7 @@ func _ir_a_mapa_interno(id_mapa: String, marcador: String, posicion: Vector3) ->
 		await _esperar_mapa(mapa)
 
 	Juego.mapa_actual = id_mapa
+	Juego.registrar_zona_visitada(id_mapa)
 	var j := (CargadorMapa.obtener_recurso(RUTA_JUGADOR) as PackedScene).instantiate() as Node3D
 	j.process_mode = Node.PROCESS_MODE_DISABLED   # quieto hasta estar colocado y con suelo debajo
 	mapa.add_child(j)
@@ -292,5 +293,9 @@ func _al_fin_de_anio() -> void:
 func ir_al_menu() -> void:
 	Juego.partida_activa = false
 	FotoCenital.olvidar()
+	Interfaz.limpiar_estado_menu()
+	preload("res://scripts/jugador/vista_leo.gd").olvidar()
+	preload("res://scripts/mina/generador_caverna_h04.gd").limpiar_cache()
 	await ir_a_escena(ESCENA_MENU)
+	CargadorMapa.limpiar_cache_menu()
 	Audio.limpiar_cache_inactiva()

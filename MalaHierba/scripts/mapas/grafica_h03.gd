@@ -74,16 +74,16 @@ static func ajustar_luz(luz: Light3D, nivel: int) -> void:
 	if luz.has_meta("sin_sombra"):
 		luz.shadow_enabled = false
 		luz.distance_fade_enabled = true
-		luz.distance_fade_begin = 38.0
-		luz.distance_fade_length = 10.0
+		luz.distance_fade_begin = 32.0
+		luz.distance_fade_length = 8.0
 		return
 	luz.shadow_enabled = nivel >= 2 and luz.light_energy > 0.065
 	luz.shadow_blur = 1.18
 	luz.shadow_bias = 0.055
 	luz.shadow_normal_bias = 0.9
 	luz.distance_fade_enabled = true
-	luz.distance_fade_begin = 42.0
-	luz.distance_fade_shadow = 20.0 if nivel == 2 else 33.0
-	luz.distance_fade_length = 12.0
+	luz.distance_fade_begin = 34.0
+	luz.distance_fade_shadow = 15.0 if nivel == 2 else 24.0
+	luz.distance_fade_length = 10.0
 	if luz is OmniLight3D:
 		luz.omni_shadow_mode = OmniLight3D.SHADOW_DUAL_PARABOLOID if nivel == 2 else OmniLight3D.SHADOW_CUBE

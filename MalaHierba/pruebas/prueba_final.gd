@@ -401,6 +401,145 @@ func _mina_y_mejora() -> bool:
 	return true
 
 
+func _recorrido_h01_h14() -> bool:
+	# Compatibilidad de partida legada (solo en proyecto donde existe la copia de 2026-11-17)
+	const LEGADO := "res://../copias/partidas-2026-11-17-antes-hiperrealista/partida.json"
+	if FileAccess.file_exists(LEGADO):
+		Juego.guardar(false)
+		var r_tmp_leg := _carpeta.path_join("legado_tmp.json")
+		var r_tmp_mig := _carpeta.path_join("legado_mig_1.json")
+		var f_tmp := FileAccess.open(r_tmp_leg, FileAccess.WRITE)
+		if f_tmp != null:
+			f_tmp.store_buffer(FileAccess.get_file_as_bytes(LEGADO))
+			f_tmp.close()
+			_comprobar(Juego.migrar_partida_legada(r_tmp_leg, r_tmp_mig), "Migración de partida legada 2026-11-17 a ranura 1")
+			Juego.ruta_partida = r_tmp_mig
+			_comprobar(Juego.cargar(), "Carga válida de partida antigua de 2026-11-17 en v0.3.0")
+			Juego.ruta_partida = _ruta_base
+			Juego.cargar()
+			Juego.pausar_tiempo(true)
+
+	# H10 + H06 en herrería / casa (fundición, temple, engaste de gema y cocina)
+	Juego.ingresar(1500)
+	Juego.anadir_objeto("cobre", 4)
+	Juego.anadir_objeto("carbon", 3)
+	Juego.anadir_objeto("lingote_cobre", 3)
+	Juego.anadir_objeto("espada_hierro", 1)
+	Juego.anadir_objeto("rubi", 1)
+	_comprobar(Juego.iniciar_fundicion("fundir_cobre"), "H10: inicia fundición en horno")
+	var idx_esp := -1
+	for i in Juego.inventario.size():
+		if str(Juego.inventario[i].get("id", "")) == "espada_hierro":
+			idx_esp = i
+			break
+	_comprobar(idx_esp >= 0 and Juego.engastar_gema("inventario", idx_esp, "", "rubi"), "H10: engasta rubí en espada")
+	Juego.aprender_receta("patatas_asadas", false)
+	Juego.anadir_objeto("patata", 2)
+	Juego.anadir_objeto("hierba_monte", 2)
+	_comprobar(Juego.cocinar("patatas_asadas", 1) and int(Juego.estadisticas.get("platos_cocinados", 0)) >= 1, "H06: cocina plato y registra estadística")
+
+	# Regreso a pueblo y granja: comprobar horno pueblo, vista V (1P/3P) y ganadería H12
+	if not await _cruzar("pueblo"):
+		return false
+	_comprobar(Escenas.mapa_actual_nodo().find_child("HornoFundicionPueblo", true, false) != null, "H10: horno de fundición exterior presente en pueblo")
+	if not await _cruzar("granja"):
+		return false
+	var j := Escenas.jugador() as Jugador
+	var v_ini := j.camara.primera_persona
+	_comprobar(v_ini == (int(Ajustes.valores.get("vista", 0)) == 0), "H01: vista inicial coherente con Ajustes")
+	var ev_v := InputEventAction.new()
+	ev_v.action = "alternar_vista"
+	ev_v.pressed = true
+	Input.parse_input_event(ev_v)
+	var ev_v_up := InputEventAction.new()
+	ev_v_up.action = "alternar_vista"
+	ev_v_up.pressed = false
+	Input.parse_input_event(ev_v_up)
+	await get_tree().process_frame
+	_comprobar(j.camara.primera_persona != v_ini, "H01: alterna vista con V")
+	Input.parse_input_event(ev_v)
+	Input.parse_input_event(ev_v_up)
+	await get_tree().process_frame
+	_comprobar(j.camara.primera_persona == v_ini, "H01: vuelve a la vista inicial con V")
+
+	Juego.anadir_objeto("madera", 16)
+	Juego.anadir_objeto("pienso_aves", 2)
+	Juego.anadir_objeto("ahumador", 1)
+	_comprobar(Escenas.mapa_actual_nodo().find_child("GranjaGanadera", true, false) != null, "H12: gallinero y colmenas presentes en granja")
+	_comprobar(Juego.reparar_gallinero() and Juego.alimentar_gallinero() and Juego.dar_agua_gallinero(), "H12: repara, alimenta y da agua al gallinero")
+	_comprobar(Juego.desbloquear_colmena(1), "H12: desbloquea colmena adicional")
+
+	# H05 zonas nuevas, H11 pesca avanzada y H13 campamento + farol nocturno
+	for z_id: String in ["bosque_norte", "costa_lago", "robledal_niebla", "ruinas_valle", "sierra_mirador"]:
+		Escenas.ir_a_mapa(z_id, "Spawn_Protagonista")
+		if not await _mapa(z_id):
+			return false
+	_comprobar(Juego.registrar_captura_pesca({"id": "salmon_sierra", "cm": 56.0, "kg": 2.3}, "sierra_mirador").get("nueva", false), "H11: registra captura récord en álbum de pesca")
+	Juego.minutos = 1170
+	Juego.anadir_objeto("farol_mano", 1)
+	for i in Juego.inventario.size():
+		if str(Juego.inventario[i].get("id", "")) == "farol_mano":
+			Juego.equipar(i)
+			break
+	j = Escenas.jugador() as Jugador
+	if not j.farol_encendido():
+		j.alternar_luz_equipable()
+	_comprobar(j.farol_encendido(), "H07/H13: enciende el farol de mano de noche")
+	Juego.anadir_objeto("kit_campamento", 1)
+	_seleccionar("kit_campamento")
+	_comprobar(RecursosExteriores.montar_campamento_jugador(j), "H13: monta campamento portátil en zona salvaje")
+	_comprobar(Juego.descansar_campamento(2), "H13: descansa horas en campamento sin cerrar el día")
+	Juego.minutos = 600
+
+	# H02 + H09 mina hasta niveles 5 y 10 con arco, combate y jefes
+	Juego.banderas["nivel_mina"] = 1
+	Escenas.ir_a_mapa("mina_interior", "Llegada_Interior")
+	if not await _mapa("mina_interior"):
+		return false
+	Juego.anadir_objeto("arco_caza", 1)
+	Juego.anadir_objeto("flecha_normal", 16)
+	_seleccionar("arco_caza")
+	j = Escenas.jugador() as Jugador
+	j.combate.preparar_ataque("arco_caza", null)
+	var flecha_t: Flecha = j.combate._disparar_flecha(0.5)
+	_comprobar(flecha_t != null, "H09: dispara flecha física con arco equipado")
+	if is_instance_valid(flecha_t):
+		flecha_t.queue_free()
+	j.combate.esquivar(Vector2(0, 1))
+	await get_tree().process_frame
+
+	for niv_jefe: int in [5, 10]:
+		var nm := Escenas.mapa_actual_nodo().get_node_or_null("Objetos/NivelMina") as NivelMina
+		if not _comprobar(nm != null, "NivelMina disponible para viajar al nivel %d" % niv_jefe):
+			return false
+		nm._viajar_ascensor(niv_jefe)
+		if not await _mapa("mina_interior"):
+			return false
+		_comprobar(int(Juego.banderas.get("nivel_mina", 0)) == niv_jefe, "Mina H04 alcanza nivel %d" % niv_jefe)
+		var jefe_nodo: Enemigo = null
+		for en: Node in get_tree().get_nodes_in_group("enemigos"):
+			if en is Enemigo and (en as Enemigo).es_jefe:
+				jefe_nodo = en as Enemigo
+				break
+		_comprobar(jefe_nodo != null, "Jefe presente en nivel %d" % niv_jefe)
+		if jefe_nodo != null:
+			jefe_nodo.recibir_dano(9999.0)
+			await get_tree().process_frame
+	_comprobar(int(Juego.banderas.get("mina_max_nivel", 1)) >= 10, "Progreso máximo de mina alcanza nivel 10")
+
+	# H14 logros y diario
+	Juego.evaluar_logros(false)
+	_comprobar(Juego.logros_desbloqueados().size() >= 6, "H14: desbloquea múltiples logros (%d)" % Juego.logros_desbloqueados().size())
+	Interfaz.abrir_diario("logros")
+	await get_tree().process_frame
+	var rej := Interfaz._diario.find_child("RejillaLogros", true, false)
+	_comprobar(rej != null and rej.get_child_count() >= 18, "H14: tablero de logros abierto con todas las tarjetas")
+	Interfaz.cerrar_todo()
+
+	Escenas.ir_a_mapa("granja", "Spawn_Protagonista")
+	return await _mapa("granja")
+
+
 func _inicio() -> void:
 	Juego.borrar_partida()
 	Escenas.ir_al_menu()
@@ -424,6 +563,8 @@ func _inicio() -> void:
 	if not await _mapa("granja"):
 		return
 	if not await _agricultura() or not await _interiores() or not await _mina_y_mejora():
+		return
+	if not await _recorrido_h01_h14():
 		return
 	if not await _cruzar("pueblo") or not await _cruzar("granja"):
 		return

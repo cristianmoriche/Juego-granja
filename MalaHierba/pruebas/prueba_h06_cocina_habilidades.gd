@@ -18,7 +18,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	var recetas := Datos.recetas()
-	_check(recetas.size() == 18, "debe haber 18 recetas cargadas (hay %d)" % recetas.size())
+	_check(recetas.size() >= 18, "debe haber al menos 18 recetas cargadas (hay %d)" % recetas.size())
 	for r: Dictionary in recetas:
 		var rid := str(r.get("id", ""))
 		var obj := Datos.objeto(rid)

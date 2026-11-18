@@ -62,6 +62,7 @@ const AMBIENTACIONES := {
 }
 
 signal niebla_actualizada
+signal jefe_derrotado
 
 const TAM_NIEBLA := 64
 const RADIO_REVELAR := 13.5
@@ -94,6 +95,12 @@ var puntos_enemigos: Node3D = null
 var nodo_ascensor: Node3D = null
 var nodo_escalera_profunda: Node3D = null
 var nodo_escalera_subida: Node3D = null
+var nodo_puerta_oculta: Node3D = null
+var jefe_vivo: bool = false
+var _hoja_puerta_oculta: StaticBody3D = null
+var _punto_puerta_oculta: Interactuable = null
+var _luz_puerta_oculta: OmniLight3D = null
+var _puerta_oculta_abierta: bool = false
 var cofres_nivel: Array[Node3D] = []
 var atajos_nivel: Array[Node3D] = []
 
@@ -240,6 +247,7 @@ func preparar(mapa: Node) -> void:
 	var prev_max := int(Juego.banderas.get("mina_max_nivel", 1))
 	if nivel > prev_max:
 		Juego.banderas["mina_max_nivel"] = nivel
+		Juego.evaluar_logros()
 		if ascensor_disponible_en(nivel) and nivel > 1:
 			Juego.banderas["mina_ascensor_desbloqueado"] = true
 			if Juego.partida_activa:
@@ -272,6 +280,12 @@ func _limpiar_nodos_propios() -> void:
 	nodo_ascensor = null
 	nodo_escalera_profunda = null
 	nodo_escalera_subida = null
+	nodo_puerta_oculta = null
+	_hoja_puerta_oculta = null
+	_punto_puerta_oculta = null
+	_luz_puerta_oculta = null
+	jefe_vivo = false
+	_puerta_oculta_abierta = false
 
 
 func _ocultar_cueva_base(mapa: Node) -> void:
@@ -758,14 +772,22 @@ func _colocar_ambientacion_especifica(azar: RandomNumberGenerator) -> void:
 				var disco := MeshInstance3D.new()
 				disco.name = "Charco_%d" % i
 				var pm := PlaneMesh.new()
-				var lado := azar.randf_range(1.9, 2.7)
-				pm.size = Vector2(lado, lado * azar.randf_range(0.85, 1.15))
+				var lado := 3.4 if i == 0 else azar.randf_range(1.9, 2.7)
+				pm.size = Vector2(lado, lado * (0.95 if i == 0 else azar.randf_range(0.85, 1.15)))
 				disco.mesh = pm
 				disco.material_override = mat_agua
 				disco.position = Vector3(p.x, h + 0.015, p.y)
 				disco.rotation.y = azar.randf_range(0.0, TAU)
 				disco.visibility_range_end = 58.0
 				_geometria_proc.add_child(disco)
+				if i == 0:
+					var zp := ZonaPesca.new()
+					zp.name = "LagoSubterraneo"
+					zp.marcador_pesca = ""
+					zp.id_zona_fija = ID_MAPA
+					zp.radio_uso = 6.2
+					zp.position = Vector3(p.x, h + 0.04, p.y)
+					_geometria_proc.add_child(zp)
 		"cristal":
 			var mats: Array[StandardMaterial3D] = []
 			for col_c in [Color(0.62, 0.28, 0.92), Color(0.22, 0.76, 0.94)]:
@@ -913,6 +935,139 @@ func _colocar_elementos_nivel(mapa: Node, azar: RandomNumberGenerator) -> void:
 
 	# 4. Puntos de aparición de enemigos (y el jefe en los niveles 5, 10, 15 y 20).
 	_colocar_puntos_enemigos(azar)
+	if nivel % 5 == 0 and Enemigo.ACTIVOS:
+		_colocar_puerta_oculta_jefe(mapa)
+
+
+func salida_habitual_bloqueada() -> bool:
+	return nivel % 5 == 0 and jefe_vivo and Enemigo.ACTIVOS
+
+
+func puerta_oculta_abierta() -> bool:
+	return _puerta_oculta_abierta
+
+
+func _colocar_puerta_oculta_jefe(_mapa_n: Node) -> void:
+	var dest_b := _mundo_celda(_celda_bajada)
+	var p_puerta := Vector3(dest_b.x + 2.2, _altura_celda(_celda_bajada), dest_b.y)
+	var s := AyudasL4b.suelo(self, p_puerta, 1.5, 3.0)
+	if s == Vector3.INF:
+		s = Vector3(dest_b.x - 2.0, _altura_celda(_celda_bajada), dest_b.y)
+		var s2 := AyudasL4b.suelo(self, s, 1.5, 3.0)
+		if s2 != Vector3.INF:
+			s = s2
+		else:
+			s = Vector3(dest_b.x, _altura_celda(_celda_bajada), dest_b.y + 1.8)
+
+	var marco := Node3D.new()
+	marco.name = "PuertaOcultaJefe"
+	marco.position = s
+	add_child(marco)
+	nodo_puerta_oculta = marco
+
+	var mat_roca := StandardMaterial3D.new()
+	mat_roca.albedo_color = Color(0.24, 0.22, 0.21)
+	mat_roca.roughness = 0.92
+	var mat_losa := StandardMaterial3D.new()
+	mat_losa.albedo_color = Color(0.32, 0.29, 0.26)
+	mat_losa.roughness = 0.88
+
+	for sx in [-0.85, 0.85]:
+		var jamba := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.32, 2.35, 0.48)
+		jamba.mesh = bm
+		jamba.material_override = mat_roca
+		jamba.position = Vector3(sx, 1.18, 0.0)
+		marco.add_child(jamba)
+
+	var dintel := MeshInstance3D.new()
+	var dm := BoxMesh.new()
+	dm.size = Vector3(2.05, 0.34, 0.52)
+	dintel.mesh = dm
+	dintel.material_override = mat_roca
+	dintel.position = Vector3(0.0, 2.38, 0.0)
+	marco.add_child(dintel)
+
+	# Losa deslizante oculta: sellada y sólida mientras viva el jefe; se aparta al derrotarlo.
+	var hoja := StaticBody3D.new()
+	hoja.name = "LosaPuertaOculta"
+	hoja.collision_layer = CAPA_SOLO_JUGADOR
+	hoja.collision_mask = 0
+	var mlosa := MeshInstance3D.new()
+	var lm := BoxMesh.new()
+	lm.size = Vector3(1.38, 2.15, 0.26)
+	mlosa.mesh = lm
+	mlosa.material_override = mat_losa
+	mlosa.position = Vector3(0.0, 1.08, 0.0)
+	hoja.add_child(mlosa)
+	var cs_l := CollisionShape3D.new()
+	var bs_l := BoxShape3D.new()
+	bs_l.size = lm.size
+	cs_l.shape = bs_l
+	cs_l.position = Vector3(0.0, 1.08, 0.0)
+	hoja.add_child(cs_l)
+	marco.add_child(hoja)
+	_hoja_puerta_oculta = hoja
+
+	var luz := OmniLight3D.new()
+	luz.light_color = Color(0.42, 0.96, 0.68)
+	luz.light_energy = 0.0
+	luz.omni_range = 7.5
+	luz.shadow_enabled = false
+	luz.set_meta("sin_sombra", true)
+	luz.position = Vector3(0.0, 1.4, 0.3)
+	marco.add_child(luz)
+	_luz_puerta_oculta = luz
+
+	var destino_nv := nivel + 1
+	var p := Interactuable.new()
+	p.name = "InteractuablePuertaOculta"
+	p.verbo = "Entrar" if nivel < MAX_NIVEL else "Salir"
+	p.nombre_objeto = ("por la puerta oculta al nivel %d" % destino_nv) if nivel < MAX_NIVEL else "por la cámara oculta al exterior"
+	p.radio = 1.65
+	p.altura_marca = 1.9
+	p.mostrar_descripcion = false
+	p.activo = false
+	p.usado.connect(func(_j: Node3D) -> void:
+		if not _puerta_oculta_abierta:
+			return
+		if nivel < MAX_NIVEL:
+			_viajar_ascensor(destino_nv)
+		else:
+			Interfaz.preguntar("Has superado al guardián del fondo (nivel 20). ¿Salir por el pasadizo oculto al exterior?", ["Salir al exterior", "Quedarme"], func(idx: int) -> void:
+				if idx == 0:
+					Escenas.ir_a_mapa("mina_exterior", "Spawn_Protagonista")))
+	marco.add_child(p)
+	_punto_puerta_oculta = p
+	puntos_evitar_rocas.append(s)
+
+
+func _al_morir_jefe(_en: Enemigo) -> void:
+	if not jefe_vivo:
+		return
+	jefe_vivo = false
+	_abrir_puerta_oculta()
+	jefe_derrotado.emit()
+
+
+func _abrir_puerta_oculta() -> void:
+	if _puerta_oculta_abierta:
+		return
+	_puerta_oculta_abierta = true
+	if _punto_puerta_oculta != null and is_instance_valid(_punto_puerta_oculta):
+		_punto_puerta_oculta.activo = true
+	if _luz_puerta_oculta != null and is_instance_valid(_luz_puerta_oculta):
+		_luz_puerta_oculta.light_energy = 1.65
+	if _hoja_puerta_oculta != null and is_instance_valid(_hoja_puerta_oculta):
+		_hoja_puerta_oculta.collision_layer = 0
+		var tw := _hoja_puerta_oculta.create_tween()
+		tw.set_trans(Tween.TRANS_SINE)
+		tw.set_ease(Tween.EASE_IN_OUT)
+		tw.tween_property(_hoja_puerta_oculta, "position:x", 1.35, 0.9)
+	Audio.reproducir("mina_atajo")
+	var msg := "¡Has derrotado al guardián! Se ha abierto una puerta oculta hacia el nivel %d." % (nivel + 1) if nivel < MAX_NIVEL else "¡El guardián final ha caído! Se abre el pasadizo oculto de salida."
+	Interfaz.mensaje(msg)
 
 
 func _colocar_extras_clasicos(mapa: Node) -> void:
@@ -1312,6 +1467,9 @@ func _registrar_punto_enemigo(indice: int, pos: Vector3, datos: Dictionary) -> v
 		en.configurar(datos)
 		en.position = pos + Vector3(0.0, 0.25, 0.0)
 		puntos_enemigos.add_child(en)
+		if en.es_jefe and nivel % 5 == 0:
+			jefe_vivo = true
+			en.fallecido.connect(_al_morir_jefe)
 
 
 ## Instancia enemigos de prueba sobre los marcadores del nivel actual (p. ej. desde prueba_t26_mina).

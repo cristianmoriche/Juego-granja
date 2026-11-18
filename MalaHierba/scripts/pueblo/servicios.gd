@@ -38,6 +38,36 @@ static func mejorar(herramienta: String) -> String:
 	return "ok"
 
 
+static func receta_herramienta_lingote(herramienta: String) -> Dictionary:
+	var m := siguiente_mejora(herramienta)
+	if m.is_empty():
+		return {}
+	var nv := int(m.get("nivel", Juego.nivel(herramienta) + 1))
+	var lingote := Herreria.lingote_para_grado(mini(2, maxi(0, nv - 1)))
+	var cant_ling := maxi(1, ceili(float(int(m.get("cantidad", 3))) / 3.0))
+	var dinero_reb := roundi(float(int(m.get("dinero", 0))) * 0.75)
+	return {"nivel": nv, "nombre": str(m.get("nombre", herramienta)), "lingote": lingote, "cantidad": cant_ling, "dinero": dinero_reb}
+
+
+static func mejorar_con_lingote(herramienta: String) -> String:
+	var m := receta_herramienta_lingote(herramienta)
+	if m.is_empty():
+		return "maximo"
+	var lingote := str(m["lingote"])
+	var cant := int(m["cantidad"])
+	var dinero_coste := int(m["dinero"])
+	if Juego.cantidad(lingote) < cant:
+		return "sin_material"
+	if Juego.dinero < dinero_coste:
+		return "sin_dinero"
+	if not Juego.quitar_objeto(lingote, cant) or not Juego.cobrar(dinero_coste):
+		return "sin_dinero"
+	Juego.nivel_herramientas[herramienta] = int(m["nivel"])
+	Juego.inventario_cambiado.emit()
+	Audio.reproducir("horno_fundir")
+	return "ok"
+
+
 ## Texto de una opción del menú de la herrería: «Pico de cobre · 5 × Cobre + 150 €».
 static func texto_mejora(m: Dictionary) -> String:
 	var t := "%s · %d × %s + %s" % [str(m.get("nombre", "")), int(m.get("cantidad", 0)), Datos.nombre_objeto(str(m.get("material", ""))), Estilo.euros(int(m.get("dinero", 0)))]
@@ -60,6 +90,9 @@ static func menu_herreria(nombre_herrera: String) -> void:
 			continue
 		herr.append(h)
 		textos.append({"texto": texto_mejora(m), "icono": Datos.id_icono(h, int(m.get("nivel", 0)))})
+	var listos := Juego.horno_listos_total()
+	var tit_horno := "Horno de fundición y gemas" + (" (%d listos)" % listos if listos > 0 else "")
+	textos.append(tit_horno)
 	textos.append("Comprar o forjar armas y armaduras")
 	textos.append("Arco, carcaj y flechas (taller)")
 	textos.append("Nada, gracias")
@@ -68,9 +101,13 @@ static func menu_herreria(nombre_herrera: String) -> void:
 
 static func _mejora_elegida(i: int, herr: Array[String], nombre_herrera: String) -> void:
 	if i == herr.size():
-		Interfaz.abrir_tienda("forja")
+		if Interfaz.has_method("abrir_herreria"):
+			Interfaz.call("abrir_herreria", 0)
 		return
 	if i == herr.size() + 1:
+		Interfaz.abrir_tienda("forja")
+		return
+	if i == herr.size() + 2:
 		Interfaz.abrir_tienda("arqueria")
 		return
 	if i < 0 or i >= herr.size():

@@ -81,7 +81,10 @@ func _entrar_en_salida(destino: String) -> bool:
 
 
 func _contar_peces() -> int:
-	return Juego.cantidad("trucha") + Juego.cantidad("carpa") + Juego.cantidad("perca")
+	var total := 0
+	for sp: String in PescaAvanzada.ESPECIES_ORDEN:
+		total += Juego.cantidad(sp)
+	return total
 
 
 func _buscar_mallas_abeto_sin_tex(raiz: Node, out_info: Dictionary) -> void:
@@ -200,8 +203,8 @@ func _ejecutar() -> void:
 			r_cana = i
 			break
 	if r_cana >= 10:
-		Juego.mover_huecos(r_cana, 7)
-		r_cana = 7
+		Juego.mover_huecos(r_cana, 8)
+		r_cana = 8
 	_ok(r_cana >= 0 and r_cana < 10, "cana está en la barra/inventario")
 	Juego.elegir_ranura(maxi(0, r_cana))
 	await _esperar_frames(2)
@@ -210,6 +213,7 @@ func _ejecutar() -> void:
 	var e0 := Juego.energia
 	var p0 := _contar_peces()
 	_j._usar()
+	await _completar_pesca_h11()
 	Interfaz.cerrar_todo()
 	_ok(_contar_peces() == p0 + 1, "costa_lago: usar la caña en el muelle pesca un pez")
 	_ok(Juego.energia < e0, "costa_lago: pescar consume energía")
@@ -224,9 +228,12 @@ func _ejecutar() -> void:
 	Ajustes.valores["vista"] = 1
 	Ajustes.cambiado.emit("vista")
 	_poner_leo(Vector3(-2.8, _suelo(-2.8, 10.2) + 0.05, 10.2), 0.0)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
 	await _esperar_frames(3)
 	var p1 := _contar_peces()
 	_j._usar()
+	await _completar_pesca_h11()
 	Interfaz.cerrar_todo()
 	_ok(_contar_peces() == p1 + 1, "bosque_norte: usar la caña junto al río pesca un pez")
 
@@ -247,3 +254,23 @@ func _ejecutar() -> void:
 	else:
 		print("PRUEBA FALLO: ", "; ".join(PackedStringArray(_fallos)), "  (%d comprobaciones)" % _total)
 		get_tree().quit(1)
+
+
+func _completar_pesca_h11() -> void:
+	await get_tree().process_frame
+	var panel: PanelPesca = Interfaz.get("_pesca") as PanelPesca
+	if panel == null or not bool(panel.get("_activo")):
+		return
+	for _i in 600:
+		if not bool(panel.get("_activo")):
+			break
+		var est := panel.estado_lucha()
+		var debe_tirar := not bool(est.get("tirando", false)) and float(est.get("tension", 0.0)) < 0.72
+		if debe_tirar:
+			Input.action_press("usar")
+		else:
+			Input.action_release("usar")
+		panel._process(0.10)
+		await get_tree().process_frame
+	Input.action_release("usar")
+	await get_tree().process_frame

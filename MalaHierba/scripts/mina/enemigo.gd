@@ -450,6 +450,14 @@ func _physics_process(delta: float) -> void:
 	_instinto.percibir(self, obj, delta)
 	_t_zigzag_flecha = maxf(0.0, _t_zigzag_flecha - delta)
 	var dist := _dist_horizontal(obj)
+	# El farol encendido de noche ahuyenta patrullas menores a media distancia (H13)
+	if bool(get_meta("nocturno_h13", false)) and not es_jefe and obj is Jugador and obj.has_method("farol_encendido") and bool(obj.call("farol_encendido")) and dist < 7.5 and vida >= vida_max * 0.99:
+		estado = Estado.HUIDA
+		var alejar := (global_position - obj.global_position).slide(Vector3.UP).normalized()
+		if not alejar.is_zero_approx():
+			_instinto.paso(self, global_position + alejar * 3.5, delta, velocidad * 0.95)
+		reproducir("volar" if tipo == "volador" else "andar")
+		return
 	match estado:
 		Estado.GOLPEADO:
 			_t_estado -= delta
@@ -982,6 +990,8 @@ func morir() -> void:
 	muerto = true
 	activo = false
 	Juego.ganar_xp_habilidad("combate", 60 if es_jefe else 24)
+	if es_jefe:
+		Juego.registrar_jefe_derrotado(id_enemigo)
 	estado = Estado.LIBRE
 	_aplicar_estado_activo()
 	remove_from_group("usable")
@@ -999,6 +1009,16 @@ func morir() -> void:
 		if not piso.is_empty():
 			botin.position = get_parent().to_local(piso.position + Vector3.UP * 0.04)
 		get_parent().add_child(botin)
+	if bool(get_meta("nocturno_h13", false)):
+		var pool_raro: Array[String] = ["rubi", "amatista", "ambar_valle", "cebo_luminoso", "cebo_mosca"]
+		var drop_id: String = pool_raro[randi() % pool_raro.size()]
+		Juego.anadir_objeto(drop_id, 1)
+		if randf() < 0.45:
+			for rec: Dictionary in Datos.recetas():
+				var rid := str(rec.get("id", ""))
+				if not rid.is_empty() and not Juego.tiene_receta(rid):
+					Juego.aprender_receta(rid, true)
+					break
 	if pivote != null and tipo == "volador":
 		pivote.position.y = 0.0   # el volador cae al suelo
 	var dur := reproducir("morir", 0.1)

@@ -225,8 +225,8 @@ func _comprobar_jugador() -> void:
 	Input.action_release("mover_arriba")
 	await _fisica(10)
 
-	# Hueco vacío retira modelo de la mano y vuelve a reposo normal
-	Juego.elegir_ranura(7)
+	# Hueco vacío retira modelo de la mano y vuelve a reposo normal (slot 7 trae la antorcha desde H07)
+	Juego.elegir_ranura(8)
 	await _fisica(4)
 	_comprobar(j._herramienta_nodo == null and j._objeto_en_mano.is_empty(),
 		"ranura vacía oculta el modelo de la mano")

@@ -152,10 +152,18 @@ func _disparar_flecha(_espera: float) -> Flecha:
 	var padre: Node = mapa_n if mapa_n != null else leo.get_parent()
 	padre.add_child(flecha)
 	var rids: Array[RID] = [leo.get_rid()]
+	var st_arco := Juego.stats_arma_activa()
 	flecha.configurar(origen, dir_tiro * vel_esc, id_flecha, dano_tiro, rids)
+	if bool(st_arco.get("rompe_guardia", false)):
+		flecha.rompe_guardia = true
+	if float(st_arco.get("quemadura", 0.0)) > 0.0:
+		flecha.es_fuego = true
+	flecha.robo_vida = float(st_arco.get("robo_vida", 0.0))
 	Audio.reproducir("arco_soltar")
 	Audio.reproducir("flecha_aire")
 	leo.camara.sacudir(0.016, 0.09)
+	Juego.estadisticas["flechas_disparadas"] = int(Juego.estadisticas.get("flechas_disparadas", 0)) + 1
+	Juego.evaluar_logros()
 	return flecha
 
 
@@ -254,7 +262,7 @@ func invulnerable() -> bool:
 
 
 func recibir_ataque(cantidad: float, atacante: Enemigo, origen: Vector3, admite_parada: bool) -> void:
-	if cantidad <= 0.0 or Juego.vida <= 0.0 or invulnerable() or Escenas.en_transicion:
+	if Juego.debug_inmortal or cantidad <= 0.0 or Juego.vida <= 0.0 or invulnerable() or Escenas.en_transicion:
 		return
 	var desde := (origen - leo.global_position).slide(Vector3.UP).normalized()
 	var delante := _frente().dot(desde) >= 0.28
@@ -271,7 +279,7 @@ func recibir_ataque(cantidad: float, atacante: Enemigo, origen: Vector3, admite_
 		var escudo := Datos.objeto(str(Juego.equipo.get("escudo", "")))
 		var coste := cantidad * (0.68 if escudo.is_empty() else 0.49) + 3.0
 		if Juego.gastar_resistencia(coste):
-			cantidad *= 1.0 - float(escudo.get("reduccion", 0.42))
+			cantidad *= 1.0 - (0.42 if escudo.is_empty() else Juego.reduccion_escudo())
 			Audio.reproducir("combate_bloqueo")
 			_restar_salud(cantidad)
 			leo.camara.sacudir(0.022, 0.12)
@@ -447,8 +455,11 @@ func _contacto(desde: float, hasta: float, comienza: bool) -> void:
 	var ultimo_angulo := lerpf(-arco, arco, hasta)
 	var pasos := maxi(1, ceili(absf(ultimo_angulo - primer_angulo) / PASO_BARRIDO))
 	var escala := 1.85 if cargado else float([1.0, 1.12, 1.32][combo - 1])
-	var rompe := cargado or bool(_arma.get("rompe_guardia", false))
+	var st_arma := Juego.stats_arma_activa()
+	var rompe := cargado or bool(_arma.get("rompe_guardia", false)) or bool(st_arma.get("rompe_guardia", false))
 	var aturde := float(_arma.get("aturde", 0.0)) + (0.29 if cargado else 0.0)
+	var quemadura := float(st_arma.get("quemadura", 0.0))
+	var robo_vida := float(st_arma.get("robo_vida", 0.0))
 	var impacto := false
 	for i in range(0 if comienza else 1, pasos + 1):
 		var angulo := lerpf(primer_angulo, ultimo_angulo, float(i) / pasos)
@@ -461,6 +472,10 @@ func _contacto(desde: float, hasta: float, comienza: bool) -> void:
 		var dano_total := float(_arma["dano"]) * escala * (1.0 + Juego.bono_dano_combate())
 		if enemigo.recibir_golpe(dano_total, empuje, rompe, aturde, toque.position):
 			_golpeados[enemigo.get_instance_id()] = true
+			if quemadura > 0.0:
+				Flecha.aplicar_quemadura(enemigo, enemigo, quemadura)
+			if robo_vida > 0.0:
+				Juego.curar_vida(robo_vida)
 			Juego.ganar_xp_habilidad("combate", 5)
 			impacto = true
 	if impacto:

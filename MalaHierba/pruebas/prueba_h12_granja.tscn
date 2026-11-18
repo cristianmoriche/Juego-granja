@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://pruebas/prueba_h12_granja.gd" id="1"]
+
+[node name="PruebaH12Granja" type="Node"]
+script = ExtResource("1")

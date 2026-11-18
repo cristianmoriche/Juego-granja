@@ -147,6 +147,14 @@ static var _mat_magma_inst: ShaderMaterial = null
 static var _escenas_props: Dictionary = {}
 
 
+static func limpiar_cache() -> void:
+	_mats_bioma.clear()
+	_escenas_props.clear()
+	_mat_madera = null
+	_mat_hierro = null
+	_mat_magma_inst = null
+
+
 static func material_bioma(bioma: String) -> Material:
 	if _mats_bioma.has(bioma):
 		return _mats_bioma[bioma] as Material

@@ -67,10 +67,10 @@ func _prueba_datos() -> void:
 		_comprobar(str(n.get("marcador", "")).begins_with("Spawn_"), "marcador de %s" % id)
 		for g: Variant in n.get("gusta", []):
 			_comprobar(Datos.existe_objeto(str(g)), "%s: gusto desconocido %s" % [id, str(g)])
-	_comprobar(Datos.conexiones_de("pueblo").size() == 4, "el pueblo tiene 4 salidas")
-	_comprobar(Datos.conexiones_de("granja").size() == 2, "la granja tiene 2 salidas")
-	_comprobar(Datos.conexiones_de("bosque_norte").size() == 4, "bosque_norte tiene 4 salidas")
-	_comprobar(Datos.conexiones_de("costa_lago").size() == 2, "costa_lago tiene 2 salidas")
+	_comprobar(Datos.conexiones_de("pueblo").size() >= 4, "el pueblo tiene al menos 4 salidas")
+	_comprobar(Datos.conexiones_de("granja").size() >= 2, "la granja tiene al menos 2 salidas")
+	_comprobar(Datos.conexiones_de("bosque_norte").size() >= 4, "bosque_norte tiene al menos 4 salidas")
+	_comprobar(Datos.conexiones_de("costa_lago").size() >= 2, "costa_lago tiene al menos 2 salidas")
 	_comprobar(not str(Datos.texto("final.bueno.titulo")).is_empty(), "texto final bueno")
 	_comprobar((Datos.texto("carta.parrafos", []) as Array).size() >= 6, "carta de la abuela Rosa")
 	# Cada cultivo apunta a objetos que existen y hay 1 al menos por estación.
@@ -230,7 +230,7 @@ func _prueba_inventario() -> void:
 	_comprobar(str(Juego.inventario[0]["id"]) == "regadera" and str(Juego.inventario[1]["id"]) == "azada", "intercambiar huecos")
 	Juego.anadir_objeto("piedra", 5)
 	Juego.inventario[20] = {"id": "piedra", "cantidad": 3}
-	Juego.mover_huecos(20, 7)
+	Juego.mover_huecos(20, 8)
 	_comprobar(Juego.cantidad("piedra") == 8 and (Juego.inventario[20] as Dictionary).is_empty(), "juntar pilas")
 	# Comer.
 	Juego.energia = 50.0

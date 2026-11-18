@@ -96,7 +96,7 @@ func _ejecutar() -> void:
 	await Escenas.ir_a_mapa("granja")
 	await _esperar_transicion()
 	_comprobar(Audio.musica_actual == "mus_granja", "granja reproduce mus_granja")
-	_comprobar(Audio.ambiente_actual == "", "granja sin lluvia no tiene ambiente")
+	_comprobar(Audio.ambiente_actual == "amb_dia_pajaros", "granja sin lluvia reproduce ambiente diurno de pájaros")
 
 	Juego.clima = "lluvia"
 	Audio._actualizar_ambiente_actual()
