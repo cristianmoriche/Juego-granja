@@ -54,7 +54,7 @@ var energia_max: float = ENERGIA_INICIAL
 var vida: float = VIDA_INICIAL
 var vida_max: float = VIDA_INICIAL
 const RESISTENCIA_MAX := 100.0
-const RANURAS_EQUIPO := ["escudo", "casco", "peto", "botas"]
+const RANURAS_EQUIPO := ["escudo", "casco", "peto", "botas", "luz", "carcaj"]
 var resistencia: float = RESISTENCIA_MAX
 var equipo: Dictionary = {}
 var _pausa_resistencia: float = 0.0
@@ -105,6 +105,14 @@ func _ready() -> void:
 	get_window().focus_entered.connect(_cambiar_foco.bind(true))
 	_vaciar_inventario()
 	actualizar_entorno_shader()
+	partida_cambiada.connect(_al_cambiar_partida_h06)
+	_conectar_misiones_h06.call_deferred()
+
+
+func _conectar_misiones_h06() -> void:
+	var m := get_node_or_null("/root/Misiones")
+	if m != null and m.has_signal("actualizado") and not m.is_connected("actualizado", sincronizar_recetas):
+		m.connect("actualizado", sincronizar_recetas)
 
 
 func _notification(que: int) -> void:
@@ -197,6 +205,8 @@ func nueva_partida(nombre: String) -> void:
 	_poner("pico", 1)
 	_poner("semilla_patata", 15)
 	_poner("bocadillo", 2)
+	_poner("antorcha", 1)
+	_asegurar_estado_h06(false)
 	partida_activa = true
 	actualizar_entorno_shader()
 	_emitir_todo()
@@ -219,6 +229,7 @@ func _emitir_todo() -> void:
 func avanzar_minutos(n: int) -> void:
 	for i in n:
 		minutos += 1
+		_avanzar_bufos(1)
 		hora_cambiada.emit(minutos)
 		if minutos == 1440:
 			mensaje.emit("Es medianoche. Convendría ir pensando en dormir.")
@@ -271,6 +282,7 @@ func terminar_dia(desmayo: bool = false, guardar_al_terminar: bool = true) -> bo
 	else:
 		energia = energia_max
 		vida = vida_max
+	_limpiar_bufos()
 	_fijar_resistencia(RESISTENCIA_MAX)
 	_pausa_resistencia = 0.0
 	_desmayo_pendiente = false
@@ -792,18 +804,45 @@ func forjar_equipo(id: String) -> bool:
 	var material := str(receta["material"])
 	var unidades := int(receta["cantidad"])
 	var precio := int(receta["dinero"])
+	var entrega := maxi(1, int(receta.get("entrega", 1)))
 	if cantidad(material) < unidades or dinero < precio:
 		return false
 	var anterior := inventario.duplicate(true)
 	_quitar_del_inventario(material, unidades)
-	if _poner(id, 1) != 0:
+	if _poner(id, entrega) != 0:
 		inventario = anterior
 		mensaje.emit("El inventario está lleno. Haz sitio para la pieza forjada.")
 		return false
 	cobrar(precio)
 	inventario_cambiado.emit()
-	mensaje_objeto.emit("+1 %s" % Datos.nombre_objeto(id), id)
+	mensaje_objeto.emit("+%d %s" % [entrega, Datos.nombre_objeto(id)], id)
 	return true
+
+
+func municion_disponible() -> String:
+	var activo := objeto_activo()
+	var id_act := str(activo.get("id", ""))
+	if str(Datos.objeto(id_act).get("tipo", "")) == "municion":
+		return id_act
+	for pass_hotbar in [true, false]:
+		var inicio := 0 if pass_hotbar else 10
+		var fin := 10 if pass_hotbar else HUECOS
+		for i in range(inicio, fin):
+			var h: Dictionary = inventario[i]
+			if h.is_empty():
+				continue
+			var oid := str(h.get("id", ""))
+			if str(Datos.objeto(oid).get("tipo", "")) == "municion":
+				return oid
+	return ""
+
+
+func total_flechas() -> int:
+	var n := 0
+	for h: Dictionary in inventario:
+		if not h.is_empty() and str(Datos.objeto(str(h.get("id", ""))).get("tipo", "")) == "municion":
+			n += int(h.get("cantidad", 0))
+	return n
 
 
 func equipar(indice: int) -> bool:
@@ -916,23 +955,43 @@ func mover_huecos(a: int, b: int) -> void:
 	inventario_cambiado.emit()
 
 
-## Se come un objeto del inventario: recupera energía y salud.
+## Se come un objeto del inventario: recupera energía, salud, resistencia y aplica mejoras temporales.
 func comer(id: String) -> bool:
 	var o := Datos.objeto(id)
 	if o.is_empty() or o.get("tipo", "") != "comida" or _desmayo_pendiente:
 		return false
-	if energia >= energia_max - 0.01 and vida >= vida_max - 0.01:
+	var rec := Datos.receta(id)
+	var e: float = float(rec.get("energia", o.get("energia", 0)))
+	var v: float = float(rec.get("vida", e * 0.5))
+	var res: float = float(rec.get("resistencia", 0.0))
+	var bufo: Dictionary = rec.get("bufo", {}) if rec.get("bufo", {}) is Dictionary else {}
+	var necesita_algo := energia < energia_max - 0.01 or vida < vida_max - 0.01 or (res > 0.0 and resistencia < RESISTENCIA_MAX - 0.01) or not bufo.is_empty()
+	if not necesita_algo:
 		mensaje.emit("No tienes hambre ahora mismo.")
 		return false
 	if not quitar_objeto(id, 1):
 		return false
-	var e: float = float(o.get("energia", 0))
-	recuperar_energia(e)
-	var salud_anterior := vida
-	curar_vida(e * 0.5)
-	var salud_curada := roundi(vida - salud_anterior)
-	var texto_salud := " y %d de salud" % salud_curada if salud_curada > 0 else ""
-	mensaje.emit("%s: recuperas %d de energía%s." % [Datos.nombre_objeto(id), int(e), texto_salud])
+	if e > 0.0:
+		recuperar_energia(e)
+	var salud_antes := vida
+	if v > 0.0:
+		curar_vida(v)
+	if res > 0.0:
+		_fijar_resistencia(resistencia + res)
+	if not bufo.is_empty():
+		_aplicar_bufo(bufo, Datos.nombre_objeto(id))
+	var partes: Array[String] = []
+	if e > 0.0:
+		partes.append("+%d energía" % int(e))
+	var curada := roundi(vida - salud_antes)
+	if curada > 0:
+		partes.append("+%d salud" % curada)
+	if res > 0.0:
+		partes.append("+%d resistencia" % int(res))
+	if not bufo.is_empty():
+		partes.append(str(bufo.get("etiqueta", "bufo activo")))
+	var detalle := " (%s)" % ", ".join(partes) if not partes.is_empty() else ""
+	mensaje_objeto.emit("%s%s" % [Datos.nombre_objeto(id), detalle], id)
 	return true
 
 
@@ -945,6 +1004,7 @@ func subir_amistad(npc: String, n: int) -> void:
 		mensaje.emit("%s te tiene más confianza." % str(Datos.npc(npc).get("nombre", npc)))
 	if n != 0:
 		amistad_cambiada.emit(npc, n)
+	sincronizar_recetas(true)
 
 
 func puntos_amistad(npc: String) -> int:
@@ -1014,6 +1074,301 @@ const SUFIJO_COPIA := ".bak"
 const SUFIJO_DANADA := ".danada"
 
 signal partida_guardada()
+signal habilidad_subida(id: String, nivel_nuevo: int, ventaja: String)
+signal habilidades_cambiadas()
+signal recetas_cambiadas()
+signal bufos_cambiados()
+
+const NIVEL_HABILIDAD_MAX := 10
+const HABILIDADES_ORDEN := ["agricultura", "mineria", "combate", "pesca", "recoleccion"]
+const HABILIDADES_NOMBRES := {
+	"agricultura": "Agricultura",
+	"mineria": "Minería",
+	"combate": "Combate",
+	"pesca": "Pesca",
+	"recoleccion": "Recolección",
+}
+const HABILIDADES_VENTAJAS := {
+	"agricultura": "-3,2 % energía al cultivar y +5 % cosecha doble/nv",
+	"mineria": "-3,2 % energía al picar y +4 % mineral extra/nv",
+	"combate": "+5 salud máxima y +4 % daño cuerpo a cuerpo/nv",
+	"pesca": "-3,2 % energía al pescar y +4 % captura extra o rara/nv",
+	"recoleccion": "+5 % botín silvestre/madera extra y +2 % agilidad/nv",
+}
+const BUFOS_NOMBRES := {
+	"dano": "Fuerza",
+	"defensa": "Templanza",
+	"suerte_minera": "Ojo minero",
+	"velocidad": "Ligereza",
+}
+
+
+func _al_cambiar_partida_h06() -> void:
+	_asegurar_estado_h06(false)
+	habilidades_cambiadas.emit()
+	recetas_cambiadas.emit()
+	bufos_cambiados.emit()
+
+
+func _asegurar_estado_h06(notificar_nuevas: bool = false) -> void:
+	var habs_raw: Variant = banderas.get("habilidades", null)
+	if not (habs_raw is Dictionary):
+		habs_raw = {}
+		banderas["habilidades"] = habs_raw
+	var habs := habs_raw as Dictionary
+	for id: String in HABILIDADES_ORDEN:
+		var reg: Variant = habs.get(id, null)
+		if not (reg is Dictionary):
+			habs[id] = {"nivel": 1, "xp": 0}
+		else:
+			var d := reg as Dictionary
+			d["nivel"] = clampi(int(d.get("nivel", 1)), 1, NIVEL_HABILIDAD_MAX)
+			d["xp"] = maxi(0, int(d.get("xp", 0)))
+	if not (banderas.get("recetas", null) is Array):
+		banderas["recetas"] = []
+	if not (banderas.get("bufos", null) is Dictionary):
+		banderas["bufos"] = {}
+	_recalcular_atributos_h06(false)
+	sincronizar_recetas(notificar_nuevas)
+
+
+func habilidades_estado() -> Dictionary:
+	var habs_raw: Variant = banderas.get("habilidades", null)
+	if not (habs_raw is Dictionary):
+		_asegurar_estado_h06(false)
+		habs_raw = banderas["habilidades"]
+	return habs_raw as Dictionary
+
+
+func nivel_habilidad(id: String) -> int:
+	var est := habilidades_estado()
+	var reg: Dictionary = est.get(id, {}) as Dictionary
+	return clampi(int(reg.get("nivel", 1)), 1, NIVEL_HABILIDAD_MAX)
+
+
+func xp_habilidad(id: String) -> int:
+	var est := habilidades_estado()
+	var reg: Dictionary = est.get(id, {}) as Dictionary
+	return maxi(0, int(reg.get("xp", 0)))
+
+
+func xp_siguiente_nivel(nv: int) -> int:
+	if nv >= NIVEL_HABILIDAD_MAX:
+		return 0
+	return 35 + maxi(0, nv - 1) * 30
+
+
+func ganar_xp_habilidad(id: String, xp: int) -> bool:
+	if xp <= 0 or not HABILIDADES_NOMBRES.has(id):
+		return false
+	var est := habilidades_estado()
+	var reg: Dictionary = est[id] as Dictionary
+	var nv := clampi(int(reg.get("nivel", 1)), 1, NIVEL_HABILIDAD_MAX)
+	if nv >= NIVEL_HABILIDAD_MAX:
+		return false
+	var xp_tot := int(reg.get("xp", 0)) + xp
+	var subio := false
+	while nv < NIVEL_HABILIDAD_MAX:
+		var req := xp_siguiente_nivel(nv)
+		if req <= 0 or xp_tot < req:
+			break
+		xp_tot -= req
+		nv += 1
+		subio = true
+	if nv >= NIVEL_HABILIDAD_MAX:
+		xp_tot = 0
+	reg["nivel"] = nv
+	reg["xp"] = xp_tot
+	if subio:
+		_recalcular_atributos_h06(true)
+		var nom := str(HABILIDADES_NOMBRES.get(id, id))
+		var ventaja := str(HABILIDADES_VENTAJAS.get(id, ""))
+		mensaje.emit("¡Habilidad %s sube a nivel %d! (%s)" % [nom, nv, ventaja])
+		habilidad_subida.emit(id, nv, ventaja)
+	habilidades_cambiadas.emit()
+	return subio
+
+
+func _recalcular_atributos_h06(curar_diferencia: bool) -> void:
+	var habs: Dictionary = banderas.get("habilidades", {}) as Dictionary
+	var comb: Dictionary = habs.get("combate", {}) as Dictionary
+	var nv_comb := clampi(int(comb.get("nivel", 1)), 1, NIVEL_HABILIDAD_MAX)
+	var nueva_max := VIDA_INICIAL + float(nv_comb - 1) * 5.0
+	if not is_equal_approx(vida_max, nueva_max):
+		var delta_v := nueva_max - vida_max
+		vida_max = nueva_max
+		if curar_diferencia and delta_v > 0.0:
+			vida = minf(vida + delta_v, vida_max)
+		else:
+			vida = minf(vida, vida_max)
+		if is_inside_tree():
+			vida_cambiada.emit(vida, vida_max)
+
+
+func factor_energia_habilidad(id: String) -> float:
+	return clampf(1.0 - float(nivel_habilidad(id) - 1) * 0.032, 0.70, 1.0)
+
+
+func bono_suerte_cosecha() -> float:
+	return float(nivel_habilidad("agricultura") - 1) * 0.05
+
+
+func bono_suerte_minera() -> float:
+	return float(nivel_habilidad("mineria") - 1) * 0.04 + valor_bufo("suerte_minera")
+
+
+func bono_dano_combate() -> float:
+	return float(nivel_habilidad("combate") - 1) * 0.04 + valor_bufo("dano")
+
+
+func bono_defensa_total() -> float:
+	return defensa_equipo() + valor_bufo("defensa")
+
+
+func bono_suerte_pesca() -> float:
+	return float(nivel_habilidad("pesca") - 1) * 0.04
+
+
+func bono_suerte_recoleccion() -> float:
+	return float(nivel_habilidad("recoleccion") - 1) * 0.05
+
+
+func bono_velocidad() -> float:
+	return float(nivel_habilidad("recoleccion") - 1) * 0.02 + valor_bufo("velocidad")
+
+
+func recetas_aprendidas() -> Array[String]:
+	if not (banderas.get("recetas", null) is Array):
+		banderas["recetas"] = []
+	var out: Array[String] = []
+	for item: Variant in banderas["recetas"] as Array:
+		var s := str(item)
+		if not s.is_empty() and not out.has(s):
+			out.append(s)
+	return out
+
+
+func tiene_receta(id: String) -> bool:
+	return recetas_aprendidas().has(id)
+
+
+func aprender_receta(id: String, notificar: bool = true) -> bool:
+	if id.is_empty() or not Datos.existe_receta(id):
+		return false
+	if not (banderas.get("recetas", null) is Array):
+		banderas["recetas"] = []
+	var arr := banderas["recetas"] as Array
+	if arr.has(id):
+		return false
+	arr.append(id)
+	recetas_cambiadas.emit()
+	if notificar:
+		var nom := str(Datos.receta(id).get("nombre", id))
+		mensaje_objeto.emit("Nueva receta aprendida: %s." % nom, id)
+	return true
+
+
+func sincronizar_recetas(notificar: bool = true) -> void:
+	var misiones_node := get_node_or_null("/root/Misiones")
+	for r: Dictionary in Datos.recetas():
+		var rid := str(r.get("id", ""))
+		if rid.is_empty() or tiene_receta(rid):
+			continue
+		var orig: Dictionary = r.get("origen", {}) as Dictionary
+		var tipo := str(orig.get("tipo", ""))
+		match tipo:
+			"inicial":
+				aprender_receta(rid, false)
+			"amistad":
+				var npc_id := str(orig.get("npc", ""))
+				var pts := int(orig.get("puntos", 999))
+				if puntos_amistad(npc_id) >= pts:
+					aprender_receta(rid, notificar)
+			"mision":
+				var mid := str(orig.get("mision", ""))
+				if misiones_node != null and misiones_node.has_method("esta_completada") and bool(misiones_node.call("esta_completada", mid)):
+					aprender_receta(rid, notificar)
+
+
+func puede_cocinar(id: String, veces: int = 1) -> bool:
+	if veces <= 0 or not tiene_receta(id):
+		return false
+	var rec := Datos.receta(id)
+	if rec.is_empty():
+		return false
+	for ing: Variant in rec.get("ingredientes", []):
+		if ing is Dictionary:
+			var d := ing as Dictionary
+			if cantidad(str(d.get("id", ""))) < int(d.get("cantidad", 1)) * veces:
+				return false
+	return espacio_para(id) >= veces
+
+
+func cocinar(id: String, veces: int = 1) -> bool:
+	if not puede_cocinar(id, veces):
+		return false
+	var rec := Datos.receta(id)
+	for ing: Variant in rec.get("ingredientes", []):
+		if ing is Dictionary:
+			var d := ing as Dictionary
+			quitar_objeto(str(d.get("id", "")), int(d.get("cantidad", 1)) * veces)
+	anadir_objeto(id, veces)
+	ganar_xp_habilidad("recoleccion", 4 * veces)
+	return true
+
+
+func bufos_activos() -> Dictionary:
+	var raw: Variant = banderas.get("bufos", null)
+	if not (raw is Dictionary):
+		raw = {}
+		banderas["bufos"] = raw
+	return raw as Dictionary
+
+
+func valor_bufo(tipo: String) -> float:
+	var b := bufos_activos()
+	var reg: Variant = b.get(tipo, null)
+	if reg is Dictionary and float((reg as Dictionary).get("restante", 0.0)) > 0.0:
+		return float((reg as Dictionary).get("valor", 0.0))
+	return 0.0
+
+
+func _aplicar_bufo(bufo: Dictionary, origen_nombre: String) -> void:
+	var tipo := str(bufo.get("tipo", ""))
+	if tipo.is_empty():
+		return
+	var b := bufos_activos()
+	b[tipo] = {
+		"valor": float(bufo.get("valor", 0.0)),
+		"restante": maxi(15, int(bufo.get("duracion_min", 180))),
+		"etiqueta": str(bufo.get("etiqueta", BUFOS_NOMBRES.get(tipo, tipo))),
+		"origen": origen_nombre,
+	}
+	bufos_cambiados.emit()
+
+
+func _avanzar_bufos(mins: int) -> void:
+	if mins <= 0:
+		return
+	var raw: Variant = banderas.get("bufos", null)
+	if not (raw is Dictionary) or (raw as Dictionary).is_empty():
+		return
+	var b := raw as Dictionary
+	var expiro := false
+	for k: Variant in b.keys():
+		var reg := b[k] as Dictionary
+		reg["restante"] = int(reg.get("restante", 0)) - mins
+		if int(reg["restante"]) <= 0:
+			b.erase(k)
+			expiro = true
+	if expiro or not b.is_empty():
+		bufos_cambiados.emit()
+
+
+func _limpiar_bufos() -> void:
+	if banderas.get("bufos", {}) is Dictionary and not (banderas["bufos"] as Dictionary).is_empty():
+		banderas["bufos"] = {}
+		bufos_cambiados.emit()
 
 ## Por qué falló la última carga (texto para el jugador) o "" si fue bien.
 var ultimo_error_carga: String = ""

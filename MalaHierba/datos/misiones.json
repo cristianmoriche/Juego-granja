@@ -226,5 +226,34 @@
       {"tipo": "hablar", "objetivo": "anselmo", "cantidad": 1, "texto": "Recoge la escritura de Don Anselmo"}
     ],
     "recompensa": {"dinero": 100, "amistad": 50, "objetos": [{"id": "elixir_sierra", "cantidad": 2}]}
+  },
+  {
+    "id": "p5_sendas_sierra_robledal",
+    "titulo": "Las sendas altas del valle",
+    "quien": "ramon",
+    "estacion": 0,
+    "requiere": "p1_papel_el_granado",
+    "descripcion": "Más allá de las minas y del Bosque del Norte esperan el Robledal de la Niebla y la Sierra del Mirador.",
+    "dialogo_fin": "Qué olor a monte limpio traes hoy, Leo. Con esas setas y hierbas volverá a hervir el caldo en El Candil.",
+    "pasos": [
+      {"tipo": "visitar", "objetivo": "robledal_niebla", "cantidad": 1, "texto": "Explora el Robledal de la Niebla"},
+      {"tipo": "visitar", "objetivo": "sierra_mirador", "cantidad": 1, "texto": "Sube hasta la Sierra del Mirador"},
+      {"tipo": "entregar", "objetivo": "seta_silvestre", "destino": "ramon", "cantidad": 2, "texto": "Lleva 2 setas silvestres a Ramón"}
+    ],
+    "recompensa": {"dinero": 75, "amistad": 30, "objetos": [{"id": "pan", "cantidad": 3}]}
+  },
+  {
+    "id": "v5_ruinas_del_molino",
+    "titulo": "Memorias del Molino Viejo",
+    "quien": "clara",
+    "estacion": 0,
+    "requiere": "p3_luz_en_la_mina",
+    "descripcion": "Clara recuerda la rueda de piedra y los viejos arcos junto al arroyo del sur. Revisa las ruinas y rescata ámbar o cuarzo de la sierra.",
+    "dialogo_fin": "Así que la piedra del molino sigue firme bajo el musgo… Y qué pieza tan hermosa traes para la fragua.",
+    "pasos": [
+      {"tipo": "visitar", "objetivo": "ruinas_valle", "cantidad": 1, "texto": "Visita las Ruinas del Molino Viejo"},
+      {"tipo": "entregar", "objetivo": "hierba_monte", "destino": "clara", "cantidad": 2, "texto": "Entrega 2 manojos de romero de monte a Clara"}
+    ],
+    "recompensa": {"dinero": 80, "amistad": 30, "objetos": [{"id": "cobre", "cantidad": 3}]}
   }
 ]

@@ -123,8 +123,13 @@ func objeto(id: String) -> Dictionary:
 
 func detalle_equipo(o: Dictionary) -> String:
 	if o.get("tipo") == "arma":
+		if o.get("subtipo", "") == "arco":
+			return "Arco · %d daño base · %d m alcance · %d resist./tiro" % [
+				int(o.get("dano", 0)), roundi(float(o.get("alcance", 28.0))), int(o.get("coste", 7))]
 		return "%d de daño · %.2f m de alcance · %d de resistencia por golpe" % [
 			int(o.get("dano", 0)), float(o.get("alcance", 0)), int(o.get("coste", 0))]
+	if o.get("tipo") == "municion":
+		return "Flecha (+%d daño · recup. %d %%)" % [int(o.get("bono_dano", 0)), roundi(float(o.get("recupera", 0.5)) * 100.0)]
 	if o.get("ranura_equipo") == "escudo":
 		return "Bloqueo: reduce el daño frontal un %d %%" % roundi(float(o.get("reduccion", 0)) * 100.0)
 	if o.has("defensa"):
@@ -247,6 +252,60 @@ func interacciones_de(mapa: String) -> Array[Dictionary]:
 	return r
 
 
+var _recetas: Array[Dictionary] = []
+var _recetas_por_id: Dictionary = {}
+
+
+func _asegurar_recetas() -> void:
+	if not _recetas.is_empty():
+		return
+	var raw: Variant = _leer("recetas.json", [])
+	if raw is Array:
+		for item: Variant in raw:
+			if item is Dictionary:
+				var d := item as Dictionary
+				var id := str(d.get("id", ""))
+				if not id.is_empty():
+					_recetas.append(d)
+					_recetas_por_id[id] = d
+
+
+func recetas() -> Array[Dictionary]:
+	_asegurar_recetas()
+	return _recetas
+
+
+func receta(id: String) -> Dictionary:
+	_asegurar_recetas()
+	return _recetas_por_id.get(id, {})
+
+
+func existe_receta(id: String) -> bool:
+	_asegurar_recetas()
+	return _recetas_por_id.has(id)
+
+
+func detalle_comida(id: String) -> String:
+	var rec := receta(id)
+	var o := objeto(id)
+	var partes: Array[String] = []
+	var e := int(rec.get("energia", o.get("energia", 0)))
+	if e > 0:
+		partes.append("+%d energía" % e)
+	var v := int(rec.get("vida", roundi(float(e) * 0.5)))
+	if v > 0:
+		partes.append("+%d salud" % v)
+	var res := int(rec.get("resistencia", 0))
+	if res > 0:
+		partes.append("+%d resistencia" % res)
+	var bufo: Variant = rec.get("bufo", {})
+	if bufo is Dictionary and not (bufo as Dictionary).is_empty():
+		var bd := bufo as Dictionary
+		var mins := int(bd.get("duracion_min", 180))
+		partes.append("%s (%d h)" % [str(bd.get("etiqueta", "")), maxi(1, roundi(float(mins) / 60.0))])
+	return " · ".join(partes)
+
+
 ## Mejora de herramienta que lleva a `nivel` (1..3): nivel, nombre, dinero, material, cantidad. Vacío si no hay.
 func mejora(herramienta: String, nivel: int) -> Dictionary:
 	var lista: Array = _mejoras.get(herramienta, [])
@@ -277,6 +336,8 @@ var _iconos_reales: Dictionary = {}
 
 ## Id de ilustración para la herramienta y su metal; el resto conserva su propio id.
 func id_icono(id: String, nivel: int = 0) -> String:
+	if id.begins_with("receta:"):
+		return id.trim_prefix("receta:")
 	if objeto(id).get("tipo", "") == "herramienta" and nivel > 0:
 		var m := mejora(id, nivel)
 		if not m.is_empty():
@@ -286,21 +347,23 @@ func id_icono(id: String, nivel: int = 0) -> String:
 
 ## Icono transparente compartido. El cuadro de reserva solo se usa si falta el archivo.
 func icono(id: String) -> Texture2D:
-	if _iconos.has(id):
-		return _iconos[id]
-	var tex := _cargar_icono_archivo(id)
-	_iconos_reales[id] = tex != null
+	var clave := id.trim_prefix("receta:") if id.begins_with("receta:") else id
+	if _iconos.has(clave):
+		return _iconos[clave]
+	var tex := _cargar_icono_archivo(clave)
+	_iconos_reales[clave] = tex != null
 	if tex == null:
-		tex = _icono_de_color(color_objeto(id))
-	_iconos[id] = tex
+		tex = _icono_de_color(color_objeto(clave))
+	_iconos[clave] = tex
 	return tex
 
 
 ## true si hay un archivo de ilustración para ese objeto o variante.
 func tiene_icono(id: String) -> bool:
-	if not _iconos_reales.has(id):
-		icono(id)
-	return bool(_iconos_reales[id])
+	var clave := id.trim_prefix("receta:") if id.begins_with("receta:") else id
+	if not _iconos_reales.has(clave):
+		icono(clave)
+	return bool(_iconos_reales[clave])
 
 
 ## Olvida los iconos cargados (por si se añaden archivos con el juego en marcha).

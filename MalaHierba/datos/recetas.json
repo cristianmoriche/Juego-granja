@@ -1,0 +1,319 @@
+[
+  {
+    "id": "patatas_asadas",
+    "nombre": "Patatas asadas al romero",
+    "modelo_mano": "plato_comida",
+    "categoria": "campo",
+    "descripcion": "Patatas doradas al rescoldo con romero de monte y un hilo de aceite.",
+    "ingredientes": [
+      {"id": "patata", "cantidad": 1},
+      {"id": "hierba_monte", "cantidad": 1}
+    ],
+    "energia": 45,
+    "vida": 18,
+    "resistencia": 25,
+    "bufo": {},
+    "origen": {"tipo": "inicial"},
+    "pista_origen": "Receta básica de la cabaña."
+  },
+  {
+    "id": "salteado_setas",
+    "nombre": "Salteado de setas y ajo",
+    "modelo_mano": "plato_comida",
+    "categoria": "monte",
+    "descripcion": "Níscalos y boletus salteados en sartén de hierro con ajo picado.",
+    "ingredientes": [
+      {"id": "seta_silvestre", "cantidad": 2},
+      {"id": "ajo", "cantidad": 1}
+    ],
+    "energia": 50,
+    "vida": 22,
+    "resistencia": 35,
+    "bufo": {"tipo": "dano", "valor": 0.20, "duracion_min": 180, "etiqueta": "+20 % daño"},
+    "origen": {"tipo": "inicial"},
+    "pista_origen": "Receta básica de la cabaña."
+  },
+  {
+    "id": "sopa_ajo",
+    "nombre": "Sopa castellana de ajo",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "campo",
+    "descripcion": "Caldo humeante de ajo dorado y zanahoria que entona el cuerpo.",
+    "ingredientes": [
+      {"id": "ajo", "cantidad": 2},
+      {"id": "zanahoria", "cantidad": 1}
+    ],
+    "energia": 48,
+    "vida": 24,
+    "resistencia": 30,
+    "bufo": {"tipo": "defensa", "valor": 12.0, "duracion_min": 180, "etiqueta": "+12 defensa"},
+    "origen": {"tipo": "inicial"},
+    "pista_origen": "Receta básica de la cabaña."
+  },
+  {
+    "id": "compota_moras",
+    "nombre": "Compota de moras",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "monte",
+    "descripcion": "Cuenco dulce de moras silvestres cocidas a fuego lento para aligerar el paso.",
+    "ingredientes": [
+      {"id": "mora_silvestre", "cantidad": 3}
+    ],
+    "energia": 42,
+    "vida": 15,
+    "resistencia": 60,
+    "bufo": {"tipo": "velocidad", "valor": 0.12, "duracion_min": 150, "etiqueta": "+12 % velocidad"},
+    "origen": {"tipo": "inicial"},
+    "pista_origen": "Receta básica de la cabaña."
+  },
+  {
+    "id": "crema_calabaza",
+    "nombre": "Crema de calabaza",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "campo",
+    "descripcion": "Puré espeso de calabaza asada y zanahoria dulce. Protege de los golpes.",
+    "ingredientes": [
+      {"id": "calabaza", "cantidad": 1},
+      {"id": "zanahoria", "cantidad": 1}
+    ],
+    "energia": 68,
+    "vida": 32,
+    "resistencia": 40,
+    "bufo": {"tipo": "defensa", "valor": 18.0, "duracion_min": 240, "etiqueta": "+18 defensa"},
+    "origen": {"tipo": "tienda", "tienda": "tienda_mateo", "precio": 80},
+    "pista_origen": "A la venta en Ultramarinos de Don Mateo (80 €)."
+  },
+  {
+    "id": "boniato_miel",
+    "nombre": "Boniato con moras",
+    "modelo_mano": "plato_comida",
+    "categoria": "campo",
+    "descripcion": "Boniato tierno caramelizado con reducción de moras de zarza.",
+    "ingredientes": [
+      {"id": "boniato", "cantidad": 2},
+      {"id": "mora_silvestre", "cantidad": 2}
+    ],
+    "energia": 62,
+    "vida": 24,
+    "resistencia": 75,
+    "bufo": {"tipo": "velocidad", "valor": 0.16, "duracion_min": 210, "etiqueta": "+16 % velocidad"},
+    "origen": {"tipo": "tienda", "tienda": "tienda_mateo", "precio": 90},
+    "pista_origen": "A la venta en Ultramarinos de Don Mateo (90 €)."
+  },
+  {
+    "id": "trucha_hierbas",
+    "nombre": "Trucha a las hierbas",
+    "modelo_mano": "plato_comida",
+    "categoria": "pescado",
+    "descripcion": "Trucha de río a la plancha rellena de romero silvestre y patata panadera.",
+    "ingredientes": [
+      {"id": "trucha", "cantidad": 1},
+      {"id": "hierba_monte", "cantidad": 1},
+      {"id": "patata", "cantidad": 1}
+    ],
+    "energia": 66,
+    "vida": 30,
+    "resistencia": 45,
+    "bufo": {"tipo": "velocidad", "valor": 0.14, "duracion_min": 210, "etiqueta": "+14 % velocidad"},
+    "origen": {"tipo": "tienda", "tienda": "taberna", "precio": 75},
+    "pista_origen": "A la venta en la Taberna de Ramón (75 €)."
+  },
+  {
+    "id": "carpa_glaseada",
+    "nombre": "Carpa glaseada",
+    "modelo_mano": "plato_comida",
+    "categoria": "pescado",
+    "descripcion": "Carpa asada al horno con pimiento rojo y boniato.",
+    "ingredientes": [
+      {"id": "carpa", "cantidad": 1},
+      {"id": "pimiento", "cantidad": 1},
+      {"id": "boniato", "cantidad": 1}
+    ],
+    "energia": 60,
+    "vida": 35,
+    "resistencia": 45,
+    "bufo": {"tipo": "dano", "valor": 0.24, "duracion_min": 210, "etiqueta": "+24 % daño"},
+    "origen": {"tipo": "tienda", "tienda": "taberna", "precio": 95},
+    "pista_origen": "A la venta en la Taberna de Ramón (95 €)."
+  },
+  {
+    "id": "tonico_explorador",
+    "nombre": "Tónico del explorador",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "monte",
+    "descripcion": "Decocción vigorosa de monte y raíces que afina la vista ante las vetas.",
+    "ingredientes": [
+      {"id": "hierba_monte", "cantidad": 1},
+      {"id": "mora_silvestre", "cantidad": 2},
+      {"id": "nabo", "cantidad": 1}
+    ],
+    "energia": 75,
+    "vida": 40,
+    "resistencia": 90,
+    "bufo": {"tipo": "suerte_minera", "valor": 0.25, "duracion_min": 270, "etiqueta": "+25 % suerte minera"},
+    "origen": {"tipo": "tienda", "tienda": "comerciante_ambulante", "precio": 140},
+    "pista_origen": "Lo vende el mercader ambulante en la plaza (140 €)."
+  },
+  {
+    "id": "caldo_montanes",
+    "nombre": "Caldo montañés",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "campo",
+    "descripcion": "Receta tradicional de Ramón con nabo, col y zanahoria a fuego vivo.",
+    "ingredientes": [
+      {"id": "nabo", "cantidad": 1},
+      {"id": "col", "cantidad": 1},
+      {"id": "zanahoria", "cantidad": 1}
+    ],
+    "energia": 60,
+    "vida": 34,
+    "resistencia": 50,
+    "bufo": {"tipo": "defensa", "valor": 16.0, "duracion_min": 240, "etiqueta": "+16 defensa"},
+    "origen": {"tipo": "amistad", "npc": "ramon", "puntos": 40},
+    "pista_origen": "Hazte amigo de Ramón (40 de amistad)."
+  },
+  {
+    "id": "estofado_otono",
+    "nombre": "Estofado de otoño",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "festin",
+    "descripcion": "Puchero contundente de calabaza, col y setas que aguanta una jornada entera.",
+    "ingredientes": [
+      {"id": "calabaza", "cantidad": 1},
+      {"id": "col", "cantidad": 1},
+      {"id": "seta_silvestre", "cantidad": 1}
+    ],
+    "energia": 88,
+    "vida": 48,
+    "resistencia": 60,
+    "bufo": {"tipo": "defensa", "valor": 24.0, "duracion_min": 300, "etiqueta": "+24 defensa"},
+    "origen": {"tipo": "amistad", "npc": "ramon", "puntos": 100},
+    "pista_origen": "Consigue la confianza de Ramón (100 de amistad)."
+  },
+  {
+    "id": "guiso_minero",
+    "nombre": "Guiso del minero",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "monte",
+    "descripcion": "Olla espesa de patata, ajo y setas que Tomás prepara junto a la bocamina.",
+    "ingredientes": [
+      {"id": "patata", "cantidad": 2},
+      {"id": "ajo", "cantidad": 1},
+      {"id": "seta_silvestre", "cantidad": 1}
+    ],
+    "energia": 70,
+    "vida": 35,
+    "resistencia": 55,
+    "bufo": {"tipo": "suerte_minera", "valor": 0.20, "duracion_min": 240, "etiqueta": "+20 % suerte minera"},
+    "origen": {"tipo": "amistad", "npc": "tomas", "puntos": 40},
+    "pista_origen": "Hazte amigo de Tomás en la mina (40 de amistad)."
+  },
+  {
+    "id": "revuelto_espinacas",
+    "nombre": "Revuelto de espinacas y setas",
+    "modelo_mano": "plato_comida",
+    "categoria": "campo",
+    "descripcion": "Hojas frescas de espinaca salteadas con boletus y ajo dorado.",
+    "ingredientes": [
+      {"id": "espinaca", "cantidad": 3},
+      {"id": "ajo", "cantidad": 1},
+      {"id": "seta_silvestre", "cantidad": 1}
+    ],
+    "energia": 65,
+    "vida": 30,
+    "resistencia": 50,
+    "bufo": {"tipo": "dano", "valor": 0.22, "duracion_min": 210, "etiqueta": "+22 % daño"},
+    "origen": {"tipo": "amistad", "npc": "mateo", "puntos": 50},
+    "pista_origen": "Hazte amigo de Don Mateo (50 de amistad)."
+  },
+  {
+    "id": "perca_al_horno",
+    "nombre": "Perca al horno de fragua",
+    "modelo_mano": "plato_comida",
+    "categoria": "pescado",
+    "descripcion": "Lomos de perca asados con romero y pimientos sobre piedra caliente.",
+    "ingredientes": [
+      {"id": "perca", "cantidad": 1},
+      {"id": "hierba_monte", "cantidad": 1},
+      {"id": "pimiento", "cantidad": 1}
+    ],
+    "energia": 76,
+    "vida": 42,
+    "resistencia": 55,
+    "bufo": {"tipo": "dano", "valor": 0.28, "duracion_min": 240, "etiqueta": "+28 % daño"},
+    "origen": {"tipo": "amistad", "npc": "clara", "puntos": 60},
+    "pista_origen": "Gana la confianza de Clara en la fragua (60 de amistad)."
+  },
+  {
+    "id": "arroz_del_valle",
+    "nombre": "Arroz de la huerta",
+    "modelo_mano": "plato_comida",
+    "categoria": "campo",
+    "descripcion": "Sartén alegre de habas tiernas, tomate frito y pimiento de verano.",
+    "ingredientes": [
+      {"id": "haba", "cantidad": 2},
+      {"id": "tomate", "cantidad": 2},
+      {"id": "pimiento", "cantidad": 1}
+    ],
+    "energia": 54,
+    "vida": 28,
+    "resistencia": 45,
+    "bufo": {"tipo": "velocidad", "valor": 0.15, "duracion_min": 180, "etiqueta": "+15 % velocidad"},
+    "origen": {"tipo": "mision", "mision": "p4_mesa_en_el_candil"},
+    "pista_origen": "Completa el encargo «El primer guiso del año»."
+  },
+  {
+    "id": "infusion_sierra",
+    "nombre": "Infusión de la sierra",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "monte",
+    "descripcion": "Té aromático de romero de monte y moras negras que despeja la fatiga.",
+    "ingredientes": [
+      {"id": "hierba_monte", "cantidad": 2},
+      {"id": "mora_silvestre", "cantidad": 2}
+    ],
+    "energia": 68,
+    "vida": 36,
+    "resistencia": 100,
+    "bufo": {"tipo": "velocidad", "valor": 0.18, "duracion_min": 240, "etiqueta": "+18 % velocidad"},
+    "origen": {"tipo": "mision", "mision": "v1_tomates_sol"},
+    "pista_origen": "Completa el encargo «Salsa para la plaza»."
+  },
+  {
+    "id": "puchero_azafran",
+    "nombre": "Puchero dorado de azafrán",
+    "modelo_mano": "cuenco_guiso",
+    "categoria": "festin",
+    "descripcion": "Guiso fino perfumado con hebras de azafrán, patata y habas del valle.",
+    "ingredientes": [
+      {"id": "azafran", "cantidad": 1},
+      {"id": "patata", "cantidad": 1},
+      {"id": "haba", "cantidad": 1}
+    ],
+    "energia": 92,
+    "vida": 52,
+    "resistencia": 70,
+    "bufo": {"tipo": "suerte_minera", "valor": 0.30, "duracion_min": 300, "etiqueta": "+30 % suerte minera"},
+    "origen": {"tipo": "mision", "mision": "o1_calabazas_feria"},
+    "pista_origen": "Completa el encargo «Calabazas para el otoño»."
+  },
+  {
+    "id": "banquete_el_granado",
+    "nombre": "Banquete de El Granado",
+    "modelo_mano": "plato_comida",
+    "categoria": "festin",
+    "descripcion": "Plato ceremonial de la abuela Rosa con trucha, setas, melón y azafrán.",
+    "ingredientes": [
+      {"id": "melon", "cantidad": 1},
+      {"id": "trucha", "cantidad": 1},
+      {"id": "seta_silvestre", "cantidad": 1},
+      {"id": "azafran", "cantidad": 1}
+    ],
+    "energia": 100,
+    "vida": 80,
+    "resistencia": 100,
+    "bufo": {"tipo": "dano", "valor": 0.35, "duracion_min": 360, "etiqueta": "+35 % daño"},
+    "origen": {"tipo": "mision", "mision": "p5_sendas_sierra_robledal"},
+    "pista_origen": "Completa la expedición «Las sendas altas del valle»."
+  }
+]

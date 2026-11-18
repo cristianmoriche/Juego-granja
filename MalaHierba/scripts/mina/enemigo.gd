@@ -104,6 +104,7 @@ var _dir_ataque := Vector3.FORWARD
 var _pausa_animacion := 0.0
 var _retirada_jefe_hecha := false
 var _t_retirada_jefe := 0.0
+var _t_zigzag_flecha := 0.0
 
 
 static func cargar_definiciones() -> Array[Dictionary]:
@@ -447,6 +448,7 @@ func _physics_process(delta: float) -> void:
 			_recuperar(0.4)
 		return
 	_instinto.percibir(self, obj, delta)
+	_t_zigzag_flecha = maxf(0.0, _t_zigzag_flecha - delta)
 	var dist := _dist_horizontal(obj)
 	match estado:
 		Estado.GOLPEADO:
@@ -528,7 +530,13 @@ func _physics_process(delta: float) -> void:
 		return
 	estado = Estado.PERSECUCION
 	var factor := _factor_salto(delta) if tipo == "saltador" else 1.0
-	_instinto.paso(self, _instinto.rastro, delta, velocidad * factor)
+	var destino := _instinto.rastro
+	if _t_zigzag_flecha > 0.0 and dist > 4.2 and not es_jefe:
+		var hacia := (destino - global_position).slide(Vector3.UP)
+		if hacia.length_squared() > 0.04:
+			var lateral := Vector3(-hacia.z, 0.0, hacia.x).normalized()
+			destino += lateral * sin(_t_bob * 5.2) * 2.2
+	_instinto.paso(self, destino, delta, velocidad * factor)
 	reproducir("volar" if tipo == "volador" else ("andar" if velocity.length_squared() > 0.04 else "reposo"))
 
 
@@ -963,11 +971,17 @@ func desequilibrar(segundos: float) -> void:
 	reproducir("golpeado", 0.05)
 
 
+func reaccionar_flechazo(origen: Vector3) -> void:
+	_t_zigzag_flecha = 4.5
+	_instinto.recordar(origen)
+
+
 func morir() -> void:
 	if muerto:
 		return
 	muerto = true
 	activo = false
+	Juego.ganar_xp_habilidad("combate", 60 if es_jefe else 24)
 	estado = Estado.LIBRE
 	_aplicar_estado_activo()
 	remove_from_group("usable")

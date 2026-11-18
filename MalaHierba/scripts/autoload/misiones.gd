@@ -54,6 +54,7 @@ func _al_cambiar_partida() -> void:
 
 
 func _al_cargar_mapa(id_mapa: String) -> void:
+	registrar_visita(id_mapa)
 	if id_mapa == "mina_interior":
 		var nivel := int(Juego.banderas.get("nivel_mina", 1))
 		registrar_nivel_mina(nivel)
@@ -204,6 +205,9 @@ func progreso_paso(id: String) -> Vector2i:
 			return Vector2i(mini(Juego.deuda_pagada(), total), total)
 		"hablar":
 			return Vector2i(mini(int(est.get("progreso", 0)), 1), 1)
+		"visitar":
+			var visitadas: Dictionary = Juego.banderas.get("zonas_visitadas", {}) as Dictionary
+			return Vector2i(1 if bool(visitadas.get(obj, false)) else 0, 1)
 	return Vector2i(0, total)
 
 
@@ -255,6 +259,16 @@ func registrar_nivel_mina(nivel: int) -> void:
 	var prev := int(Juego.banderas.get("mina_max_nivel", 0))
 	if nivel > prev:
 		Juego.banderas["mina_max_nivel"] = nivel
+	sincronizar(true)
+
+
+func registrar_visita(id_mapa: String) -> void:
+	if id_mapa.is_empty():
+		return
+	var raw: Variant = Juego.banderas.get("zonas_visitadas", {})
+	var dic: Dictionary = raw as Dictionary if raw is Dictionary else {}
+	dic[id_mapa] = true
+	Juego.banderas["zonas_visitadas"] = dic
 	sincronizar(true)
 
 
@@ -338,6 +352,9 @@ func _evaluar_pasos_pasivos_de(id: String) -> void:
 			cumplido = int(Juego.banderas.get("mina_max_nivel", 0)) >= cant
 		elif tipo == "pagar_deuda":
 			cumplido = Juego.deuda_pagada() >= cant
+		elif tipo == "visitar":
+			var visitadas: Dictionary = Juego.banderas.get("zonas_visitadas", {}) as Dictionary
+			cumplido = bool(visitadas.get(str(p.get("objetivo", "")), false))
 		if not cumplido:
 			break
 		_avanzar_paso(id, false)

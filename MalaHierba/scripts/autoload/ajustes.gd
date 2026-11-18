@@ -154,7 +154,7 @@ func texto_tecla(accion: String) -> String:
 
 func pista(accion: String) -> String:
 	if ultimo_mando:
-		return str({"interactuar": "A", "inventario": "Y", "usar": "X", "saltar": "RT", "bloquear": "LT", "esquivar": "B / Círculo", "fijar_objetivo": "R3", "pausa": "Start", "mapa": "View", "correr": "L3", "agachar": "LB", "alternar_vista": "Cruceta arriba", "decorar": "Cruceta abajo", "cerrar_tutorial": "RB"}.get(accion, texto_tecla(accion)))
+		return str({"interactuar": "A", "inventario": "Y", "usar": "X", "saltar": "RT", "bloquear": "LT", "esquivar": "B / Círculo", "fijar_objetivo": "R3", "pausa": "Start", "mapa": "View", "correr": "L3", "agachar": "LB", "alternar_vista": "Cruceta arriba", "decorar": "Cruceta abajo", "cerrar_tutorial": "RB", "modo_foto": "Capturar / Pausa"}.get(accion, texto_tecla(accion)))
 	if accion == "usar" and not teclas.has(accion):
 		return "Clic"
 	return texto_tecla(accion).split(" / ")[0]
@@ -323,5 +323,6 @@ func _crear_mando() -> void:
 	_boton_mando("ui_accept", JOY_BUTTON_A)
 	_boton_mando("decorar", JOY_BUTTON_DPAD_DOWN)
 	_boton_mando("fijar_objetivo", JOY_BUTTON_RIGHT_STICK)
+	_boton_mando("modo_foto", JOY_BUTTON_MISC1)
 	_eje_mando("bloquear", JOY_AXIS_TRIGGER_LEFT, 1.0)
 	_eje_mando("saltar", JOY_AXIS_TRIGGER_RIGHT, 1.0)

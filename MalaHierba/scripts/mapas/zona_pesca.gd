@@ -45,15 +45,25 @@ func usar(id: String, punto: Vector3, _jugador: Node3D) -> bool:
 	var d := Vector2(punto.x - _punto_pesca.x, punto.z - _punto_pesca.z).length()
 	if d > radio_uso:
 		return false
-	if not Juego.gastar_energia(ENERGIA_PESCA):
+	if not Juego.gastar_energia(ENERGIA_PESCA * Juego.factor_energia_habilidad("pesca")):
 		Interfaz.mensaje("No te quedan fuerzas para seguir pescando hoy.")
 		return true
 	Juego.banderas["pesca_habilitada"] = true
 	var m := _mapa()
-	var tabla := ["trucha", "trucha", "carpa", "perca"] if (m != null and m.id_mapa == "bosque_norte") else ["perca", "carpa", "perca", "trucha"]
+	var id_m := m.id_mapa if m != null else ""
+	var tabla := ["trucha", "trucha", "carpa", "perca"]
+	if id_m == "costa_lago":
+		tabla = ["perca", "carpa", "perca", "trucha"]
+	elif id_m == "robledal_niebla":
+		tabla = ["trucha", "carpa", "trucha", "carpa"]
+	elif id_m == "ruinas_valle":
+		tabla = ["carpa", "trucha", "perca", "carpa"]
 	var pez: String = tabla[randi() % tabla.size()]
 	Juego.anadir_objeto(pez, 1)
 	TareasDiarias.registrar_progreso("pescar", 1)
+	Juego.ganar_xp_habilidad("pesca", 24 if pez == "perca" else 18)
+	if randf() < Juego.bono_suerte_pesca() and Juego.espacio_para(pez) > 0:
+		Juego.anadir_objeto(pez, 1)
 	var nom := str(Datos.objeto(pez).get("nombre", pez))
 	Interfaz.mensaje("¡Buena picada! Has pescado %s." % nom, pez)
 	return true

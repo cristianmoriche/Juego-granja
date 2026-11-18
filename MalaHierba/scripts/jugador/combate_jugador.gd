@@ -21,6 +21,10 @@ var objetivo_fijado: Enemigo
 var objetivo_mostrado: Enemigo
 var _indicaba_fijado := false
 var bloqueando := false
+var apuntando_arco := false
+var tension_arco := 0.0
+var _arco_temblor := 0.0
+var _cadencia_arco := 0.0
 var combo := 0
 var cargado := false
 var tiempo_esquiva := 0.0
@@ -66,11 +70,28 @@ func _arma_activa(id: String) -> Dictionary:
 	return {}
 
 
+func es_arco_activo() -> bool:
+	var id := str(Juego.objeto_activo().get("id", ""))
+	return str(Datos.objeto(id).get("subtipo", "")) == "arco"
+
+
 func preparar_ataque(id: String, colision: Node) -> bool:
 	var arma := _arma_activa(id)
 	if arma.is_empty() or (Datos.objeto(id).get("tipo") != "arma" and not (colision is Enemigo or is_instance_valid(objetivo_fijado))):
 		return false
 	if tiempo_esquiva > 0.0 or _t_reaccion > 0.0 or bloqueando or Juego.vida <= 0.0:
+		return true
+	if str(arma.get("subtipo", "")) == "arco":
+		if _cadencia_arco > 0.0:
+			return true
+		if Juego.total_flechas() <= 0:
+			Interfaz.mensaje("No te quedan flechas para el arco.")
+			Audio.reproducir("ui_error")
+			return true
+		_seleccion = id
+		_t_carga = 0.0
+		tension_arco = 0.0
+		Audio.reproducir("arco_tensar")
 		return true
 	_seleccion = id
 	_t_carga = 0.0
@@ -82,11 +103,60 @@ func soltar_ataque() -> bool:
 		return false
 	var espera := _t_carga
 	_t_carga = -1.0
+	if str(Datos.objeto(_seleccion).get("subtipo", "")) == "arco":
+		_disparar_flecha(espera)
+		return true
 	if _ciclo > 0.0:
 		_siguiente = not cargado and combo < 3
 	elif not ocupado() and not bloqueando:
 		_iniciar_golpe(espera >= TIEMPO_CARGA)
 	return true
+
+
+func _disparar_flecha(_espera: float) -> Flecha:
+	var t_ten := clampf(tension_arco, 0.16, 1.0)
+	var temblor := _arco_temblor
+	tension_arco = 0.0
+	_arco_temblor = 0.0
+	var arma := _arma_activa(_seleccion)
+	if arma.is_empty() or Juego.objeto_activo().get("id", "") != _seleccion:
+		return null
+	var id_flecha := Juego.municion_disponible()
+	if id_flecha.is_empty():
+		return null
+	if not Juego.gastar_resistencia(float(arma.get("coste", 7.0))):
+		return null
+	if not Juego.quitar_objeto(id_flecha, 1):
+		return null
+
+	_cadencia_arco = 0.25
+	var origen := leo.punto_salida_flecha()
+	var mira := leo.camara.direccion_mira()
+	var ojo := leo.camara.camara.global_position
+	var toque := leo.camara.rayo_central(MASCARA_CONTACTO, 72.0)
+	var blanco: Vector3 = toque.get("position", ojo + mira * 46.0)
+	var dir_tiro := (blanco - origen).normalized()
+	if dir_tiro.dot(mira) < 0.1:
+		dir_tiro = mira
+
+	var disp := (0.002 if apuntando_arco else 0.016) + temblor
+	dir_tiro = (dir_tiro + Vector3(randf_range(-disp, disp), randf_range(-disp, disp), randf_range(-disp, disp))).normalized()
+
+	var vel_esc := lerpf(19.0, 39.0, t_ten) * float(Datos.objeto(id_flecha).get("velocidad", 1.0))
+	if _seleccion == "arco_cristal":
+		vel_esc *= 1.15
+	var dano_tiro := float(arma["dano"]) * lerpf(0.48, 1.62, t_ten) * (1.0 + Juego.bono_dano_combate())
+
+	var flecha := Flecha.new()
+	var mapa_n := leo.get_tree().get_first_node_in_group("mapa")
+	var padre: Node = mapa_n if mapa_n != null else leo.get_parent()
+	padre.add_child(flecha)
+	var rids: Array[RID] = [leo.get_rid()]
+	flecha.configurar(origen, dir_tiro * vel_esc, id_flecha, dano_tiro, rids)
+	Audio.reproducir("arco_soltar")
+	Audio.reproducir("flecha_aire")
+	leo.camara.sacudir(0.016, 0.09)
+	return flecha
 
 
 func _iniciar_golpe(fuerte: bool) -> void:
@@ -192,6 +262,7 @@ func recibir_ataque(cantidad: float, atacante: Enemigo, origen: Vector3, admite_
 		if admite_parada and _t_guardia <= TIEMPO_PARADA and Juego.gastar_resistencia(6.0):
 			if is_instance_valid(atacante):
 				atacante.desequilibrar(0.95)
+			Juego.ganar_xp_habilidad("combate", 12)
 			Audio.reproducir("combate_parada")
 			leo.animar_combate("combate_parada", 0.25)
 			leo.camara.sacudir(0.025, 0.13)
@@ -218,7 +289,7 @@ func recibir_ataque(cantidad: float, atacante: Enemigo, origen: Vector3, admite_
 
 
 func _restar_salud(cantidad: float) -> void:
-	var defensa := Juego.defensa_equipo()
+	var defensa := Juego.bono_defensa_total()
 	Juego.recibir_dano(cantidad * 45.0 / (45.0 + defensa))
 
 
@@ -230,14 +301,21 @@ func _cancelar_ataque() -> void:
 
 
 func actualizar(delta: float, libre: bool, guardia_pulsada: bool) -> void:
+	_cadencia_arco = maxf(0.0, _cadencia_arco - delta)
 	if not libre:
 		_cancelar_ataque()
 		bloqueando = false
+		apuntando_arco = false
+		leo.camara.apuntando_arco = false
+		tension_arco = 0.0
+		_arco_temblor = 0.0
 		tiempo_esquiva = 0.0
 		retroceso = Vector3.ZERO
 		_pausa_impacto = 0.0
 		_mostrar_objetivo(null)
 		return
+	apuntando_arco = es_arco_activo() and guardia_pulsada and _t_reaccion <= 0.0
+	leo.camara.apuntando_arco = apuntando_arco
 	_t_reaccion = maxf(0.0, _t_reaccion - delta)
 	retroceso = retroceso.move_toward(Vector3.ZERO, 13.0 * delta)
 	tiempo_esquiva = maxf(0.0, tiempo_esquiva - delta)
@@ -249,10 +327,24 @@ func actualizar(delta: float, libre: bool, guardia_pulsada: bool) -> void:
 	if _t_carga >= 0.0:
 		if _seleccion != Juego.objeto_activo().get("id", ""):
 			_t_carga = -1.0
+			tension_arco = 0.0
+			_arco_temblor = 0.0
 		else:
 			_t_carga += delta
-			if _ciclo <= 0.0 and _t_carga >= TIEMPO_CARGA:
+			if str(Datos.objeto(_seleccion).get("subtipo", "")) == "arco":
+				var carcaj_id := str(Juego.equipo.get("carcaj", ""))
+				var vel_c := 1.0 + (float(Datos.objeto(carcaj_id).get("velocidad_carga", 0.0)) if not carcaj_id.is_empty() else 0.0)
+				tension_arco = clampf(_t_carga / (0.78 / vel_c), 0.0, 1.0)
+				leo.direccion = _frente()
+				if _t_carga > 2.2:
+					_arco_temblor = clampf((_t_carga - 2.2) * 0.025, 0.0, 0.035)
+					if not Juego.gastar_resistencia(6.5 * delta):
+						soltar_ataque()
+			elif _ciclo <= 0.0 and _t_carga >= TIEMPO_CARGA:
 				soltar_ataque()
+	else:
+		tension_arco = 0.0
+		_arco_temblor = 0.0
 	_actualizar_guardia(delta, guardia_pulsada and _t_carga < 0.0)
 	if _ciclo > 0.0 and _seleccion != Juego.objeto_activo().get("id", ""):
 		_cancelar_ataque()
@@ -276,6 +368,11 @@ func actualizar(delta: float, libre: bool, guardia_pulsada: bool) -> void:
 
 
 func _actualizar_guardia(delta: float, pulsada: bool) -> void:
+	if es_arco_activo():
+		bloqueando = false
+		if apuntando_arco:
+			leo.direccion = _frente()
+		return
 	if not pulsada:
 		_guardia_agotada = false
 	if not pulsada or ocupado() or _guardia_agotada:
@@ -361,8 +458,10 @@ func _contacto(desde: float, hasta: float, comienza: bool) -> void:
 		if enemigo == null or _golpeados.has(enemigo.get_instance_id()):
 			continue
 		var empuje := (enemigo.global_position - leo.global_position).slide(Vector3.UP).normalized()
-		if enemigo.recibir_golpe(float(_arma["dano"]) * escala, empuje, rompe, aturde, toque.position):
+		var dano_total := float(_arma["dano"]) * escala * (1.0 + Juego.bono_dano_combate())
+		if enemigo.recibir_golpe(dano_total, empuje, rompe, aturde, toque.position):
 			_golpeados[enemigo.get_instance_id()] = true
+			Juego.ganar_xp_habilidad("combate", 5)
 			impacto = true
 	if impacto:
 		_pausa_impacto = 0.067 if cargado else 0.058

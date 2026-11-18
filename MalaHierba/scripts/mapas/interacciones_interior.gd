@@ -121,6 +121,10 @@ func ejecutar_accion(accion: String, d: Dictionary = {}) -> String:
 		if Interfaz.has_method("abrir_carpinteria"):
 			Interfaz.call("abrir_carpinteria")
 		return "carpinteria"
+	if accion == "cocina":
+		if Interfaz.has_method("abrir_cocina"):
+			Interfaz.call("abrir_cocina", "Cocina de leña")
+		return "cocina"
 	if accion == "dormir":
 		Interfaz.preguntar("¿Dormir hasta mañana?", ["Dormir", "Todavía no"], func(i: int) -> void:
 			if i == 0:

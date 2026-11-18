@@ -133,6 +133,11 @@ func _leer_zonas(mapa: Node) -> Array[Dictionary]:
 	marcas.sort_custom(func(a: Marker3D, b: Marker3D) -> bool: return str(a.name) < str(b.name))
 	var res: Array[Dictionary] = []
 	for m in marcas:
+		var nom := str(m.name)
+		if nom == "Zona_Cultivo_4" and not bool(Juego.banderas.get("parcela_este_abierta", false)):
+			continue
+		if nom == "Zona_Cultivo_5" and not bool(Juego.banderas.get("parcela_oeste_abierta", false)):
+			continue
 		var tam: Vector2 = m.get_meta("tam", RESERVA_TAM)
 		var b := m.global_transform.basis
 		var z := {
@@ -146,6 +151,11 @@ func _leer_zonas(mapa: Node) -> Array[Dictionary]:
 	if res.is_empty():
 		res.append(_zona_de_reserva(mapa))
 	return res
+
+
+## Reconstruye la rejilla tras desbloquear parcelas adicionales en H05.
+func reconstruir_desde_h05() -> void:
+	construir()
 
 
 ## Sin zonas en el mapa: 10 × 8 m delante de `Spawn_Protagonista` (o del jugador si tampoco hay).

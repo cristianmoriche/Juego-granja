@@ -19,7 +19,7 @@ var _b_comer: Button
 var _b_cerrar: Button
 var _b_equipo: Button
 var _puestos: Dictionary = {}
-const NOMBRES_EQUIPO := {"escudo": "Escudo", "casco": "Casco", "peto": "Peto", "botas": "Botas"}
+const NOMBRES_EQUIPO := {"escudo": "Escudo", "casco": "Casco", "peto": "Peto", "botas": "Botas", "luz": "Luz", "carcaj": "Carcaj"}
 
 
 func _init() -> void:
@@ -150,7 +150,8 @@ func refrescar() -> void:
 		var b := _puestos[sitio] as Button
 		var id := str(Juego.equipo.get(sitio, ""))
 		var material := str((Datos.objeto(id).get("forja", {}) as Dictionary).get("material", ""))
-		b.text = "%s —" % NOMBRES_EQUIPO[sitio] if id.is_empty() else "%s · %s" % [NOMBRES_EQUIPO[sitio], Datos.nombre_objeto(material)]
+		var etiq := Datos.nombre_objeto(material) if not material.is_empty() else Datos.nombre_objeto(id)
+		b.text = "%s —" % NOMBRES_EQUIPO[sitio] if id.is_empty() else "%s · %s" % [NOMBRES_EQUIPO[sitio], etiq]
 		b.icon = null if id.is_empty() else Datos.icono(id)
 		b.add_theme_constant_override("icon_max_width", 28)
 		b.tooltip_text = "" if id.is_empty() else "Quitar %s" % Datos.nombre_objeto(id).to_lower()
@@ -199,8 +200,11 @@ func _mostrar_info(i: int) -> void:
 			msg_v += " (−50 % por plaga)"
 		partes.append(msg_v)
 	if o.get("tipo", "") == "comida":
-		var energia := int(o.get("energia", 0))
-		partes.append("Recupera %d de energía y hasta %d de salud" % [energia, roundi(energia * 0.5)])
+		var detalle_com := Datos.detalle_comida(id)
+		if detalle_com.is_empty():
+			var energia := int(o.get("energia", 0))
+			detalle_com = "Recupera %d de energía y hasta %d de salud" % [energia, roundi(energia * 0.5)]
+		partes.append(detalle_com)
 		_b_comer.visible = true
 	elif o.get("tipo", "") == "herramienta":
 		partes.append("Gasta %d de energía por uso" % int(o.get("energia", 0)))

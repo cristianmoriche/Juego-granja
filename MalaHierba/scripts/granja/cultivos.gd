@@ -243,7 +243,7 @@ func _vaciar_cultivo(c: Dictionary) -> void:
 # --- Herramientas y semillas -------------------------------------------------------------------------------------
 
 func energia_de(herramienta: String) -> float:
-	return ENERGIA_NIVEL[clampi(Juego.nivel(herramienta), 0, ENERGIA_NIVEL.size() - 1)]
+	return ENERGIA_NIVEL[clampi(Juego.nivel(herramienta), 0, ENERGIA_NIVEL.size() - 1)] * Juego.factor_energia_habilidad("agricultura")
 
 
 ## Golpes que hacen falta con esa herramienta (uno menos por nivel, mínimo uno).
@@ -277,17 +277,21 @@ func aplicar(id: String, claves: Array) -> bool:
 				return false
 			c0["estado"] = "limpio"
 			c0["golpes"] = 0
-			_entregar("fibra", randi_range(1, 2))
+			var n_fib := randi_range(1, 2) + (1 if randf() < Juego.bono_suerte_recoleccion() else 0)
+			_entregar("fibra", n_fib)
+			Juego.ganar_xp_habilidad("recoleccion", 5)
 		"pico":
 			if str(c0["estado"]) != "piedra":
 				return _pista(id, c0)
 			if not Juego.gastar_energia(energia_de(id)):
 				return false
 			c0["golpes"] = int(c0.get("golpes", 0)) + 1
+			Juego.ganar_xp_habilidad("mineria", 3)
 			if int(c0["golpes"]) >= golpes_necesarios(GOLPES_PIEDRA, id):
 				c0["estado"] = "limpio"
 				c0["golpes"] = 0
 				_entregar("piedra", randi_range(1, 3))
+				Juego.ganar_xp_habilidad("mineria", 6)
 			eventos.append(["picar", k0])
 			sacudir = true
 		"hacha":
@@ -296,10 +300,13 @@ func aplicar(id: String, claves: Array) -> bool:
 			if not Juego.gastar_energia(energia_de(id)):
 				return false
 			c0["golpes"] = int(c0.get("golpes", 0)) + 1
+			Juego.ganar_xp_habilidad("recoleccion", 3)
 			if int(c0["golpes"]) >= golpes_necesarios(GOLPES_TRONCO, id):
 				c0["estado"] = "limpio"
 				c0["golpes"] = 0
-				_entregar("madera", randi_range(2, 4))
+				var n_mad := randi_range(2, 4) + (1 if randf() < Juego.bono_suerte_recoleccion() else 0)
+				_entregar("madera", n_mad)
+				Juego.ganar_xp_habilidad("recoleccion", 8)
 				TareasDiarias.registrar_progreso("talar", 1)
 			eventos.append(["talar", k0])
 			sacudir = true
@@ -321,6 +328,7 @@ func aplicar(id: String, claves: Array) -> bool:
 				c["dias"] = 0
 				c["regado"] = Juego.esta_lloviendo()
 				eventos.append(["labrar", claves_arar[i]])
+			Juego.ganar_xp_habilidad("agricultura", 4 * por_arar.size())
 		"regadera":
 			var por_regar: Array[Dictionary] = []
 			var claves_regar: Array[String] = []
@@ -336,6 +344,7 @@ func aplicar(id: String, claves: Array) -> bool:
 			for i in por_regar.size():
 				por_regar[i]["regado"] = true
 				eventos.append(["regar", claves_regar[i]])
+			Juego.ganar_xp_habilidad("agricultura", 3 * por_regar.size())
 			TareasDiarias.registrar_progreso("regar", por_regar.size())
 		_:
 			return false
@@ -368,9 +377,10 @@ func _sembrar(id_semilla: String, k: String) -> bool:
 	if not _estacion_vale(def, Juego.estacion):
 		Juego.mensaje.emit("Esta semilla no es de %s; es de %s." % [Juego.nombre_estacion().to_lower(), _nombres_estaciones(def)])
 		return false
-	if Juego.cantidad(id_semilla) < 1 or not Juego.gastar_energia(ENERGIA_SEMILLA):
+	if Juego.cantidad(id_semilla) < 1 or not Juego.gastar_energia(ENERGIA_SEMILLA * Juego.factor_energia_habilidad("agricultura")):
 		return false
 	Juego.quitar_objeto(id_semilla, 1)
+	Juego.ganar_xp_habilidad("agricultura", 4)
 	c["cultivo"] = str(def["id"])
 	c["dias"] = 0
 	c["etapa"] = 0
@@ -463,12 +473,15 @@ func cosechar(k: String) -> bool:
 		return false
 	var rango: Array = def.get("cantidad", [1, 1])
 	var n := randi_range(int(rango[0]), int(rango[rango.size() - 1]))
+	if randf() < Juego.bono_suerte_cosecha():
+		n += 1
 	var id := str(def.get("cosecha", c["cultivo"]))
 	var calidad := "baja" if (bool(c.get("plaga", false)) or bool(c.get("calidad_baja", false))) else ""
 	if Juego.espacio_para(id, calidad) < n:
 		Juego.mensaje.emit("No te cabe la cosecha en la mochila.")
 		return false
 	Juego.anadir_objeto(id, n, calidad)
+	Juego.ganar_xp_habilidad("agricultura", 8 + n * 2)
 	if calidad == "baja":
 		Juego.mensaje.emit("La plaga ha rebajado la calidad de %s: vale la mitad en tienda." % Datos.nombre_objeto(id).to_lower())
 	Juego.estadisticas["cosechado"] = int(Juego.estadisticas.get("cosechado", 0)) + n

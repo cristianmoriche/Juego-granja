@@ -91,6 +91,10 @@ var _mano_soporte: Node3D = null
 var _izquierda_soporte: Node3D = null
 var _escudo_nodo: Node3D
 var _escudo_actual := ""
+var _carcaj_soporte: Node3D = null
+var _carcaj_nodo: Node3D = null
+var _carcaj_actual := ""
+var _arco_primera: Node3D = null
 var _herramienta_nodo: Node3D = null
 var _objeto_en_mano: String = ""
 var _nivel_en_mano: int = -1
@@ -98,9 +102,15 @@ var _modelos_mano: Dictionary = {}
 var _vista_leo := VISTA_LEO.new()
 var _farol_soporte_cadera: Node3D = null
 var _farol_primera: Node3D = null
+var _plato_primera: Node3D = null
+var _plato_primera_id: String = ""
 var _farol_tercera: Node3D = null
+var _antorcha_primera: Node3D = null
+var _antorcha_tercera: Node3D = null
 var _farol_energia_base: float = 2.5
 var _farol_tiempo: float = 0.0
+var _luz_manual: int = 0   # 0 auto, 1 forzada encendida, -1 forzada apagada
+var _t_respiracion: float = 0.0
 
 
 func _ready() -> void:
@@ -137,6 +147,11 @@ func _ready() -> void:
 	if not Juego.partida_cambiada.is_connected(_actualizar_objeto_en_mano):
 		Juego.partida_cambiada.connect(_actualizar_objeto_en_mano)
 	Juego.equipo_cambiado.connect(_actualizar_escudo)
+	Juego.equipo_cambiado.connect(_actualizar_carcaj)
+	Juego.equipo_cambiado.connect(_actualizar_estado_luz)
+	Juego.hora_cambiada.connect(func(_m: int) -> void: _actualizar_estado_luz())
+	_actualizar_escudo()
+	_actualizar_carcaj()
 	_actualizar_objeto_en_mano()
 	_actualizar_escudo()
 
@@ -164,20 +179,66 @@ func colocar(pos: Vector3, _giro_cuerpo: float, giro_camara: float) -> void:
 	_vista_leo.mostrar_primera(camara.cabeza_oculta)
 
 
-## Luz de farol en interiores (la mina) y nada más; la cámara no se aleja tanto dentro.
+## Luz de farol en interiores (la mina) y útil de noche o manualmente en exterior con farol/antorcha equipado.
 func configurar_para_mapa(mapa: Node) -> void:
 	_mapa = mapa
-	var interior: bool = bool(mapa.get("interior"))
-	var es_mina := str(mapa.get("id_mapa")) == "mina_interior"
-	_farol.visible = interior
-	_farol.light_color = Color(1.0, 0.80, 0.50) if es_mina else Color(1.0, 0.85, 0.6)
-	_farol_energia_base = 2.55 if es_mina else 1.85
-	_farol.light_energy = _farol_energia_base
-	_farol.omni_range = 15.5 if es_mina else 11.5
-	_farol.omni_attenuation = 1.25 if es_mina else 1.4
+	_luz_manual = 0
+	_actualizar_estado_luz()
+	camara.poner_interior(bool(mapa.get("interior")) if mapa != null else false)
+
+
+func _actualizar_estado_luz() -> void:
+	if _farol == null:
+		return
+	var interior := bool(_mapa.get("interior")) if _mapa != null else false
+	var es_mina := str(_mapa.get("id_mapa")) == "mina_interior" if _mapa != null else false
+	var eq_luz := str(Juego.equipo.get("luz", ""))
+	var es_noche := Juego.minutos >= 1110 or Juego.minutos < 390
+	var encender := false
+	if interior:
+		encender = _luz_manual != -1
+	elif not eq_luz.is_empty():
+		encender = (_luz_manual == 1) or (_luz_manual == 0 and es_noche)
+	_farol.visible = encender
+	if eq_luz == "antorcha":
+		_farol.light_color = Color(1.0, 0.64, 0.28)
+		_farol_energia_base = 2.35
+		_farol.omni_range = 13.5
+		_farol.omni_attenuation = 1.35
+	elif eq_luz == "farol_mano":
+		_farol.light_color = Color(1.0, 0.86, 0.56)
+		_farol_energia_base = 2.85
+		_farol.omni_range = 17.5
+		_farol.omni_attenuation = 1.2
+	elif es_mina:
+		_farol.light_color = Color(1.0, 0.80, 0.50)
+		_farol_energia_base = 2.55
+		_farol.omni_range = 15.5
+		_farol.omni_attenuation = 1.25
+	else:
+		_farol.light_color = Color(1.0, 0.85, 0.60)
+		_farol_energia_base = 1.95
+		_farol.omni_range = 12.0
+		_farol.omni_attenuation = 1.4
+	_farol.light_energy = _farol_energia_base if encender else 0.0
 	GraficaH03.ajustar_luz(_farol, int(Ajustes.valores.calidad))
 	_actualizar_visibilidad_farol()
-	camara.poner_interior(interior)
+
+
+func alternar_luz_equipable() -> bool:
+	if str(Juego.equipo.get("luz", "")).is_empty():
+		for i in Juego.HUECOS:
+			var id_h := str(Juego.inventario[i].get("id", ""))
+			if id_h == "farol_mano" or id_h == "antorcha":
+				Juego.equipar(i)
+				break
+	if str(Juego.equipo.get("luz", "")).is_empty() and not (bool(_mapa.get("interior")) if _mapa != null else false):
+		Interfaz.mensaje("Equipa una antorcha o un farol de hierro desde el inventario (I).")
+		return false
+	_luz_manual = -1 if _farol.visible else 1
+	_actualizar_estado_luz()
+	Audio.reproducir("ui_clic")
+	return _farol.visible
 
 
 func fijar_energia_base_farol(energia: float) -> void:
@@ -302,15 +363,53 @@ func _actualizar_pasos(rapidez: float, corriendo: bool, delta: float) -> void:
 		_t_paso = 0.08
 
 
+func _actualizar_realismo_audio(corriendo: bool, delta: float) -> void:
+	_t_respiracion = maxf(0.0, _t_respiracion - delta)
+	if (corriendo or _correr_sin_aire) and Juego.resistencia < 26.0 and _t_respiracion <= 0.0:
+		Audio.reproducir("respiracion_fatiga", 0.06)
+		_t_respiracion = 2.2
+	if _mapa == null or not is_instance_valid(_mapa):
+		Audio.poner_nivel_agua(0.0)
+		return
+	var id := str(_mapa.get("id_mapa"))
+	var cercania := 0.0
+	var p := global_position
+	match id:
+		"bosque_norte":
+			var z_rio := -2.0 + 7.5 * sin(p.x * 0.055 + 0.4) + 3.0 * cos(p.x * 0.11)
+			cercania = clampf(1.0 - absf(p.z - z_rio) / 14.0, 0.0, 1.0)
+		"costa_lago":
+			if p.z > -4.0:
+				cercania = clampf((p.z + 4.0) / 16.0, 0.0, 1.0)
+		"robledal_niebla":
+			var dist_e := Vector2(p.x - 10.0, p.z - 20.0).length()
+			cercania = clampf(1.0 - dist_e / 16.0, 0.0, 1.0)
+		"ruinas_valle":
+			if p.z > 8.0:
+				cercania = clampf((p.z - 8.0) / 16.0, 0.0, 1.0)
+	Audio.poner_nivel_agua(cercania)
+
+
 func _sonido_paso() -> String:
 	var id := str(_mapa.get("id_mapa")) if _mapa != null else ""
+	var p := global_position
 	if id == "mina_interior" or id == "mina_exterior":
 		return "paso_piedra"
 	if _mapa != null and bool(_mapa.get("interior")):
 		return "paso_madera"
+	# Puentes y muelle de madera
+	if id == "bosque_norte" and absf(p.x) < 3.0 and absf(p.z - 0.6) < 4.6:
+		return "paso_madera"
+	if id == "costa_lago" and absf(p.x) < 2.2 and p.z > 10.0:
+		return "paso_madera"
+	# Orillas y agua somera
+	if id in ["bosque_norte", "costa_lago", "robledal_niebla", "ruinas_valle"] and p.y < 0.22:
+		return "paso_agua"
 	if id == "pueblo":
-		return "paso_tierra"
-	if id == "granja" and absf(global_position.x) < 15.0 and absf(global_position.z) < 12.0:
+		return "paso_piedra" if Vector2(p.x, p.z).length() < 12.0 else "paso_tierra"
+	if id == "sierra_mirador" or (id == "ruinas_valle" and Vector2(p.x + 2.0, p.z + 5.0).length() < 14.0):
+		return "paso_piedra"
+	if id == "granja" and absf(p.x) < 15.0 and absf(p.z) < 12.0:
 		return "paso_tierra"
 	return "paso_hierba"
 
@@ -369,12 +468,15 @@ func _physics_process(delta: float) -> void:
 	if entrada.length() > 0.01:
 		# Relativo a la cámara: W va hacia donde ella mira, aunque esté girada del todo.
 		var dir3 := Vector3(entrada.x, 0.0, entrada.y).rotated(Vector3.UP, camara.yaw)
-		if Input.is_action_pressed("correr") and not agachado and not _correr_sin_aire:
+		var tensando_arco: bool = combate.es_arco_activo() and (combate.apuntando_arco or combate.tension_arco > 0.0)
+		if Input.is_action_pressed("correr") and not agachado and not _correr_sin_aire and not tensando_arco:
 			corriendo = Juego.gastar_resistencia(16.0 * delta)
 			_correr_sin_aire = not corriendo
-		var vel := VEL_AGACHADO if agachado else (VEL_CORRER if corriendo else VEL_ANDAR)
+		var vel := (VEL_AGACHADO if agachado else (VEL_CORRER if corriendo else VEL_ANDAR)) * (1.0 + Juego.bono_velocidad())
+		if tensando_arco:
+			vel *= 0.68
 		objetivo_vel = dir3 * vel
-		if not combate.bloqueando and not is_instance_valid(combate.objetivo_fijado):
+		if not combate.bloqueando and not tensando_arco and not is_instance_valid(combate.objetivo_fijado):
 			direccion = dir3.normalized()
 	if libre_ui and not corriendo and not combate.bloqueando:
 		Juego.recuperar_resistencia(delta)
@@ -468,8 +570,10 @@ func _physics_process(delta: float) -> void:
 	else:
 		_animar_estado(rapidez, corriendo)
 		_actualizar_pasos(rapidez, corriendo, delta)
+	_actualizar_realismo_audio(corriendo, delta)
 	_actualizar_pose(delta)
 	_actualizar_farol(delta, rapidez, ahora_en_suelo)
+	_actualizar_arco_primera(delta)
 
 	# La cámara baja la mira al agacharse y la sube al levantarse, sin tirones.
 	_altura_cam = lerpf(_altura_cam, _forma.height / EscalaPersonaje.ALTURA_PIE, 1.0 - exp(-9.0 * delta))
@@ -564,6 +668,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("alternar_vista"):
 		Ajustes.poner("vista", 1 if camara.primera_persona else 0)
+		get_viewport().set_input_as_handled()
+		return
+	if InputMap.has_action("alternar_luz") and event.is_action_pressed("alternar_luz"):
+		alternar_luz_equipable()
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("camara_reiniciar"):
@@ -854,6 +962,19 @@ func _configurar_soporte_mano(inst: Node3D) -> void:
 		_farol_soporte_cadera = ancla
 	else:
 		cadera.free()
+	var espalda := BoneAttachment3D.new()
+	espalda.name = "EspaldaCarcaj"
+	espalda.bone_name = "DEF-spine"
+	if sk.find_bone(espalda.bone_name) >= 0:
+		sk.add_child(espalda)
+		var ancla_carcaj := Node3D.new()
+		ancla_carcaj.position = Vector3(0.14, 0.30, -0.22)
+		ancla_carcaj.rotation_degrees = Vector3(-14.0, 14.0, -30.0)
+		ancla_carcaj.scale = Vector3.ONE * 1.15
+		espalda.add_child(ancla_carcaj)
+		_carcaj_soporte = ancla_carcaj
+	else:
+		espalda.free()
 
 
 func _buscar_hueso_mano_derecha(sk: Skeleton3D) -> String:
@@ -885,14 +1006,20 @@ func _actualizar_objeto_en_mano() -> void:
 			_herramienta_nodo.get_parent().remove_child(_herramienta_nodo)
 		_herramienta_nodo.queue_free()
 		_herramienta_nodo = null
+	_limpiar_plato_primera()
+	_limpiar_arco_primera()
 	if _mano_soporte == null or id.is_empty():
+		_actualizar_visibilidad_farol()
 		return
 	var datos := Datos.objeto(id)
 	var es_arma: bool = datos.get("tipo") == "arma"
+	var es_arco: bool = str(datos.get("subtipo", "")) == "arco"
 	var clave := str(datos.get("modelo", "")) if es_arma else _modelo_para_objeto(id)
 	if datos.get("tipo") == "equipo":
+		_actualizar_visibilidad_farol()
 		return
 	if clave.is_empty():
+		_actualizar_visibilidad_farol()
 		return
 	var ps: PackedScene = _modelos_mano.get(clave, null) as PackedScene
 	if ps == null:
@@ -909,8 +1036,17 @@ func _actualizar_objeto_en_mano() -> void:
 	_aplicar_nivel_herramienta(inst, id, nivel)
 	if es_arma:
 		_aplicar_temple(inst, int(datos.get("grado", 0)))
+	if es_arco:
+		inst.rotation_degrees = Vector3(0.0, 180.0, -10.0)
+		inst.scale = Vector3.ONE * 0.88
+		_tenido_arco(inst, id)
 	_mano_soporte.add_child(inst)
 	_herramienta_nodo = inst
+	if str(datos.get("tipo", "")) == "comida" and camara != null and camara.camara != null:
+		_crear_plato_primera(clave, id)
+	elif es_arco and camara != null and camara.camara != null:
+		_crear_arco_primera(clave, id)
+	_actualizar_visibilidad_farol()
 
 
 func _actualizar_escudo() -> void:
@@ -932,6 +1068,29 @@ func _actualizar_escudo() -> void:
 	_aplicar_temple(_escudo_nodo, int(Datos.objeto(id).get("grado", 0)))
 	_izquierda_soporte.add_child(_escudo_nodo)
 	_reubicar_farol_tercera()
+
+
+func _actualizar_carcaj() -> void:
+	if _carcaj_soporte == null:
+		return
+	var id := str(Juego.equipo.get("carcaj", ""))
+	if id == _carcaj_actual:
+		return
+	_carcaj_actual = id
+	if is_instance_valid(_carcaj_nodo):
+		if _carcaj_nodo.get_parent() != null:
+			_carcaj_nodo.get_parent().remove_child(_carcaj_nodo)
+		_carcaj_nodo.queue_free()
+		_carcaj_nodo = null
+	if id.is_empty() or not ResourceLoader.exists("res://assets/combate/carcaj_leo.glb"):
+		return
+	var escena := load("res://assets/combate/carcaj_leo.glb") as PackedScene
+	if escena == null:
+		return
+	_carcaj_nodo = escena.instantiate() as Node3D
+	if _carcaj_nodo != null:
+		_carcaj_nodo.name = "CarcajEspalda"
+		_carcaj_soporte.add_child(_carcaj_nodo)
 
 
 func _preparar_modelos_farol() -> void:
@@ -958,6 +1117,25 @@ func _preparar_modelos_farol() -> void:
 		_desactivar_sombras_farol(f3)
 		_farol_tercera = f3
 		_reubicar_farol_tercera()
+	const RUTA_ANTORCHA := "res://assets/mina/antorcha_leo.glb"
+	if ResourceLoader.exists(RUTA_ANTORCHA):
+		var esc_a := load(RUTA_ANTORCHA) as PackedScene
+		if esc_a != null:
+			if camara != null and camara.camara != null:
+				var a1 := esc_a.instantiate() as Node3D
+				if a1 != null:
+					a1.name = "AntorchaPrimeraPersona"
+					a1.position = Vector3(-0.35, -0.22, -0.44)
+					a1.rotation_degrees = Vector3(18.0, 10.0, -8.0)
+					_desactivar_sombras_farol(a1)
+					camara.camara.add_child(a1)
+					_antorcha_primera = a1
+			var a3 := esc_a.instantiate() as Node3D
+			if a3 != null:
+				a3.name = "AntorchaTerceraPersona"
+				a3.rotation_degrees = Vector3(14.0, 0.0, 0.0)
+				_desactivar_sombras_farol(a3)
+				_antorcha_tercera = a3
 	_actualizar_visibilidad_farol()
 
 
@@ -967,25 +1145,145 @@ static func _desactivar_sombras_farol(raiz: Node3D) -> void:
 
 
 func _reubicar_farol_tercera() -> void:
-	if _farol_tercera == null:
-		return
 	var destino: Node3D = _farol_soporte_cadera if (_escudo_nodo != null or _izquierda_soporte == null) else _izquierda_soporte
 	if destino == null:
 		destino = _modelo
-	if _farol_tercera.get_parent() != destino:
-		if _farol_tercera.get_parent() != null:
-			_farol_tercera.get_parent().remove_child(_farol_tercera)
-		destino.add_child(_farol_tercera)
-	_farol_tercera.position = Vector3.ZERO if destino != _modelo else Vector3(-0.34, 1.05, 0.14)
+	for nodo: Node3D in [_farol_tercera, _antorcha_tercera]:
+		if nodo == null:
+			continue
+		if nodo.get_parent() != destino:
+			if nodo.get_parent() != null:
+				nodo.get_parent().remove_child(nodo)
+			destino.add_child(nodo)
+		nodo.position = Vector3.ZERO if destino != _modelo else Vector3(-0.34, 1.05, 0.14)
 
 
 func _actualizar_visibilidad_farol() -> void:
+	_reubicar_farol_tercera()
 	var activo := _farol != null and _farol.visible
 	var primera := camara != null and camara.cabeza_oculta
+	var es_ant := str(Juego.equipo.get("luz", "")) == "antorcha"
 	if _farol_primera != null:
-		_farol_primera.visible = activo and primera
+		_farol_primera.visible = activo and primera and not es_ant
 	if _farol_tercera != null:
-		_farol_tercera.visible = activo and not primera
+		_farol_tercera.visible = activo and not primera and not es_ant
+	if _antorcha_primera != null:
+		_antorcha_primera.visible = activo and primera and es_ant
+	if _antorcha_tercera != null:
+		_antorcha_tercera.visible = activo and not primera and es_ant
+	var mostrar_plato_1p := primera and _plato_primera != null and is_instance_valid(_plato_primera)
+	if _plato_primera != null and is_instance_valid(_plato_primera):
+		_plato_primera.visible = mostrar_plato_1p
+	var mostrar_arco_1p := primera and _arco_primera != null and is_instance_valid(_arco_primera)
+	if _arco_primera != null and is_instance_valid(_arco_primera):
+		_arco_primera.visible = mostrar_arco_1p
+	if _herramienta_nodo != null and is_instance_valid(_herramienta_nodo) and (not _plato_primera_id.is_empty() or _arco_primera != null):
+		_herramienta_nodo.visible = not (mostrar_plato_1p or mostrar_arco_1p)
+
+
+func _limpiar_plato_primera() -> void:
+	_plato_primera_id = ""
+	if _plato_primera != null and is_instance_valid(_plato_primera):
+		if _plato_primera.get_parent() != null:
+			_plato_primera.get_parent().remove_child(_plato_primera)
+		_plato_primera.queue_free()
+	_plato_primera = null
+
+
+func _crear_plato_primera(clave: String, id: String) -> void:
+	var ruta := RUTA_HERRAMIENTAS % clave
+	if not ResourceLoader.exists(ruta):
+		return
+	var esc := load(ruta) as PackedScene
+	if esc == null:
+		return
+	var p1 := esc.instantiate() as Node3D
+	if p1 == null:
+		return
+	p1.name = "PlatoPrimeraPersona"
+	p1.position = Vector3(0.28, -0.22, -0.44)
+	p1.rotation_degrees = Vector3(14.0, -24.0, 4.0)
+	p1.scale = Vector3.ONE * 0.92
+	_desactivar_sombras_farol(p1)
+	camara.camara.add_child(p1)
+	_plato_primera = p1
+	_plato_primera_id = id
+
+
+func _limpiar_arco_primera() -> void:
+	if _arco_primera != null and is_instance_valid(_arco_primera):
+		if _arco_primera.get_parent() != null:
+			_arco_primera.get_parent().remove_child(_arco_primera)
+		_arco_primera.queue_free()
+	_arco_primera = null
+
+
+func _crear_arco_primera(clave: String, id: String) -> void:
+	var ruta := "res://assets/combate/%s.glb" % clave
+	if not ResourceLoader.exists(ruta):
+		return
+	var esc := load(ruta) as PackedScene
+	if esc == null:
+		return
+	var a1 := esc.instantiate() as Node3D
+	if a1 == null:
+		return
+	a1.name = "ArcoPrimeraPersona"
+	a1.position = Vector3(-0.30, -0.14, -0.49)
+	a1.rotation_degrees = Vector3(4.0, -10.0, -18.0)
+	a1.scale = Vector3.ONE * 0.44
+	_tenido_arco(a1, id)
+	_desactivar_sombras_farol(a1)
+	camara.camara.add_child(a1)
+	_arco_primera = a1
+
+
+func _tenido_arco(nodo: Node3D, id: String) -> void:
+	if id != "arco_cristal" or nodo == null:
+		return
+	for mi: MeshInstance3D in nodo.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null:
+			continue
+		for i in mi.mesh.get_surface_count():
+			var base := mi.get_active_material(i) as BaseMaterial3D
+			if base != null and base.resource_name != "CuerdaArco":
+				var mat_c := base.duplicate() as BaseMaterial3D
+				if i == 0:
+					mat_c.albedo_color = Color(0.56, 0.84, 0.98)
+					mat_c.emission_enabled = true
+					mat_c.emission = Color(0.32, 0.68, 0.95)
+					mat_c.emission_energy_multiplier = 0.55
+				else:
+					mat_c.albedo_color *= Color(0.88, 0.95, 1.0)
+				mi.set_surface_override_material(i, mat_c)
+
+
+func _actualizar_arco_primera(delta: float) -> void:
+	if _arco_primera == null or not is_instance_valid(_arco_primera) or not _arco_primera.visible:
+		return
+	var tens := combate.tension_arco if combate != null else 0.0
+	var ap := combate != null and combate.apuntando_arco
+	var k := 1.0 - exp(-12.0 * delta)
+	var obj_pos := Vector3(
+		lerpf(-0.30, -0.22, maxf(tens, 0.55 if ap else 0.0)),
+		lerpf(-0.14, -0.09, maxf(tens, 0.55 if ap else 0.0)),
+		lerpf(-0.49, -0.43, tens)
+	)
+	var obj_rot := Vector3(
+		lerpf(4.0, -2.0, tens),
+		lerpf(-10.0, -4.0, tens),
+		lerpf(-18.0, -32.0, tens)
+	)
+	_arco_primera.position = _arco_primera.position.lerp(obj_pos, k)
+	_arco_primera.rotation_degrees = _arco_primera.rotation_degrees.lerp(obj_rot, k)
+
+
+func punto_salida_flecha() -> Vector3:
+	if _arco_primera != null and is_instance_valid(_arco_primera) and _arco_primera.visible and camara != null and camara.camara != null:
+		return _arco_primera.global_position + camara.camara.global_basis * Vector3(0.08, 0.04, -0.36)
+	if camara != null and camara.camara != null:
+		return camara.posicion_mano() + camara.direccion_mira() * 0.45 + Vector3.UP * 0.25
+	return global_position + Vector3(0.0, 1.38, 0.0) + direccion.normalized() * 0.55
 
 
 func _actualizar_farol(delta: float, rapidez: float, en_suelo: bool) -> void:
@@ -993,17 +1291,21 @@ func _actualizar_farol(delta: float, rapidez: float, en_suelo: bool) -> void:
 		return
 	_farol_tiempo += delta
 	var reducir: bool = Ajustes.valores.reducir_movimiento
-	var parpadeo := 0.96 + 0.04 * sin(_farol_tiempo * 9.5) + 0.025 * cos(_farol_tiempo * 15.7)
+	var eq_ant := str(Juego.equipo.get("luz", "")) == "antorcha"
+	var parpadeo := (0.91 + 0.09 * sin(_farol_tiempo * 14.5) + 0.05 * cos(_farol_tiempo * 23.0)) if eq_ant else (0.96 + 0.04 * sin(_farol_tiempo * 9.5) + 0.025 * cos(_farol_tiempo * 15.7))
 	_farol.light_energy = _farol_energia_base * (1.0 if reducir else parpadeo)
-	if _farol_primera != null and _farol_primera.visible:
+	var izq_1p := _antorcha_primera if eq_ant else _farol_primera
+	var izq_3p := _antorcha_tercera if eq_ant else _farol_tercera
+	if izq_1p != null and izq_1p.visible:
 		var amp := 0.0 if (reducir or not en_suelo) else clampf(rapidez / 6.0, 0.0, 1.0)
 		var osc_x := sin(_farol_tiempo * 7.2) * 0.008 * amp
 		var osc_y := absf(cos(_farol_tiempo * 7.2)) * 0.010 * amp
-		_farol_primera.position = Vector3(-0.37 + osc_x, -0.15 - osc_y, -0.44)
-		_farol_primera.rotation_degrees = Vector3(3.0 + osc_y * 180.0, 14.0, -3.0 - osc_x * 260.0)
-	if _farol_tercera != null and _farol_tercera.visible and not reducir:
+		var base_y := -0.22 if eq_ant else -0.15
+		izq_1p.position = Vector3(-0.37 + osc_x, base_y - osc_y, -0.44)
+		izq_1p.rotation_degrees = Vector3((18.0 if eq_ant else 3.0) + osc_y * 180.0, 14.0, -3.0 - osc_x * 260.0)
+	if izq_3p != null and izq_3p.visible and not reducir:
 		var balanceo := clampf(rapidez / 6.0, 0.0, 1.0) * 14.0 * sin(_farol_tiempo * 6.8)
-		_farol_tercera.rotation_degrees = Vector3(balanceo, 0.0, sin(_farol_tiempo * 3.1) * 4.0)
+		izq_3p.rotation_degrees = Vector3(balanceo, 0.0, sin(_farol_tiempo * 3.1) * 4.0)
 
 
 func _aplicar_temple(raiz: Node3D, grado: int) -> void:
@@ -1031,7 +1333,12 @@ func _modelo_para_objeto(id: String) -> String:
 			return "mineral"
 		"remedio_plaga", "elixir_sierra", "cafe", "caldo":
 			return "frasco"
+	var rec := Datos.receta(id)
+	if not rec.is_empty():
+		return str(rec.get("modelo_mano", "plato_comida"))
 	var tipo := str(Datos.objeto(id).get("tipo", ""))
+	if tipo == "comida":
+		return "cuenco_guiso" if id in ["caldo", "guiso"] else "plato_comida"
 	if tipo == "semilla":
 		return "semillas"
 	if not id.is_empty():

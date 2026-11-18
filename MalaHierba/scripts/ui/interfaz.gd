@@ -12,6 +12,8 @@ var _ajustes: PanelAjustes
 var _mapa_grande: MapaGrande
 var _diario: PanelDiario
 var _carpinteria: PanelCarpinteria
+var _cocina: PanelCocina
+var _modo_foto: ModoFoto
 var _capa_flotante: Control
 var _capa_negra: CanvasLayer
 var _negro: ColorRect
@@ -65,13 +67,21 @@ func _ready() -> void:
 	_carpinteria = PanelCarpinteria.new()
 	_carpinteria.name = "Carpinteria"
 	raiz.add_child(_carpinteria)
+	_cocina = PanelCocina.new()
+	_cocina.name = "Cocina"
+	raiz.add_child(_cocina)
+	_modo_foto = ModoFoto.new()
+	_modo_foto.name = "ModoFoto"
+	raiz.add_child(_modo_foto)
 	_pregunta = PanelPregunta.new()
 	_pregunta.name = "Pregunta"
 	raiz.add_child(_pregunta)
 	_ajustes = PanelAjustes.new()
 	_ajustes.name = "Ajustes"
 	raiz.add_child(_ajustes)
-	_paneles.assign([_dialogo, _pregunta, _inventario, _tienda, _pausa, _mapa_grande, _diario, _carpinteria, _ajustes])
+	_paneles.assign([_dialogo, _pregunta, _inventario, _tienda, _pausa, _mapa_grande, _diario, _carpinteria, _cocina, _modo_foto, _ajustes])
+	Juego.habilidad_subida.connect(func(_id: String, _nv: int, _ven: String) -> void:
+		Audio.reproducir("mision_hecha"))
 	for panel in _paneles:
 		panel.visibility_changed.connect(actualizar_cursor.call_deferred)
 	_capa_flotante = Control.new()
@@ -312,6 +322,33 @@ func carpinteria_abierta() -> bool:
 	return _carpinteria != null and _carpinteria.visible
 
 
+func abrir_cocina(titulo_panel: String = "Cocina de leña") -> void:
+	if _cocina == null:
+		return
+	if _cocina.visible:
+		_cocina.cerrar_panel()
+	elif not ocupada():
+		Audio.reproducir("ui_menu")
+		_cocina.abrir(titulo_panel)
+
+
+func cocina_abierta() -> bool:
+	return _cocina != null and _cocina.visible
+
+
+func abrir_modo_foto() -> void:
+	if _modo_foto == null:
+		return
+	if _modo_foto.visible:
+		_modo_foto.cerrar_panel()
+	elif not ocupada() and Escenas.jugador() != null:
+		_modo_foto.abrir()
+
+
+func modo_foto_abierto() -> bool:
+	return _modo_foto != null and _modo_foto.visible
+
+
 ## Muestra u oculta el HUD de juego (reloj, energía, barra rápida). Los avisos siguen visibles.
 func mostrar_hud(v: bool) -> void:
 	_hud_visible = v
@@ -351,6 +388,10 @@ func cerrar_todo() -> void:
 		_diario.cerrar()
 	if _carpinteria != null:
 		_carpinteria.cerrar_panel()
+	if _cocina != null:
+		_cocina.cerrar_panel()
+	if _modo_foto != null:
+		_modo_foto.cerrar_panel()
 	if _mapa_grande != null:
 		_mapa_grande.cerrar()
 	_hud.ocultar_accion()
@@ -409,6 +450,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_carpinteria.cerrar_panel()
 		get_viewport().set_input_as_handled()
 		return
+	if _cocina != null and _cocina.visible and (event.is_action_pressed("pausa") or event.is_action_pressed("ui_cancel")):
+		_cocina.cerrar_panel()
+		get_viewport().set_input_as_handled()
+		return
 	if _mapa_grande.visible and event.is_action_pressed("ui_cancel"):
 		_mapa_grande.cerrar()
 		get_viewport().set_input_as_handled()
@@ -435,6 +480,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			pulsa_diario = true
 	if pulsa_diario and (_diario.visible or not ocupada()):
 		abrir_diario()
+		get_viewport().set_input_as_handled()
+		return
+	var pulsa_foto := event.is_action_pressed("modo_foto") if InputMap.has_action("modo_foto") else false
+	if pulsa_foto and not ocupada():
+		abrir_modo_foto()
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("pausa"):

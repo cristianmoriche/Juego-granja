@@ -37,6 +37,8 @@ var interior: bool = false
 var distancia_real: float = DIST_JUEGO
 var primera_persona: bool = true
 var cabeza_oculta: bool = true
+var apuntando_arco: bool = false
+var _fov_base: float = 70.0
 
 var _dist_obj: float = DIST_JUEGO
 var _yaw_juego: float = 0.0
@@ -100,7 +102,8 @@ func _ajustes_cambiados(clave: String) -> void:
 	if clave.is_empty() or clave == "vista":
 		primera_persona = int(Ajustes.valores.vista) == 0
 	if clave.is_empty() or clave == "fov":
-		camara.fov = float(Ajustes.valores.fov)
+		_fov_base = float(Ajustes.valores.fov)
+		camara.fov = _fov_base
 	if clave.is_empty() or clave == "distancia_tercera":
 		_dist_obj = _distancia_ajustada()
 
@@ -117,6 +120,11 @@ func _aplicar(delta: float) -> void:
 	if camara == null or not is_instance_valid(objetivo):
 		return
 	var reducir: bool = Ajustes.valores.reducir_movimiento
+	var fov_obj := clampf(_fov_base - 18.0, 42.0, 56.0) if apuntando_arco else _fov_base
+	if delta <= 0.0 or reducir:
+		camara.fov = fov_obj
+	else:
+		camara.fov = lerpf(camara.fov, fov_obj, 1.0 - exp(-12.0 * delta))
 	var avance := smoothstep(0.0, 1.0, _mezcla)
 	var alto := lerpf(ALTURA_OJOS, ALTURA_CERCA, avance) * altura_relativa
 	var pivote := objetivo.global_position + Vector3.UP * alto
@@ -129,7 +137,9 @@ func _aplicar(delta: float) -> void:
 	rotation = Vector3(-pitch, yaw, 0.0)
 
 	var ojos := centro_ojos + _desplazamiento_ojos(delta, reducir)
-	var brazo := global_basis * Vector3(0.61, 0.08, distancia)
+	var dist_actual := distancia * 0.62 if apuntando_arco else distancia
+	var hombro_x := 0.72 if apuntando_arco else 0.61
+	var brazo := global_basis * Vector3(hombro_x, 0.14 if apuntando_arco else 0.08, dist_actual)
 	var destino := pivote + _arco_de_vista(ojos - pivote, brazo, avance)
 	destino += global_basis * _desplazamiento_sacudida(delta)
 	global_position = _pivote_despejado(pivote)

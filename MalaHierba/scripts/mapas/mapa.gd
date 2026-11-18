@@ -107,6 +107,8 @@ func _al_cargar() -> void:
 		nm.call("aplicar_ambiente", self)
 	_crear_salidas()
 	_crear_limites()
+	if not interior:
+		HorizonteH05.crear(self, id_mapa)
 	esta_listo = true
 	listo.emit()
 	_construir_vallas_y_puntos()   # necesita colisiones ya registradas: espera unos fotogramas de física
@@ -532,6 +534,8 @@ func _construir_vallas_y_puntos() -> void:
 			return
 	_crear_vallas()
 	_crear_puntos_interes()
+	if not interior:
+		RecursosExteriores.preparar(self)
 	vallas_listas = true
 
 

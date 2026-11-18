@@ -457,12 +457,13 @@ func golpes_necesarios(r: Roca) -> int:
 
 
 static func energia_por_golpe() -> float:
+	var base := 1.0
 	match Juego.nivel("pico"):
 		0:
-			return 2.0
+			base = 2.0
 		1:
-			return 1.5
-	return 1.0
+			base = 1.5
+	return base * Juego.factor_energia_habilidad("mineria")
 
 
 func roca_cercana(punto: Vector3, margen: float = DIST_USO) -> Roca:
@@ -508,6 +509,7 @@ func golpear(r: Roca) -> bool:
 	EfectosAccion.soltar(self, "picar", r.pos + Vector3(0.0, r.radio * 0.38, 0.0), TIPOS[r.tipo]["color"] as Color)
 	CamaraJuego.sacudir_activa(0.055, 0.18)
 	r.golpes_dados += 1
+	Juego.ganar_xp_habilidad("mineria", 4)
 	if r.golpes_dados >= golpes_necesarios(r):
 		_romper(r)
 	else:
@@ -529,11 +531,13 @@ func _temblar(r: Roca) -> void:
 ## Rompe la roca: suelta objetos (van al inventario), salta algo de gravilla y no vuelve a salir hasta mañana.
 func _romper(r: Roca) -> void:
 	var info: Dictionary = TIPOS[r.tipo]
-	var n := randi_range(int(info["min"]), int(info["max"]))
+	var n := randi_range(int(info["min"]), int(info["max"])) + (1 if randf() < Juego.bono_suerte_minera() else 0)
 	Juego.anadir_objeto(r.tipo, n)
 	var extra := str(info["extra"])
-	if not extra.is_empty() and randf() < 0.5:
+	if not extra.is_empty() and randf() < (0.5 + Juego.bono_suerte_minera() * 0.5):
 		Juego.anadir_objeto(extra, 1)
+	var xp_roca := 22 if r.tipo in ["oro", "amatista", "rubi", "diamante"] else (16 if r.tipo in ["hierro", "cuarzo"] else 12)
+	Juego.ganar_xp_habilidad("mineria", xp_roca)
 	var est := estado()
 	if not (est["rotas"] as Array).has(r.id):
 		(est["rotas"] as Array).append(r.id)

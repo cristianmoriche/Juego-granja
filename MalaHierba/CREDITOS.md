@@ -1,6 +1,6 @@
 # Créditos y licencias de Mala Hierba
 
-**Mala Hierba** (versión 0.2.0) — *El Granado*.  
+**Mala Hierba** (versión 0.3.0-preview.1) — *El Granado*.  
 Juego de granja y mina en 3D ambientado en un valle rural español.
 
 ## Equipo de desarrollo
@@ -46,6 +46,7 @@ Descargados desde [Poly Haven](https://polyhaven.com) bajo licencia **CC0 1.0 Un
 - **Combate (H02)**. Espada con mapas PBR propios, modelos de armadura para ilustrar el inventario y 24 iconos de equipo renderizados en Blender a partir de esos modelos o de los anteriores de Poly Haven. Once animaciones nuevas en el esqueleto original de Leo. Doce efectos PCM sintetizados en Python. Trabajo del proyecto con apoyo de Codex, **CC0 1.0** para los recursos nuevos. Fuentes en `juego/exportar/*_h02.py` y `juego/herramientas/generar_audio_combate_h02.py`.
 - **Agua (H03)**. Mapa normal de ondas `assets/agua/ondas_normal.png`, generado con `juego/herramientas/generar_normal_agua_h03.py`. Trabajo del proyecto con apoyo de Codex, **CC0 1.0**.
 - **Minas grandes (H04)**. Vagoneta de mina `assets/mina/vagoneta_mina.glb` (`juego/exportar/preparar_mina_h04.py`, reutiliza texturas PBR CC0 existentes) y 4 efectos de sonido PCM en `assets/audio/mina_*.wav` (`juego/herramientas/generar_audio_mina_h04.py`), **CC0 1.0**.
+- **Mapa grande y zonas nuevas (H05)**. Modelos y texturas CC0 1.0 optimizados desde `recursos-cc0-2026-11-17/` (`rocky_trail`, `aerial_grass_rock`, `leaves_forest_ground`, `mud_forest`, `grass_path_2`, `grassy_cobblestone`, `cliff_side`, `withered_grass`, `namaqualand_cliff_01/02`, `namaqualand_boulder_02/04`, `stone_01`, `moss_01`, `dead_tree_trunk_02`, `tree_stump_02`, `root_cluster_01`, `pine_roots`, `shrub_02`, `shrub_03`, `nettle_plant`, `grass_medium_02`), además de arcos/pilares/muela/hito/roble/recolectables e iconos en `assets/naturaleza/`, `assets/texturas/h05/` y `assets/iconos/` (`juego/exportar/preparar_naturaleza_h05.py`, `juego/exportar/ampliar_zonas_h05.py`), **CC0 1.0**.
 
 ## Recursos externos pendientes de verificación
 

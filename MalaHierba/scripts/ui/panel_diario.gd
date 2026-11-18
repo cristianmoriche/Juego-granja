@@ -63,7 +63,7 @@ func _ready() -> void:
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 10)
 	v.add_child(tabs)
-	for clave: String in ["curso", "completadas", "todas", "hoy"]:
+	for clave: String in ["curso", "completadas", "todas", "hoy", "habilidades"]:
 		var rotulo := ""
 		match clave:
 			"curso":
@@ -74,7 +74,9 @@ func _ready() -> void:
 				rotulo = "Todas"
 			"hoy":
 				rotulo = "Hoy (Tablón)"
-		var b := Estilo.boton(rotulo, 160.0)
+			"habilidades":
+				rotulo = "Habilidades"
+		var b := Estilo.boton(rotulo, 148.0)
 		b.pressed.connect(func() -> void: _seleccionar_tab(clave))
 		tabs.add_child(b)
 		_b_tabs[clave] = b
@@ -220,12 +222,18 @@ func _refrescar() -> void:
 		b.modulate = Estilo.COLOR_ACENTO if k == _tab else Color.WHITE
 
 	var es_hoy := (_tab == "hoy")
-	_scroll_lista.visible = not es_hoy
-	_panel_detalle.visible = not es_hoy
-	_panel_hoy.visible = es_hoy
+	var es_hab := (_tab == "habilidades")
+	_scroll_lista.visible = not es_hoy and not es_hab
+	_panel_detalle.visible = not es_hoy and not es_hab
+	_panel_hoy.visible = es_hoy or es_hab
 	if es_hoy:
 		_b_activar.visible = false
 		_rellenar_hoy()
+		Interfaz.limitar_foco.call_deferred(self)
+		return
+	if es_hab:
+		_b_activar.visible = false
+		_rellenar_habilidades()
 		Interfaz.limitar_foco.call_deferred(self)
 		return
 
@@ -380,6 +388,69 @@ func _rellenar_hoy() -> void:
 	var pie_hoy := Estilo.etiqueta("Acércate al tablón de anuncios en la plaza de Villaverde para cobrar las tareas completadas.", Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO_SUAVE)
 	pie_hoy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_vbox_hoy.add_child(pie_hoy)
+
+
+func _rellenar_habilidades() -> void:
+	for h in _vbox_hoy.get_children():
+		h.queue_free()
+	var total_nv := 0
+	for id_h: String in Juego.HABILIDADES_ORDEN:
+		total_nv += Juego.nivel_habilidad(id_h)
+	var cab := HBoxContainer.new()
+	cab.add_theme_constant_override("separation", 12)
+	_vbox_hoy.add_child(cab)
+	var titulo := Estilo.etiqueta("Habilidades de Leo (%d / %d)" % [total_nv, Juego.HABILIDADES_ORDEN.size() * Juego.NIVEL_HABILIDAD_MAX], Estilo.TAM_GRANDE, Estilo.COLOR_ACENTO)
+	titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cab.add_child(titulo)
+	cab.add_child(Estilo.etiqueta("Salud máx.: %d PS" % roundi(Juego.vida_max), Estilo.TAM_PEQUENO, Estilo.COLOR_BUENO))
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 340)
+	_vbox_hoy.add_child(scroll)
+	var lista := VBoxContainer.new()
+	lista.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lista.add_theme_constant_override("separation", 8)
+	scroll.add_child(lista)
+
+	for id_h: String in Juego.HABILIDADES_ORDEN:
+		var nv := Juego.nivel_habilidad(id_h)
+		var xp := Juego.xp_habilidad(id_h)
+		var req := Juego.xp_siguiente_nivel(nv)
+		var card := PanelContainer.new()
+		Estilo.estilo_panel(card, Color(0.16, 0.12, 0.09, 0.94), Estilo.COLOR_BORDE_SUAVE, 10)
+		lista.add_child(card)
+		var cv := VBoxContainer.new()
+		cv.add_theme_constant_override("separation", 4)
+		card.add_child(cv)
+		var top := HBoxContainer.new()
+		top.add_theme_constant_override("separation", 10)
+		cv.add_child(top)
+		var l_nom := Estilo.etiqueta("%s  ·  Nivel %d / %d" % [str(Juego.HABILIDADES_NOMBRES.get(id_h, id_h)), nv, Juego.NIVEL_HABILIDAD_MAX], Estilo.TAM_TEXTO, Estilo.COLOR_ACENTO)
+		l_nom.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		top.add_child(l_nom)
+		var xp_txt := "Nivel máximo" if req <= 0 else "%d / %d XP" % [xp, req]
+		top.add_child(Estilo.etiqueta(xp_txt, Estilo.TAM_PEQUENO, Estilo.COLOR_BUENO if req <= 0 else Estilo.COLOR_TEXTO_SUAVE))
+		var barra := ProgressBar.new()
+		barra.show_percentage = false
+		barra.custom_minimum_size = Vector2(0, 10)
+		barra.max_value = float(maxi(req, 1))
+		barra.value = float(maxi(req, 1) if req <= 0 else xp)
+		barra.add_theme_stylebox_override("fill", Estilo.caja(Estilo.COLOR_BUENO if nv >= 5 else Estilo.COLOR_ACENTO, Color.TRANSPARENT, 0, 3, 0))
+		cv.add_child(barra)
+		var l_ven := Estilo.etiqueta(str(Juego.HABILIDADES_VENTAJAS.get(id_h, "")), Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO)
+		l_ven.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cv.add_child(l_ven)
+
+	var bufos := Juego.bufos_activos()
+	lista.add_child(Estilo.etiqueta("Mejoras de comida activas:", Estilo.TAM_PEQUENO, Estilo.COLOR_ACENTO))
+	if bufos.is_empty():
+		lista.add_child(Estilo.etiqueta("Ninguna mejora de comida activa ahora mismo.", Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO_SUAVE))
+	else:
+		for k: Variant in bufos:
+			var b := bufos[k] as Dictionary
+			var rest := int(b.get("restante", 0))
+			lista.add_child(Estilo.etiqueta("★ %s: %s (%dh %02dmin)" % [str(b.get("origen", "")), str(b.get("etiqueta", "")), rest / 60, rest % 60], Estilo.TAM_PEQUENO, Estilo.COLOR_BUENO))
 
 
 func _unhandled_input(event: InputEvent) -> void:

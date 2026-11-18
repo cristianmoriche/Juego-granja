@@ -22,6 +22,8 @@ const COLOR_TABERNA := Color(0.96, 0.74, 0.24)
 const COLOR_AYUNTAMIENTO := Color(0.48, 0.72, 0.98)
 const COLOR_MINA := Color(0.84, 0.76, 0.52)
 const COLOR_CAPILLA := Color(0.86, 0.80, 0.94)
+const COLOR_MIRADOR := Color(0.95, 0.82, 0.36)
+const COLOR_PESCA := Color(0.35, 0.78, 0.92)
 
 const PILL_PAD_X := 8.0
 const PILL_PAD_Y := 4.0
@@ -161,6 +163,26 @@ func calcular_disposicion() -> Dictionary:
 							"radio": radio_obs,
 							"dir_frente": Vector2.ZERO,
 						})
+			var mapa_n := _mapa_actual_para_puntos()
+			if mapa_n != null and mapa_n.has_method("marcadores_de_tipo"):
+				for mk: Marker3D in mapa_n.call("marcadores_de_tipo", "otro"):
+					var nom_mk := String(mk.name)
+					if nom_mk != "Mirador_Valle" and not nom_mk.begins_with("Pesca_"):
+						continue
+					var qm := mundo_a_pantalla(Vector2(mk.global_position.x, mk.global_position.z))
+					var cat_mk := "mirador" if nom_mk == "Mirador_Valle" else "pesca"
+					var eti_mk := "Mirador de la Sierra" if nom_mk == "Mirador_Valle" else "Zona de pesca"
+					var mr := Rect2(qm - Vector2(12.0, 12.0), Vector2(24.0, 24.0))
+					obstaculos.append(mr)
+					marcadores.append({
+						"id": nom_mk, "categoria": cat_mk, "texto": eti_mk,
+						"color": _color_categoria(cat_mk), "pos": qm, "rect": mr,
+					})
+					pendientes.append({
+						"id": nom_mk, "categoria": cat_mk, "texto": eti_mk, "anchor": qm,
+						"color": _color_etiqueta(cat_mk), "borde": _color_categoria(cat_mk),
+						"prioridad": 3, "radio": 12.0, "dir_frente": Vector2.ZERO,
+					})
 			for n3: Node in get_tree().get_nodes_in_group("npc"):
 				var nodo := n3 as Node3D
 				if nodo == null or not nodo.is_inside_tree() or not nodo.visible:
@@ -285,6 +307,10 @@ func _color_categoria(cat: String) -> Color:
 			return COLOR_MINA
 		"capilla":
 			return COLOR_CAPILLA
+		"mirador":
+			return COLOR_MIRADOR
+		"pesca":
+			return COLOR_PESCA
 		"puerta":
 			return Minimapa.COLOR_PUERTA
 		_:
@@ -702,8 +728,17 @@ func _dibujar_icono(cat: String, q: Vector2, r: float, dir: Vector2 = Vector2(0,
 			draw_rect(Rect2(q + Vector2(-r * 0.52, -r * 0.08), Vector2(r * 1.04, r * 0.82)), COLOR_CAPILLA)
 		"puerta":
 			_rombo(q, r * 0.82, Minimapa.COLOR_PUERTA)
+		"mirador":
+			_rombo(q, r * 0.90, COLOR_MIRADOR)
+		"pesca":
+			draw_circle(q, r + 2.0, Minimapa.COLOR_CONTORNO)
+			draw_circle(q, r * 0.85, COLOR_PESCA)
 		_:
 			_rombo(q, r * 0.82, Minimapa.COLOR_SALIDA)
+
+
+func _mapa_actual_para_puntos() -> Node3D:
+	return get_tree().get_first_node_in_group("mapa") as Node3D if is_inside_tree() else null
 
 
 func _rombo(q: Vector2, t: float, color: Color) -> void:

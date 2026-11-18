@@ -1,134 +1,525 @@
 {
   "granja": [
     {
-      "id": "silo", "verbo": "Examinar", "objeto": "el silo", "titulo": "El silo",
-      "pos": [-1.4, -3.9], "radio": 1.2, "altura": 2.1,
+      "id": "silo",
+      "verbo": "Examinar",
+      "objeto": "el silo",
+      "titulo": "El silo",
+      "pos": [
+        -1.4,
+        -3.9
+      ],
+      "radio": 1.2,
+      "altura": 2.1,
       "texto": "El silo de piedra de la abuela Rosa. Por dentro huele a grano viejo y a humedad, pero los muros aguantan.\n\nAlgún día volverá a estar lleno."
     },
     {
-      "id": "barril", "verbo": "Mirar", "objeto": "el barril", "titulo": "Barril",
-      "pos": [-2.1, -2.0], "radio": 0.7, "altura": 1.3,
+      "id": "barril",
+      "verbo": "Mirar",
+      "objeto": "el barril",
+      "titulo": "Barril",
+      "pos": [
+        -2.1,
+        -2.0
+      ],
+      "radio": 0.7,
+      "altura": 1.3,
       "texto": "Un barril con las duelas hinchadas. Está vacío, pero bajo el canalón recogería bien el agua de lluvia."
     },
     {
-      "id": "cajon", "verbo": "Abrir", "objeto": "el cajón", "titulo": "Cajón de madera",
-      "pos": [-8.0, -0.8], "radio": 0.8, "altura": 1.0,
+      "id": "cajon",
+      "verbo": "Abrir",
+      "objeto": "el cajón",
+      "titulo": "Cajón de madera",
+      "pos": [
+        -8.0,
+        -0.8
+      ],
+      "radio": 0.8,
+      "altura": 1.0,
       "texto": "Un cajón junto a la puerta de la cabaña. Dentro solo hay virutas, una cuerda deshilachada y una nota de Rosa: «Aquí no falta nada que no sepas arreglar»."
     },
     {
-      "id": "cartel_camino", "verbo": "Leer", "objeto": "el cartel", "titulo": "Cartel del camino",
-      "pos": [4.6, 31.6], "radio": 1.0, "altura": 2.0, "poste": true, "giro": 8,
+      "id": "cartel_camino",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Cartel del camino",
+      "pos": [
+        4.6,
+        31.6
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 8,
       "texto": "VILLAVERDE DE LOS ROSALES\nSiguiendo el camino, hacia el sur.\n\nAl pueblo se va a vender, a comprar y a que te cuenten lo que ya sabes."
     },
     {
-      "id": "cartel_bosque_granja", "verbo": "Leer", "objeto": "el cartel", "titulo": "Poste del norte",
-      "pos": [0.8, -13.6], "radio": 1.0, "altura": 2.0, "poste": true, "giro": 172,
+      "id": "cartel_bosque_granja",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Poste del norte",
+      "pos": [
+        0.8,
+        -13.6
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 172,
       "texto": "BOSQUE DEL NORTE\nSendero de tierra hacia los abetos y el puente del río.\n\nMás allá del claro esperan los atajos a Villaverde y a las minas."
+    },
+    {
+      "id": "poste_robledal_granja",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Senda del Robledal",
+      "pos": [
+        -34.0,
+        -18.5
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 140,
+      "texto": "ROBLEDAL DE LA NIEBLA ↖\nSendero entre robles viejos, setas de otoño y moras silvestres."
+    },
+    {
+      "id": "poste_ruinas_granja",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Senda del Molino",
+      "pos": [
+        -36.0,
+        28.0
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 35,
+      "texto": "RUINAS DEL MOLINO VIEJO ↙\nCamino viejo al sur de la finca hacia el arroyo del molino."
     }
   ],
   "pueblo": [
     {
-      "id": "cartel_granado", "verbo": "Leer", "objeto": "el cartel", "titulo": "Cartel de El Granado",
-      "marcador": "txt_Granja", "radio": 1.0, "altura": 2.2,
+      "id": "cartel_granado",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Cartel de El Granado",
+      "marcador": "txt_Granja",
+      "radio": 1.0,
+      "altura": 2.2,
       "texto": "EL GRANADO\nFinca de la familia Rosales, por el camino del oeste.\n\nA un cuarto de hora a pie y, según dicen, a un año de trabajo de volver a ser lo que fue."
     },
     {
-      "id": "cartel_minas", "verbo": "Leer", "objeto": "el cartel", "titulo": "Cartel de las minas",
-      "marcador": "txt_Minas", "radio": 1.0, "altura": 2.2,
+      "id": "cartel_minas",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Cartel de las minas",
+      "marcador": "txt_Minas",
+      "radio": 1.0,
+      "altura": 2.2,
       "texto": "LAS MINAS\nPor el sendero del este.\n\nSe ruega no dejar herramientas en el camino ni gritar cerca de la ladera: la piedra suelta escucha."
     },
     {
-      "id": "cartel_subida", "verbo": "Leer", "objeto": "el cartel", "titulo": "Sendero de subida",
-      "marcador": "txt_Minas.002", "radio": 1.0, "altura": 2.2,
+      "id": "cartel_subida",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Sendero de subida",
+      "marcador": "txt_Minas.002",
+      "radio": 1.0,
+      "altura": 2.2,
       "texto": "SENDERO DE LAS MINAS\nCuesta arriba. Solo para quien lleve pico y paciencia."
     },
     {
-      "id": "barriles_taberna", "verbo": "Mirar", "objeto": "los barriles", "titulo": "Barriles de la taberna",
-      "pos": [0.5, -10.0], "radio": 1.0, "altura": 1.3,
+      "id": "barriles_taberna",
+      "verbo": "Mirar",
+      "objeto": "los barriles",
+      "titulo": "Barriles de la taberna",
+      "pos": [
+        0.5,
+        -10.0
+      ],
+      "radio": 1.0,
+      "altura": 1.3,
       "texto": "Barriles apilados junto a la taberna. Uno huele a vino agrio y otro a roble recién abierto."
     },
     {
-      "id": "caja_herreria", "verbo": "Mirar", "objeto": "la caja", "titulo": "Caja de la herrería",
-      "pos": [12.4, -3.4], "radio": 0.8, "altura": 1.0,
+      "id": "caja_herreria",
+      "verbo": "Mirar",
+      "objeto": "la caja",
+      "titulo": "Caja de la herrería",
+      "pos": [
+        12.4,
+        -3.4
+      ],
+      "radio": 0.8,
+      "altura": 1.0,
       "texto": "Una caja con clavos, herraduras y un martillo mellado. Huele a hierro y a carbón."
     },
     {
-      "id": "cartel_bosque_pueblo", "verbo": "Leer", "objeto": "el cartel", "titulo": "Poste del norte",
-      "pos": [10.4, -24.5], "radio": 1.0, "altura": 2.0, "poste": true, "giro": 168,
+      "id": "cartel_bosque_pueblo",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Poste del norte",
+      "pos": [
+        10.4,
+        -24.5
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 168,
       "texto": "BOSQUE DEL NORTE  ↑\nAtajo entre abetos hacia El Granado y el sendero de las minas."
     },
     {
-      "id": "cartel_costa_pueblo", "verbo": "Leer", "objeto": "el cartel", "titulo": "Poste de la costa",
-      "pos": [-0.8, 39.2], "radio": 1.0, "altura": 2.0, "poste": true, "giro": -10,
+      "id": "cartel_costa_pueblo",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Poste de la costa",
+      "pos": [
+        -0.8,
+        39.2
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": -10,
       "texto": "COSTA DEL LAGO  ↓\nSendero hacia la playa y el muelle de pesca.\n\nCon buena caña pican truchas, carpas y percas."
+    },
+    {
+      "id": "cartel_ruinas_pueblo",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Vereda de las Ruinas",
+      "pos": [
+        -42.0,
+        36.0
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 42,
+      "texto": "RUINAS DEL MOLINO VIEJO ↙\nA un paseo por la pradera del suroeste."
     }
   ],
   "mina_exterior": [
     {
-      "id": "cartel_mina", "verbo": "Leer", "objeto": "el cartel", "titulo": "Cartel de la mina",
-      "pos": [2.4, -8.8], "radio": 1.0, "altura": 2.4,
+      "id": "cartel_mina",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Cartel de la mina",
+      "pos": [
+        2.4,
+        -8.8
+      ],
+      "radio": 1.0,
+      "altura": 2.4,
       "texto": "MINA VIEJA\nGalerías de cobre y hierro.\n\nSe entra bajo la responsabilidad de cada cual. Lleva luz y no cuentes con que nadie te oiga."
     },
     {
-      "id": "railes", "verbo": "Examinar", "objeto": "los raíles", "titulo": "Raíles",
-      "pos": [5.2, -3.6], "radio": 1.0, "altura": 0.9,
+      "id": "railes",
+      "verbo": "Examinar",
+      "objeto": "los raíles",
+      "titulo": "Raíles",
+      "pos": [
+        5.2,
+        -3.6
+      ],
+      "radio": 1.0,
+      "altura": 0.9,
       "texto": "Un tramo de raíl oxidado que se pierde hacia la boca de la mina. Las vagonetas hace años que no pasan por aquí."
     },
     {
-      "id": "cajas_mina", "verbo": "Revisar", "objeto": "las cajas", "titulo": "Cajas de la mina",
-      "pos": [7.5, -7.6], "radio": 1.1, "altura": 1.2,
+      "id": "cajas_mina",
+      "verbo": "Revisar",
+      "objeto": "las cajas",
+      "titulo": "Cajas de la mina",
+      "pos": [
+        7.5,
+        -7.6
+      ],
+      "radio": 1.1,
+      "altura": 1.2,
       "texto": "Cajas de madera con trozos de roca, astillas y una cuña de hierro. Alguien dejó el trabajo a medias."
     },
     {
-      "id": "barriles_mina", "verbo": "Mirar", "objeto": "los barriles", "titulo": "Barriles",
-      "pos": [-3.3, -9.2], "radio": 1.2, "altura": 1.3,
+      "id": "barriles_mina",
+      "verbo": "Mirar",
+      "objeto": "los barriles",
+      "titulo": "Barriles",
+      "pos": [
+        -3.3,
+        -9.2
+      ],
+      "radio": 1.2,
+      "altura": 1.3,
       "texto": "Barriles resecos que guardaban el agua de los mineros. Ahora solo hay polvo y telarañas."
     },
     {
-      "id": "cartel_bosque_minas", "verbo": "Leer", "objeto": "el cartel", "titulo": "Poste del sendero",
-      "pos": [28.0, 17.5], "radio": 1.0, "altura": 2.0, "poste": true, "giro": -95,
+      "id": "cartel_bosque_minas",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Poste del sendero",
+      "pos": [
+        28.0,
+        17.5
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": -95,
       "texto": "BOSQUE DEL NORTE  →\nCamino entre pinos hacia el puente del río, El Granado y la costa."
+    },
+    {
+      "id": "cartel_sierra_mina",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Subida de la Sierra",
+      "pos": [
+        42.0,
+        -11.0
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": -130,
+      "texto": "SIERRA DEL MIRADOR ↗\nRisco alto con vetas afloradas en superficie y vistas a todo el valle."
     }
   ],
   "mina_interior": [
     {
-      "id": "railes_galeria", "verbo": "Examinar", "objeto": "los raíles", "titulo": "Raíles de la galería",
-      "pos": [406.0, -0.3], "radio": 1.1, "altura": 0.9,
+      "id": "railes_galeria",
+      "verbo": "Examinar",
+      "objeto": "los raíles",
+      "titulo": "Raíles de la galería",
+      "pos": [
+        406.0,
+        -0.3
+      ],
+      "radio": 1.1,
+      "altura": 0.9,
       "texto": "Un raíl recorre el suelo de la galería. Por aquí sacaron carros enteros de cobre; ahora solo queda el óxido y el eco de tus pasos."
     },
     {
-      "id": "cajas_caverna", "verbo": "Revisar", "objeto": "las cajas", "titulo": "Cajas y barriles",
-      "pos": [424.0, -14.0], "radio": 1.3, "altura": 1.2,
+      "id": "cajas_caverna",
+      "verbo": "Revisar",
+      "objeto": "las cajas",
+      "titulo": "Cajas y barriles",
+      "pos": [
+        424.0,
+        -14.0
+      ],
+      "radio": 1.3,
+      "altura": 1.2,
       "texto": "Cajas y barriles de los mineros. Todo lo que servía se lo llevaron hace tiempo, pero la madera aún aguanta."
     },
     {
-      "id": "cajas_fondo", "verbo": "Mirar", "objeto": "las cajas", "titulo": "Cajas del fondo",
-      "pos": [431.3, -13.3], "radio": 1.2, "altura": 1.2,
+      "id": "cajas_fondo",
+      "verbo": "Mirar",
+      "objeto": "las cajas",
+      "titulo": "Cajas del fondo",
+      "pos": [
+        431.3,
+        -13.3
+      ],
+      "radio": 1.2,
+      "altura": 1.2,
       "texto": "Un par de cajas contra la pared de la caverna, con restos de mineral sin pulir."
     }
   ],
   "bosque_norte": [
     {
-      "id": "cruce_bosque_sur", "verbo": "Leer", "objeto": "el poste", "titulo": "Cruce del bosque",
-      "pos": [2.4, 15.2], "radio": 1.1, "altura": 2.1, "poste": true, "giro": -15,
+      "id": "cruce_bosque_sur",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Cruce del bosque",
+      "pos": [
+        2.4,
+        15.2
+      ],
+      "radio": 1.1,
+      "altura": 2.1,
+      "poste": true,
+      "giro": -15,
       "texto": "BOSQUE DEL NORTE\n← Suroeste: El Granado\n→ Sureste: Villaverde de los Rosales\n↑ Norte (cruzando el puente): Las Minas (E) y Costa del Lago (SE)"
     },
     {
-      "id": "cruce_bosque_este", "verbo": "Leer", "objeto": "el poste", "titulo": "Bifurcación este",
-      "pos": [24.0, 14.5], "radio": 1.1, "altura": 2.1, "poste": true, "giro": -80,
+      "id": "cruce_bosque_este",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Bifurcación este",
+      "pos": [
+        24.0,
+        14.5
+      ],
+      "radio": 1.1,
+      "altura": 2.1,
+      "poste": true,
+      "giro": -80,
       "texto": "BIFURCACIÓN DEL BOSQUE\n↗ Nordeste: Las Minas\n↘ Sureste: Costa del Lago\n← Oeste: Puente del río y El Granado"
+    },
+    {
+      "id": "poste_robledal_bosque",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Senda profunda",
+      "pos": [
+        -38.0,
+        -48.0
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 135,
+      "texto": "ROBLEDAL DE LA NIEBLA ↖\nContinúa la vereda hacia los grandes robles y el estanque escondido."
     }
   ],
   "costa_lago": [
     {
-      "id": "cruce_costa_caminos", "verbo": "Leer", "objeto": "el cartel", "titulo": "Cartel de la costa",
-      "pos": [-2.2, -13.0], "radio": 1.1, "altura": 2.1, "poste": true, "giro": 15,
+      "id": "cruce_costa_caminos",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Cartel de la costa",
+      "pos": [
+        -2.2,
+        -13.0
+      ],
+      "radio": 1.1,
+      "altura": 2.1,
+      "poste": true,
+      "giro": 15,
       "texto": "COSTA DEL LAGO\n← Norte: Villaverde de los Rosales\n↗ Nordeste: Bosque del Norte\n↓ Sur: Muelle de pesca"
     },
     {
-      "id": "cartel_muelle", "verbo": "Leer", "objeto": "el cartel", "titulo": "Aviso del muelle",
-      "pos": [2.2, 2.8], "radio": 1.1, "altura": 2.0, "poste": true, "giro": 5,
+      "id": "cartel_muelle",
+      "verbo": "Leer",
+      "objeto": "el cartel",
+      "titulo": "Aviso del muelle",
+      "pos": [
+        2.2,
+        2.8
+      ],
+      "radio": 1.1,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 5,
       "texto": "MUELLE DEL LAGO\nEquipa tu caña de pescar y úsala desde la punta del muelle.\n\nAguas ricas en truchas, carpas y percas; si no traes caña, hay una apoyada junto al banco."
+    },
+    {
+      "id": "poste_ruinas_costa",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Senda del cabo oeste",
+      "pos": [
+        -54.0,
+        -8.0
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 90,
+      "texto": "RUINAS DEL MOLINO VIEJO ←\nSigue la cala del oeste hacia el arroyo y los arcos de piedra."
+    }
+  ],
+  "sierra_mirador": [
+    {
+      "id": "mirador_valle",
+      "verbo": "Contemplar",
+      "objeto": "el mirador de la sierra",
+      "titulo": "Mirador de Villaverde",
+      "marcador": "Mirador_Valle",
+      "radio": 2.2,
+      "altura": 2.4,
+      "texto": "Desde lo alto del risco se divisan los pinares del Bosque del Norte, los tejados de Villaverde y el brillo lejano del lago.\n\nLa piedra conserva vetas ricas de cobre, oro y ámbar."
+    },
+    {
+      "id": "poste_sierra_bajada",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Cruce de la Sierra",
+      "pos": [
+        -3.0,
+        32.0
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 15,
+      "texto": "SIERRA DEL MIRADOR\n↓ Sur: Las Minas\n↑ Cumbre: Hito y vetas\n← Oeste: Robledal de la Niebla"
+    }
+  ],
+  "robledal_niebla": [
+    {
+      "id": "poste_robledal_cruce",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Claro del Robledal",
+      "pos": [
+        -5.0,
+        2.0
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": 12,
+      "texto": "ROBLEDAL DE LA NIEBLA\n↓ Sur: El Granado\n→ Este: Bosque del Norte\n↗ Nordeste: Sierra del Mirador"
+    },
+    {
+      "id": "manantial_robledal",
+      "verbo": "Mirar",
+      "objeto": "el estanque brumoso",
+      "titulo": "Estanque del Robledal",
+      "pos": [
+        4.2,
+        18.0
+      ],
+      "radio": 1.3,
+      "altura": 1.6,
+      "texto": "Aguas quietas rodeadas de musgo y helechos antiguos. Con la caña se ven sombras de truchas y carpas bajo la bruma."
+    }
+  ],
+  "ruinas_valle": [
+    {
+      "id": "muela_antigua",
+      "verbo": "Examinar",
+      "objeto": "la piedra de molino",
+      "titulo": "Antiguo Molino del Valle",
+      "pos": [
+        6.5,
+        14.5
+      ],
+      "radio": 1.8,
+      "altura": 2.1,
+      "texto": "Una gran rueda de arenisca labrada hace generaciones para moler el grano de El Granado.\n\nAún brotan hierbas aromáticas entre sus grietas."
+    },
+    {
+      "id": "arco_principal",
+      "verbo": "Examinar",
+      "objeto": "el arco cubierto de musgo",
+      "titulo": "Arcos de Villaverde",
+      "pos": [
+        0.0,
+        -10.5
+      ],
+      "radio": 2.2,
+      "altura": 2.5,
+      "texto": "Restos de un claustro o acequia del antiguo valle. Al caer la tarde conviene llevar arma y farol."
+    },
+    {
+      "id": "poste_ruinas_cruce",
+      "verbo": "Leer",
+      "objeto": "el poste",
+      "titulo": "Cruce del Molino Viejo",
+      "pos": [
+        4.0,
+        -1.0
+      ],
+      "radio": 1.0,
+      "altura": 2.0,
+      "poste": true,
+      "giro": -20,
+      "texto": "RUINAS DEL MOLINO VIEJO\n↑ Norte: El Granado\n↗ Nordeste: Villaverde\n→ Este: Costa del Lago"
     }
   ]
 }

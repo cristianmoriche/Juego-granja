@@ -29,12 +29,12 @@
     },
     {
       "marcador": "Interaccion_cocina",
-      "verbo": "Examinar",
+      "verbo": "Cocinar en",
       "nombre": "la cocina de leña",
       "malla": "Cocina_piedra",
       "radio": 1.45,
-      "accion": "",
-      "descripcion": "Una vieja cocina económica de hierro y piedra. Las brasas conservan el rescoldo y dan un calor agradable a toda la cabaña."
+      "accion": "cocina",
+      "descripcion": "Una vieja cocina económica de hierro y piedra. Las brasas conservan el rescoldo para guisar y asar lo que traigas de la huerta o el monte."
     },
     {
       "marcador": "Interaccion_estanteria",

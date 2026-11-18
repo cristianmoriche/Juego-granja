@@ -52,6 +52,12 @@ func _ready() -> void:
 	var diario := Estilo.boton("Diario de misiones (J)")
 	diario.pressed.connect(func() -> void: Interfaz.abrir_diario())
 	v.add_child(diario)
+	var foto := Estilo.boton("Modo foto (P)")
+	foto.pressed.connect(func() -> void:
+		cerrar_panel()
+		if Interfaz.has_method("abrir_modo_foto"):
+			Interfaz.call("abrir_modo_foto"))
+	v.add_child(foto)
 	var menu := Estilo.boton("Salir al menú")
 	menu.pressed.connect(_pedir_salir_al_menu)
 	v.add_child(menu)

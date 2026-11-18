@@ -19,8 +19,14 @@ const NORMAL_AGUA := "res://assets/agua/ondas_normal.png"
 const SUELOS_H03 := {
 	"granja": "stony_dirt_path", "pueblo": "stony_dirt_path", "bosque_norte": "forest_floor",
 	"costa_lago": "coast_sand_rocks_02", "mina_exterior": "rocks_ground_06",
+	"sierra_mirador": "rocky_trail", "robledal_niebla": "leaves_forest_ground",
+	"ruinas_valle": "grass_path_2",
 }
-const MAPAS_EXTERIORES: Array[String] = ["granja", "pueblo", "mina_exterior", "bosque_norte", "costa_lago"]
+const SUELOS_H05_SET := ["sierra_mirador", "robledal_niebla", "ruinas_valle"]
+const MAPAS_EXTERIORES: Array[String] = [
+	"granja", "pueblo", "mina_exterior", "bosque_norte", "costa_lago",
+	"sierra_mirador", "robledal_niebla", "ruinas_valle",
+]
 const TAM_CELDA := 24.0                 # metros: tamaño de cada trozo de MultiMesh (permite recortar lo que no se ve)
 const ALCANCE_PLANTAS := 75.0           # distancia a partir de la cual desaparecen las plantas pequeñas
 const ALTO_CILINDRO_TRONCO := 4.0
@@ -120,7 +126,7 @@ static func _rutas_de_datos(base: String, id: String, datos: Dictionary, mats: D
 	if SUELOS_H03.has(id):
 		for mapa_pbr: String in ["diff", "nor_gl", "rough", "disp"]:
 			anadir.call(_ruta_suelo_h03(id, mapa_pbr))
-	if id == "costa_lago" or id == "bosque_norte":
+	if id == "costa_lago" or id == "bosque_norte" or id == "robledal_niebla" or id == "ruinas_valle":
 		anadir.call(NORMAL_AGUA)
 	var protos: Dictionary = inst.get("protos", {})
 	var info: Dictionary = inst.get("info", {})
@@ -352,7 +358,7 @@ func _preparar_malla(mi: MeshInstance3D) -> void:
 			mi.set_surface_override_material(i, m)
 	if String(mi.name) == "Ventanas_luz" and not _es_exterior():
 		_crear_luces_ventana_h03(mi)
-	if String(mi.name) == "Rio_agua" or String(mi.name) == "Lago_agua":
+	if String(mi.name) == "Rio_agua" or String(mi.name) == "Lago_agua" or String(mi.name) == "Estanque_agua":
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 	if bool(info.get("solo_sombra", false)):
@@ -480,11 +486,11 @@ func _es_exterior() -> bool:
 
 
 func _construir_material(nombre: String, e: Dictionary) -> Material:
-	if nombre == "Agua" and (id_mapa == "costa_lago" or id_mapa == "bosque_norte"):
+	if nombre == "Agua" and id_mapa in ["costa_lago", "bosque_norte", "robledal_niebla", "ruinas_valle"]:
 		var agua := ShaderMaterial.new()
 		agua.shader = SHADER_AGUA
 		agua.set_shader_parameter("ondas", _tex(NORMAL_AGUA))
-		agua.set_shader_parameter("es_rio", id_mapa == "bosque_norte")
+		agua.set_shader_parameter("es_rio", id_mapa == "bosque_norte" or id_mapa == "ruinas_valle")
 		return agua
 	var tipo := String(e.get("tipo", "triplanar"))
 	if tipo == "triplanar":
@@ -519,6 +525,8 @@ func _material_triplanar(e: Dictionary) -> ShaderMaterial:
 
 static func _ruta_suelo_h03(mapa: String, canal: String) -> String:
 	var prefijo: String = SUELOS_H03[mapa]
+	if SUELOS_H05_SET.has(mapa):
+		return "res://assets/texturas/h05/%s/%s_%s_1k.jpg" % [prefijo, prefijo, canal]
 	return "res://assets/texturas/h03/%s/%s_%s_2k.jpg" % [prefijo, prefijo, canal]
 
 

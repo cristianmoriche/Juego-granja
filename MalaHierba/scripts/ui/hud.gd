@@ -14,6 +14,7 @@ var _l_hora: Label
 var _l_dinero: Label
 var _l_deuda: Label
 var _l_evento: Label
+var _l_bufos: Label
 var _barra: ProgressBar
 var _l_energia: Label
 var _estilo_relleno: StyleBoxFlat
@@ -25,6 +26,9 @@ var _l_resistencia: Label
 var _panel_enemigo: PanelContainer
 var _l_enemigo: Label
 var _barra_enemigo: ProgressBar
+var _panel_arco: PanelContainer
+var _barra_arco: ProgressBar
+var _l_arco: Label
 var _enemigo: Node3D
 var _combate: RefCounted
 var _vineta: ColorRect
@@ -71,6 +75,8 @@ func _ready() -> void:
 	Juego.dia_nuevo.connect(_actualizar_reloj)
 	Juego.clima_cambiado.connect(func(_c: String) -> void: _actualizar_reloj())
 	Juego.evento_cambiado.connect(_actualizar_evento)
+	Juego.bufos_cambiados.connect(_actualizar_bufos)
+	Juego.partida_cambiada.connect(_actualizar_bufos)
 	Juego.dinero_cambiado.connect(func(_d: int) -> void: _actualizar_dinero())
 	Juego.deuda_cambiada.connect(func(_d: int) -> void: _actualizar_dinero())
 	Juego.partida_cambiada.connect(limpiar_avisos)
@@ -104,6 +110,7 @@ func refrescar() -> void:
 
 func _process(delta: float) -> void:
 	_actualizar_efectos_vida(delta)
+	_actualizar_visor_arco()
 	if _panel_enemigo.visible:
 		var margen := _tutorial.position.y + _tutorial.size.y + 12.0 if _tutorial.visible else 22.0
 		_panel_enemigo.offset_top = margen
@@ -206,6 +213,12 @@ func _construir_info() -> void:
 	_l_evento.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_l_evento.visible = false
 	v.add_child(_l_evento)
+	_l_bufos = Estilo.etiqueta("", Estilo.TAM_PEQUENO, Color(0.64, 0.90, 0.72))
+	_l_bufos.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_l_bufos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_l_bufos.custom_minimum_size = Vector2(250, 0)
+	_l_bufos.visible = false
+	v.add_child(_l_bufos)
 
 
 func _construir_barra() -> void:
@@ -404,6 +417,24 @@ func _actualizar_evento() -> void:
 				texto = "Cercas rotas en la granja"
 	_l_evento.text = texto
 	_l_evento.visible = not texto.is_empty()
+	_actualizar_bufos()
+
+
+func _actualizar_bufos() -> void:
+	if _l_bufos == null:
+		return
+	var bufos := Juego.bufos_activos()
+	if bufos.is_empty():
+		_l_bufos.text = ""
+		_l_bufos.visible = false
+		return
+	var trozos: Array[String] = []
+	for k: Variant in bufos:
+		var b := bufos[k] as Dictionary
+		var m := maxi(1, int(b.get("restante", 0)))
+		trozos.append("★ %s (%dh%02d)" % [str(b.get("etiqueta", "")), m / 60, m % 60])
+	_l_bufos.text = " · ".join(trozos)
+	_l_bufos.visible = true
 
 
 func _actualizar_dinero() -> void:
@@ -521,6 +552,61 @@ func _construir_objetivo() -> void:
 	_barra_enemigo.add_theme_stylebox_override("fill", Estilo.caja(Color(0.75, 0.26, 0.22), Color.TRANSPARENT, 0, 3, 0))
 	v.add_child(_barra_enemigo)
 	_panel_enemigo.hide()
+	_construir_visor_arco()
+
+
+func _construir_visor_arco() -> void:
+	_panel_arco = PanelContainer.new()
+	_panel_arco.name = "VisorArco"
+	_panel_arco.anchor_left = 0.5
+	_panel_arco.anchor_right = 0.5
+	_panel_arco.anchor_top = 0.5
+	_panel_arco.anchor_bottom = 0.5
+	_panel_arco.offset_left = -82
+	_panel_arco.offset_right = 82
+	_panel_arco.offset_top = 24
+	_panel_arco.offset_bottom = 66
+	_panel_arco.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	Estilo.estilo_panel(_panel_arco, Color(0.06, 0.055, 0.048, 0.78), Color(0.55, 0.44, 0.28, 0.75), 6)
+	add_child(_panel_arco)
+	var vb := VBoxContainer.new()
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vb.add_theme_constant_override("separation", 3)
+	_panel_arco.add_child(vb)
+	_barra_arco = ProgressBar.new()
+	_barra_arco.max_value = 1.0
+	_barra_arco.step = 0.01
+	_barra_arco.show_percentage = false
+	_barra_arco.custom_minimum_size = Vector2(142, 6)
+	_barra_arco.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_barra_arco.add_theme_stylebox_override("fill", Estilo.caja(Color(0.92, 0.72, 0.26), Color.TRANSPARENT, 0, 2, 0))
+	vb.add_child(_barra_arco)
+	_l_arco = Estilo.etiqueta("", Estilo.TAM_PEQUENO, Estilo.COLOR_TEXTO)
+	_l_arco.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(_l_arco)
+	_panel_arco.hide()
+
+
+func _actualizar_visor_arco() -> void:
+	if _panel_arco == null:
+		return
+	var activo: bool = _combate != null and bool(_combate.call("es_arco_activo")) and not Interfaz.ocupada() and Juego.vida > 0.0
+	_panel_arco.visible = activo
+	if not activo:
+		return
+	var tension := clampf(float(_combate.get("tension_arco")), 0.0, 1.0)
+	_barra_arco.value = tension
+	var fill := _barra_arco.get_theme_stylebox("fill") as StyleBoxFlat
+	if fill != null:
+		fill.bg_color = Color(0.36, 0.90, 0.44) if tension >= 0.92 else Color(0.92, 0.72, 0.26)
+	var muni := Juego.municion_disponible()
+	var total := Juego.total_flechas()
+	if muni.is_empty() or total <= 0:
+		_l_arco.text = "Sin flechas"
+		_l_arco.modulate = Color(1.0, 0.48, 0.44)
+	else:
+		_l_arco.text = "%s · %d" % [Datos.nombre_objeto(muni), total]
+		_l_arco.modulate = Color.WHITE
 
 
 func _conectar_jugador(_id: String) -> void:
@@ -606,6 +692,9 @@ func aviso(texto: String, id_icono: String = "") -> void:
 		fila.add_child(ic)
 	var l := Estilo.etiqueta(texto, Estilo.TAM_TEXTO, Estilo.COLOR_TEXTO)
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if texto.length() > 46:
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(480, 0)
 	fila.add_child(l)
 	_avisos.add_child(p)
 	while _avisos.get_child_count() > MAX_AVISOS:

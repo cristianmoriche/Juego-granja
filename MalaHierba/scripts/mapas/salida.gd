@@ -62,7 +62,6 @@ func _al_entrar(cuerpo: Node3D) -> void:
 		return
 	if _bloqueada or Escenas.en_transicion:
 		return
-	_activa = false
 	Escenas.ir_a_mapa(destino, llegada)
 
 

@@ -20,6 +20,9 @@ var _mus_activa_a: bool = true
 var _amb_a: AudioStreamPlayer
 var _amb_b: AudioStreamPlayer
 var _amb_activa_a: bool = true
+var _amb_agua: AudioStreamPlayer
+var _nivel_agua: float = 0.0
+var _ultimo_es_noche: int = -1
 var _efectos: Array[AudioStreamPlayer] = []
 var _idx_efecto: int = 0
 var _tween_mus: Tween
@@ -34,6 +37,7 @@ func _ready() -> void:
 	_mus_b = _crear_reproductor("Musica")
 	_amb_a = _crear_reproductor("Ambiente")
 	_amb_b = _crear_reproductor("Ambiente")
+	_amb_agua = _crear_reproductor("Ambiente")
 	for i in POOL_EFECTOS:
 		_efectos.append(_crear_reproductor("Efectos"))
 	get_tree().node_added.connect(_al_anadir_nodo)
@@ -95,6 +99,14 @@ func _conectar_senales() -> void:
 		Escenas.mapa_cargado.connect(_al_cargar_mapa)
 	if has_node("/root/Juego"):
 		Juego.dia_nuevo.connect(_actualizar_ambiente_actual)
+		Juego.hora_cambiada.connect(_al_cambiar_hora)
+
+
+func _al_cambiar_hora(mins: int) -> void:
+	var noche := 1 if (mins >= 1140 or mins < 360) else 0
+	if noche != _ultimo_es_noche:
+		_ultimo_es_noche = noche
+		_actualizar_ambiente_actual()
 
 
 func _cargar_stream(id: String, en_bucle: bool) -> AudioStream:
@@ -226,7 +238,7 @@ func ruta_ambiente_mapa(id_mapa: String) -> String:
 ## Libera streams cacheados que no están sonando para no cargar memoria en menú.
 func limpiar_cache_inactiva() -> void:
 	var en_uso: Array[AudioStream] = []
-	for p: AudioStreamPlayer in [_mus_a, _mus_b, _amb_a, _amb_b] + _efectos:
+	for p: AudioStreamPlayer in [_mus_a, _mus_b, _amb_a, _amb_b, _amb_agua] + _efectos:
 		if is_instance_valid(p):
 			if p.playing and p.stream != null:
 				en_uso.append(p.stream)
@@ -241,21 +253,48 @@ func limpiar_cache_inactiva() -> void:
 
 func musica_para_mapa(id_mapa: String) -> String:
 	match id_mapa:
-		"granja", "bosque_norte", "costa_lago": return "mus_granja"
+		"granja", "bosque_norte", "costa_lago", "robledal_niebla", "ruinas_valle": return "mus_granja"
 		"pueblo": return "mus_pueblo"
-		"mina_exterior", "mina_interior": return "mus_mina"
+		"mina_exterior", "mina_interior", "sierra_mirador": return "mus_mina"
 		_: return "mus_interiores"
 
 
 func ambiente_para_mapa(id_mapa: String) -> String:
-	var exterior := id_mapa in ["granja", "pueblo", "mina_exterior", "bosque_norte", "costa_lago"]
-	if exterior and has_node("/root/Juego") and Juego.esta_lloviendo():
-		return "amb_lluvia"
+	var exterior := id_mapa in ["granja", "pueblo", "mina_exterior", "bosque_norte", "costa_lago", "sierra_mirador", "robledal_niebla", "ruinas_valle"]
+	if exterior and has_node("/root/Juego"):
+		if Juego.esta_lloviendo():
+			return "amb_lluvia"
+		if Juego.minutos >= 1140 or Juego.minutos < 360:
+			return "amb_noche_grillos"
+		if id_mapa in ["sierra_mirador", "ruinas_valle", "mina_exterior"]:
+			return "amb_viento_sierra"
+		if id_mapa == "pueblo":
+			return "amb_pueblo"
+		return "amb_dia_pajaros"
 	if id_mapa == "pueblo":
 		return "amb_pueblo"
 	if id_mapa == "mina_interior":
 		return "amb_mina"
 	return ""
+
+
+## Mezcla continua del rumor del agua cuando Leo está cerca de río, lago o arroyo (0.0 a 1.0).
+func poner_nivel_agua(nivel: float) -> void:
+	if _amb_agua == null:
+		return
+	var obj := clampf(nivel, 0.0, 1.0)
+	_nivel_agua = lerpf(_nivel_agua, obj, 0.25)
+	if _nivel_agua <= 0.03:
+		if _amb_agua.playing:
+			_amb_agua.stop()
+		return
+	if not _amb_agua.playing:
+		var s := _cargar_stream("amb_agua", true)
+		if s == null:
+			return
+		_amb_agua.stream = s
+		_amb_agua.play()
+	_amb_agua.volume_db = lerpf(-34.0, -9.0, _nivel_agua)
 
 
 func usar_puerta() -> void:
@@ -281,7 +320,7 @@ func _exit_tree() -> void:
 		_tween_mus.kill()
 	if _tween_amb != null and _tween_amb.is_valid():
 		_tween_amb.kill()
-	for p: AudioStreamPlayer in [_mus_a, _mus_b, _amb_a, _amb_b] + _efectos:
+	for p: AudioStreamPlayer in [_mus_a, _mus_b, _amb_a, _amb_b, _amb_agua] + _efectos:
 		if is_instance_valid(p):
 			p.stop()
 			p.stream = null

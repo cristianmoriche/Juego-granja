@@ -241,6 +241,10 @@ func _ids_visibles() -> Array[String]:
 				if not est.is_empty() and not est.has(Juego.estacion):
 					continue
 			r.append(id)
+		for rec_v: Variant in _tienda.get("recetas", []):
+			var rid := str(rec_v)
+			if Datos.existe_receta(rid):
+				r.append("receta:" + rid)
 	else:
 		var tipos: Array = _tienda.get("compra_tipos", [])
 		var vistos: Dictionary = {}
@@ -260,6 +264,10 @@ func _ids_visibles() -> Array[String]:
 
 
 func _precio(clave: String) -> int:
+	if clave.begins_with("receta:"):
+		var rid := clave.trim_prefix("receta:")
+		var orig: Dictionary = Datos.receta(rid).get("origen", {}) as Dictionary
+		return int(orig.get("precio", 80))
 	var partes := _parse_clave(clave)
 	var id := partes[0]
 	var cal := partes[1]
@@ -305,6 +313,40 @@ func _tienda_tiene_semillas() -> bool:
 
 
 func _fila(clave: String) -> Button:
+	if clave.begins_with("receta:"):
+		var rid := clave.trim_prefix("receta:")
+		var rec := Datos.receta(rid)
+		var aprendida := Juego.tiene_receta(rid)
+		var b_r := Button.new()
+		b_r.custom_minimum_size = Vector2(0, 54)
+		b_r.toggle_mode = true
+		b_r.button_pressed = (clave == _sel)
+		b_r.focus_mode = Control.FOCUS_ALL
+		b_r.pressed.connect(_elegir.bind(clave))
+		var h_r := HBoxContainer.new()
+		h_r.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		h_r.offset_left = 10
+		h_r.offset_right = -12
+		h_r.add_theme_constant_override("separation", 12)
+		h_r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b_r.add_child(h_r)
+		var ic_r := TextureRect.new()
+		ic_r.texture = Datos.icono(rid)
+		ic_r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic_r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic_r.custom_minimum_size = Vector2(48, 48)
+		ic_r.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		ic_r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		h_r.add_child(ic_r)
+		var ln_r := Estilo.etiqueta("Receta: %s" % str(rec.get("nombre", rid)), Estilo.TAM_TEXTO, Estilo.COLOR_TEXTO_SUAVE if aprendida else Estilo.COLOR_TEXTO)
+		ln_r.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ln_r.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		ln_r.clip_text = true
+		h_r.add_child(ln_r)
+		var lp_r := Estilo.etiqueta("Aprendida" if aprendida else Estilo.euros(_precio(clave)), Estilo.TAM_TEXTO, Estilo.COLOR_BUENO if aprendida else Estilo.COLOR_ACENTO)
+		lp_r.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		h_r.add_child(lp_r)
+		return b_r
 	var partes := _parse_clave(clave)
 	var id := partes[0]
 	var cal := partes[1]
@@ -372,6 +414,9 @@ func _reconstruir_seleccion_visual() -> void:
 func _maximo() -> int:
 	if _sel.is_empty():
 		return 0
+	if _sel.begins_with("receta:"):
+		var rid := _sel.trim_prefix("receta:")
+		return 1 if (not Juego.tiene_receta(rid) and Juego.dinero >= _precio(_sel)) else 0
 	var partes := _parse_clave(_sel)
 	var id := partes[0]
 	var cal := partes[1]
@@ -390,6 +435,35 @@ func _receta(id: String) -> Dictionary:
 
 
 func _actualizar_detalle() -> void:
+	if _sel.begins_with("receta:"):
+		var rid := _sel.trim_prefix("receta:")
+		var rec := Datos.receta(rid)
+		var aprendida := Juego.tiene_receta(rid)
+		_icono.visible = true
+		_icono.poner({"id": rid, "cantidad": 1})
+		_b_menos.visible = false
+		_b_mas.visible = false
+		_b_max.visible = false
+		_l_cantidad.visible = false
+		_l_nombre.text = "Receta: %s" % str(rec.get("nombre", rid))
+		var d_txt := "%s\nEfecto del plato: %s" % [str(rec.get("descripcion", "")), Datos.detalle_comida(rid)]
+		var ings: Array[String] = []
+		for iv: Variant in rec.get("ingredientes", []):
+			if iv is Dictionary:
+				var id_i := str((iv as Dictionary).get("id", ""))
+				ings.append("%d× %s" % [int((iv as Dictionary).get("cantidad", 1)), Datos.nombre_objeto(id_i)])
+		if not ings.is_empty():
+			d_txt += "\nIngredientes: " + ", ".join(ings)
+		_l_desc.text = d_txt
+		var pr_r := _precio(_sel)
+		_l_precio.text = "Receta ya aprendida" if aprendida else "Precio del cuaderno: %s" % Estilo.euros(pr_r)
+		_l_total.text = "Lista para cocinar en tu cabaña u hoguera." if aprendida else ""
+		_b_confirmar.text = "Aprendida" if aprendida else "Aprender receta"
+		_b_confirmar.disabled = aprendida or Juego.dinero < pr_r
+		if not aprendida and Juego.dinero < pr_r:
+			_l_aviso.add_theme_color_override("font_color", Estilo.COLOR_MALO)
+			_l_aviso.text = "No tienes bastante dinero."
+		return
 	var hay := not _sel.is_empty()
 	_icono.visible = hay
 	_b_menos.disabled = not hay
@@ -462,6 +536,19 @@ func _poner_maximo() -> void:
 
 func _confirmar() -> void:
 	if _sel.is_empty():
+		return
+	if _sel.begins_with("receta:"):
+		var rid := _sel.trim_prefix("receta:")
+		var pr_r := _precio(_sel)
+		if Juego.tiene_receta(rid):
+			_aviso_malo("Ya conoces esta receta.")
+			return
+		if not Juego.cobrar(pr_r):
+			_aviso_malo("No tienes bastante dinero.")
+			return
+		Juego.aprender_receta(rid, true)
+		_aviso_bueno("Has aprendido: %s." % str(Datos.receta(rid).get("nombre", rid)))
+		_reconstruir()
 		return
 	var partes := _parse_clave(_sel)
 	var id := partes[0]

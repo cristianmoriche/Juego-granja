@@ -16,5 +16,8 @@
   {"id": "anselmo_madera", "npc": "anselmo", "tipo": "entregar", "texto": "El ayuntamiento necesita {n} piezas de madera para arreglar el tejado.", "pide": "madera", "cantidad": 10, "dinero": 35, "amistad": 10},
   {"id": "anselmo_piedra", "npc": "anselmo", "tipo": "entregar", "texto": "El alcalde busca {n} piedras para reparar el empedrado de la plaza.", "pide": "piedra", "cantidad": 10, "dinero": 30, "amistad": 10},
   {"id": "tomas_cuarzo", "npc": "tomas", "tipo": "entregar", "texto": "Tomás pide {n} cuarzos para un coleccionista que pasa por la mina.", "pide": "cuarzo", "cantidad": 2, "dinero": 55, "amistad": 12},
-  {"id": "tomas_hierro", "npc": "tomas", "tipo": "entregar", "texto": "Tomás necesita {n} piezas de hierro para reforzar los apeos de la galería.", "pide": "hierro", "cantidad": 5, "dinero": 65, "amistad": 12}
+  {"id": "tomas_hierro", "npc": "tomas", "tipo": "entregar", "texto": "Tomás necesita {n} piezas de hierro para reforzar los apeos de la galería.", "pide": "hierro", "cantidad": 5, "dinero": 65, "amistad": 12},
+  {"id": "ramon_setas", "npc": "ramon", "tipo": "entregar", "texto": "Ramón quiere {n} setas silvestres del Robledal de la Niebla para los salteados.", "pide": "seta_silvestre", "cantidad": 3, "dinero": 60, "amistad": 10},
+  {"id": "mateo_moras", "npc": "mateo", "tipo": "entregar", "texto": "Don Mateo encarga {n} moras silvestres de los linderos y del lago para confituras.", "pide": "mora_silvestre", "cantidad": 4, "dinero": 58, "amistad": 10},
+  {"id": "clara_hierbas", "npc": "clara", "tipo": "entregar", "texto": "Clara necesita {n} manojos de romero de monte de la Sierra o las Ruinas.", "pide": "hierba_monte", "cantidad": 3, "dinero": 54, "amistad": 10}
 ]

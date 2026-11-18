@@ -5,26 +5,36 @@
     "vende": [
       "semilla_patata", "semilla_zanahoria", "semilla_haba", "semilla_tomate", "semilla_pimiento", "semilla_melon", "semilla_calabaza", "semilla_col", "semilla_boniato", "semilla_ajo", "semilla_espinaca", "semilla_nabo", "remedio_plaga", "pan", "bocadillo",
       "mesa_roble", "mesa_redonda", "mesita_noche", "silla_roble", "taburete_madera", "banco_entrada", "sillon_campo", "estanteria_alta", "estanteria_baja",
-      "alfombra_roja", "alfombra_verde", "alfombra_pasillo", "lampara_pie", "farol_mesa", "maceta_helecho", "maceta_flor", "cuadro_valle", "cuadro_girasoles", "baul_roble", "chimenea_piedra", "cana"
+      "alfombra_roja", "alfombra_verde", "alfombra_pasillo", "lampara_pie", "farol_mesa", "maceta_helecho", "maceta_flor", "cuadro_valle", "cuadro_girasoles", "baul_roble", "chimenea_piedra", "cana", "antorcha", "farol_mano", "flecha_normal"
     ],
-    "compra_tipos": ["cultivo", "mineral", "recurso", "mueble", "pescado"]
+    "compra_tipos": ["cultivo", "mineral", "recurso", "mueble", "pescado", "recolectable", "comida"],
+    "recetas": ["crema_calabaza", "boniato_miel"]
   },
   {
     "id": "taberna",
     "nombre": "Taberna de Ramón",
     "vende": ["cafe", "caldo", "tortilla", "guiso"],
-    "compra_tipos": []
+    "compra_tipos": ["comida"],
+    "recetas": ["trucha_hierbas", "carpa_glaseada"]
   },
   {
     "id": "comerciante_ambulante",
     "nombre": "Puesto del mercader ambulante",
-    "vende": ["semilla_azafran", "elixir_sierra", "ambar_valle", "remedio_plaga", "semilla_espinaca", "semilla_nabo"],
-    "compra_tipos": ["cultivo", "mineral", "recurso"]
+    "vende": ["semilla_azafran", "elixir_sierra", "ambar_valle", "remedio_plaga", "semilla_espinaca", "semilla_nabo", "arco_cristal", "flecha_cristal", "flecha_fuego"],
+    "compra_tipos": ["cultivo", "mineral", "recurso", "recolectable", "comida", "municion"],
+    "recetas": ["tonico_explorador"]
   },
   {
     "id": "panaderia",
     "nombre": "Horno de Villaverde",
     "vende": ["pan", "bocadillo", "cafe", "tortilla"],
-    "compra_tipos": ["cultivo"]
+    "compra_tipos": ["cultivo", "comida"]
+  },
+  {
+    "id": "arqueria",
+    "nombre": "Taller de arquería de Clara",
+    "vende": ["arco_caza", "carcaj_cuero", "flecha_normal", "flecha_cobre", "flecha_fuego"],
+    "forja": ["arco_caza", "arco_cristal", "carcaj_cuero", "flecha_normal", "flecha_cobre", "flecha_cristal", "flecha_fuego"],
+    "compra_tipos": ["municion"]
   }
 ]

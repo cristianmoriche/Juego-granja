@@ -1,0 +1,10 @@
+{
+ "Terreno": {
+  "colision": true,
+  "solo_sombra": false
+ },
+ "Rio_agua": {
+  "colision": false,
+  "solo_sombra": false
+ }
+}
