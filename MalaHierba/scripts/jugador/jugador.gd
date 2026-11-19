@@ -17,6 +17,10 @@ extends CharacterBody3D
 const VEL_ANDAR := 3.5 * EscalaPersonaje.ESCALA
 const VEL_CORRER := 6.0 * EscalaPersonaje.ESCALA
 const VEL_AGACHADO := 1.5
+# Velocidad del suelo bajo los pies (m/s, ya con la escala del personaje) en cada clip de movimiento a velocidad 1,0
+const VEL_SUELO_ANDAR := 1.82
+const VEL_SUELO_CORRER := 2.80
+const VEL_SUELO_AGACHADO := 1.74
 const ACELERACION := 32.0
 const ACELERACION_AIRE := 10.0   # en el aire se puede corregir el rumbo, pero con menos fuerza que en el suelo
 const GRAVEDAD := 24.0
@@ -382,20 +386,27 @@ func _animar_estado(rapidez: float, corriendo: bool) -> void:
 	if not propia.is_empty() and _anim != null and _anim.has_animation(propia):
 		_anim_propia = true
 		var mezcla := 0.2 if estado_mov == "agachado" else 0.15
-		_reproducir(propia, mezcla, 1.0)
+		var vel_propia := clampf(rapidez / VEL_SUELO_AGACHADO, 0.8, 1.7) if propia == "agachado_andar" else 1.0
+		_reproducir(propia, mezcla, vel_propia)
 		return
 	if estado_mov == "suelo" and rapidez <= 0.4 and _anim != null and _anim.has_animation("combate_reposo") \
 		and (_escudo_nodo != null or Datos.objeto(_objeto_en_mano).get("tipo") == "arma"):
 		_reproducir("combate_reposo", 0.12)
 		return
 	var con_herramienta := not _objeto_en_mano.is_empty()
-	var usar_correr := corriendo and not con_herramienta and not agachado and _anim != null and _anim.has_animation("correr")
-	var nom_andar := "andar_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("andar_herramienta")) else ("correr" if usar_correr else "andar")
+	var usar_correr := corriendo and not agachado and _anim != null and _anim.has_animation("correr")
+	var nom_andar := "correr" if usar_correr else ("andar_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("andar_herramienta")) else "andar")
 	var nom_reposo := "reposo_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("reposo_herramienta")) else "reposo"
 	if estado_mov == "salto" or estado_mov == "caida":
 		_reproducir(nom_reposo, 0.1)       # en el aire no mueve las piernas como si anduviera
 	elif rapidez > 0.4:
-		var vel_anim := 1.15 if usar_correr else (1.45 if corriendo else (0.5 if agachado else 1.0))
+		# Los clips nuevos (andar/correr) son in-place y de ritmo lento: se acelera cada uno en proporción a la velocidad real
+		# del personaje para que los pies no patinen y Leo siga moviéndose a la misma velocidad de siempre.
+		var vel_anim := 1.45 if corriendo else (0.5 if agachado else 1.0)
+		if usar_correr:
+			vel_anim = clampf(rapidez / VEL_SUELO_CORRER, 1.0, 1.95)
+		elif nom_andar == "andar" or nom_andar == "andar_herramienta":
+			vel_anim = clampf(rapidez / VEL_SUELO_ANDAR, 1.0, 2.4)
 		_reproducir(nom_andar, 0.15, vel_anim)
 	else:
 		_reproducir(nom_reposo, 0.2)

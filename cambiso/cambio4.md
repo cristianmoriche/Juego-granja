@@ -108,3 +108,15 @@ Todas las pruebas ejecutadas tras el último cambio pasaron correctamente:
 - **Vulkan Forward+ (RTX 4070):**
   - `prueba_t12_mapa` (`2935` comprobaciones OK, `rc=0`)
   - `medir_andar_m2.gd`: `andar` (`1.733 s`), `DEF-foot.L` / `DEF-foot.R` recorrido Z `0.76 m` / `0.77 m`, `y min = 0.14 m`.
+
+---
+
+## 3. Mejora de 13 animaciones de Leo con MotionBricks (`/home/juanjo/herramientas/motionbricks`)
+
+- **Generación neuronal en GPU (`MotionBricksSOMAEngine`):** se generaron secuencias de movimiento SOMA sobre RTX 4070 (`mb_generate_leo.py`) y se aplicó **retargeting directo 1-salto (SOMA 77 → Leo 35 huesos `DEF-*`)** sin alterar la malla (`28.000` triángulos), textura, nombres exactos con puntos, primera persona ni los 17 clips previos de herramientas/ataques.
+- **13 animaciones actualizadas en `leo.glb` (26 pistas cada una, cierre cíclico suave y contacto exacto al suelo):**
+  - `reposo` (`3.567 s`), `andar` (`1.167 s`, ciclo completo izq.+der.), `correr` (`0.700 s`, ciclo atlético completo), `agachado_reposo` (`3.567 s`, cadera `0.894 → 0.663 m`, rodillas `100.5°`), `agachado_andar` (`1.067 s`, desplazamiento `0.962 m` en T05), `saltar` (`0.567 s`), `caer` (`0.500 s`), `aterrizar` (`0.433 s`), `combate_reposo` (`3.300 s`), `combate_esquiva` (`0.733 s`), `combate_esquiva_atras` (`0.733 s`).
+  - `reposo_herramienta` (`3.567 s`) y `andar_herramienta` (`1.167 s`) combinan el cuerpo completo MotionBricks conservando el agarre original del brazo derecho.
+- **Sincronización de velocidad en `MalaHierba/scripts/jugador/jugador.gd`:**
+  - Actualizadas `VEL_SUELO_ANDAR := 1.82`, `VEL_SUELO_CORRER := 2.80`, `VEL_SUELO_AGACHADO := 1.74` (incluyendo `andar_herramienta` y tope `1.95` en sprint) para mantener las velocidades exactas de Leo sin patinaje y dar prioridad a `"correr"` al pulsar **Shift** incluso con herramienta en mano.
+- **Verificación tras el cambio:** `prueba_t05_animaciones` (`OK`), `prueba_l2` (`PRUEBA OK`), `prueba_l3` (`PRUEBA OK`), `prueba_h01_camara` (`116/0`) y `prueba_h02_combate` (`105/0`).
