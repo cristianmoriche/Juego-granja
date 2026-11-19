@@ -2,23 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://hi88tgubtvnw"
-path="res://.godot/imported/ciempies_Image_0.jpg-9e24049c6daf4473a21be1fb58c7845d.ctex"
+uid="uid://dxpyf31ywjg4h"
+path.s3tc="res://.godot/imported/ciempies_Image_0.jpg-9e24049c6daf4473a21be1fb58c7845d.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "7212309632e8247ff2e6396ed6c02470"
+"md5": "c5aca27c6a8508d2e131e71d1aa13d21"
 }
 
 [deps]
 
 source_file="res://assets/enemigos/ciempies_Image_0.jpg"
-dest_files=["res://.godot/imported/ciempies_Image_0.jpg-9e24049c6daf4473a21be1fb58c7845d.ctex"]
+dest_files=["res://.godot/imported/ciempies_Image_0.jpg-9e24049c6daf4473a21be1fb58c7845d.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

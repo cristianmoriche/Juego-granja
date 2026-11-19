@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cqac21dfyju6l"
-path="res://.godot/imported/vagoneta_mina_old_planks_02_rug.jpg-826192cf65abcb4c20427d759c743122.ctex"
+path.s3tc="res://.godot/imported/vagoneta_mina_old_planks_02_rug.jpg-826192cf65abcb4c20427d759c743122.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0aa42e77450b0b85fd9036a50a9108db"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/mina/vagoneta_mina_old_planks_02_rug.jpg"
-dest_files=["res://.godot/imported/vagoneta_mina_old_planks_02_rug.jpg-826192cf65abcb4c20427d759c743122.ctex"]
+dest_files=["res://.godot/imported/vagoneta_mina_old_planks_02_rug.jpg-826192cf65abcb4c20427d759c743122.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

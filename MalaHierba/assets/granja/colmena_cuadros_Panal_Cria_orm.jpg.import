@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c24ct3chidh7f"
-path="res://.godot/imported/colmena_cuadros_Panal_Cria_orm.jpg-0a0decf81f33c12fa430f2c0c846fb0e.ctex"
+path.s3tc="res://.godot/imported/colmena_cuadros_Panal_Cria_orm.jpg-0a0decf81f33c12fa430f2c0c846fb0e.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1809fd0e267ea9dfa1ecf416c2eb65f9"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/granja/colmena_cuadros_Panal_Cria_orm.jpg"
-dest_files=["res://.godot/imported/colmena_cuadros_Panal_Cria_orm.jpg-0a0decf81f33c12fa430f2c0c846fb0e.ctex"]
+dest_files=["res://.godot/imported/colmena_cuadros_Panal_Cria_orm.jpg-0a0decf81f33c12fa430f2c0c846fb0e.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

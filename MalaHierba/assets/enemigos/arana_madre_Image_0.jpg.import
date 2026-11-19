@@ -2,23 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bqggo852axr58"
-path="res://.godot/imported/arana_madre_Image_0.jpg-9e0215107f685a99e4c014494307a74f.ctex"
+uid="uid://bojdvmuisqq6y"
+path.s3tc="res://.godot/imported/arana_madre_Image_0.jpg-9e0215107f685a99e4c014494307a74f.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "ae0fa8b65d7ca74b40de6552148ac37a"
+"md5": "917d283291424d78d0e7652dc8abe2e2"
 }
 
 [deps]
 
 source_file="res://assets/enemigos/arana_madre_Image_0.jpg"
-dest_files=["res://.godot/imported/arana_madre_Image_0.jpg-9e0215107f685a99e4c014494307a74f.ctex"]
+dest_files=["res://.godot/imported/arana_madre_Image_0.jpg-9e0215107f685a99e4c014494307a74f.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

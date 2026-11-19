@@ -739,10 +739,11 @@ func _actualizar_interactuable(forzar: bool = false) -> void:
 		var pos_d2 := global_position.distance_squared_to(_ult_pos_apuntado) if _ult_pos_apuntado.is_finite() else INF
 		var yaw_d := absf(camara.yaw - _ult_yaw_apuntado) if not is_nan(_ult_yaw_apuntado) else INF
 		var pitch_d := absf(camara.pitch - _ult_pitch_apuntado) if not is_nan(_ult_pitch_apuntado) else INF
-		var movido_grande := libre != _ult_libre_apuntado or pos_d2 > 0.01 or yaw_d > 0.04 or pitch_d > 0.04
+		var obj_invalido := _objetivo != null and (not is_instance_valid(_objetivo) or (_objetivo is Interactuable and not (_objetivo as Interactuable).activo))
+		var movido_grande := libre != _ult_libre_apuntado or pos_d2 > 0.01 or yaw_d > 0.04 or pitch_d > 0.04 or obj_invalido
 		var movido_suave := pos_d2 > 0.0001 or yaw_d > 0.0004 or pitch_d > 0.0004
 		_ticks_apuntado += 1
-		var intervalo := 2 if movido_suave else 6
+		var intervalo := 1 if movido_suave else 3
 		if not movido_grande and _ticks_apuntado < intervalo:
 			return
 	_ticks_apuntado = 0

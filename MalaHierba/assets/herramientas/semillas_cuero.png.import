@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b55qf10r3l0sa"
-path="res://.godot/imported/semillas_cuero.png-86b5abc50fec26e40c426e05c4cb5ec3.ctex"
+path.s3tc="res://.godot/imported/semillas_cuero.png-86b5abc50fec26e40c426e05c4cb5ec3.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "274050e8e44ad7715893600c7fbbf3da"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/herramientas/semillas_cuero.png"
-dest_files=["res://.godot/imported/semillas_cuero.png-86b5abc50fec26e40c426e05c4cb5ec3.ctex"]
+dest_files=["res://.godot/imported/semillas_cuero.png-86b5abc50fec26e40c426e05c4cb5ec3.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

@@ -81,8 +81,8 @@ func _ejecutar() -> void:
 			Ajustes.poner("calidad", calidad)
 			_comprobar(is_equal_approx(get_viewport().scaling_3d_scale, [0.75, 0.80, 0.83, 1.0][calidad]), "escala de render " + str(calidad))
 			_comprobar(entorno.environment.ssao_enabled == (calidad > 0), "SSAO " + str(calidad))
-			_comprobar(entorno.environment.ssr_enabled == (calidad >= 2), "SSR " + str(calidad))
-			_comprobar(jugador.camara.camara.far == [100.0, 300.0, 700.0, 700.0][calidad], "distancia de cámara " + str(calidad))
+			_comprobar(entorno.environment.ssr_enabled == (calidad >= 3), "SSR " + str(calidad))
+			_comprobar(jugador.camara.camara.far == [100.0, 220.0, 360.0, 600.0][calidad], "distancia de cámara " + str(calidad))
 			_comprobar(malla.visibility_range_end == [90.0, 180.0, 250.0, 250.0][calidad], "restauración de distancia de malla " + str(calidad))
 		for resolucion in 5:
 			Ajustes.poner("resolucion", resolucion)

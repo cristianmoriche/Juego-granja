@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bk7gn02qxrk37"
-path="res://.godot/imported/chimenea_piedra_rock_moss_set_01_rug.png-e7d1fd71855146fce6dbdd4dce9a652d.ctex"
+path.s3tc="res://.godot/imported/chimenea_piedra_rock_moss_set_01_rug.png-e7d1fd71855146fce6dbdd4dce9a652d.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ad89f00e6ce53d890edff32e388d88a3"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/muebles/chimenea_piedra_rock_moss_set_01_rug.png"
-dest_files=["res://.godot/imported/chimenea_piedra_rock_moss_set_01_rug.png-e7d1fd71855146fce6dbdd4dce9a652d.ctex"]
+dest_files=["res://.godot/imported/chimenea_piedra_rock_moss_set_01_rug.png-e7d1fd71855146fce6dbdd4dce9a652d.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

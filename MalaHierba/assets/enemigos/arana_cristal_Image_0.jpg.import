@@ -2,23 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dxo55hkplu3go"
-path="res://.godot/imported/arana_cristal_Image_0.jpg-23938ada90783127c56a004f39398e69.ctex"
+uid="uid://d2xk3kw8lr57"
+path.s3tc="res://.godot/imported/arana_cristal_Image_0.jpg-23938ada90783127c56a004f39398e69.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "1b244f993c732469b00df216ec984a4f"
+"md5": "b4027b01689f8cac8de065445e49ceee"
 }
 
 [deps]
 
 source_file="res://assets/enemigos/arana_cristal_Image_0.jpg"
-dest_files=["res://.godot/imported/arana_cristal_Image_0.jpg-23938ada90783127c56a004f39398e69.ctex"]
+dest_files=["res://.godot/imported/arana_cristal_Image_0.jpg-23938ada90783127c56a004f39398e69.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

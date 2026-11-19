@@ -165,7 +165,7 @@ func _aplicar(delta: float) -> void:
 	camara.position = global_basis.inverse() * offset
 	camara.rotation = Vector3.ZERO
 	if encuadre_cercano:
-		var blanco := pivote - global_basis.z * 0.75
+		var blanco := pivote + Vector3.UP * 0.15 - global_basis.z * 0.60
 		if blanco.distance_squared_to(camara.global_position) > 0.01:
 			camara.look_at(blanco)
 	distancia_real = offset.length()

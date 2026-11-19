@@ -50,8 +50,8 @@ func _comprobar_mapa(id: String, interior: bool) -> void:
 		Ajustes.valores.calidad = nivel
 		Ajustes.aplicar_graficos()
 		_comprobar(entorno.ssao_enabled == (nivel >= 1), "%s calidad %d: oclusión" % [id, nivel])
-		_comprobar(entorno.ssil_enabled == (nivel >= 2), "%s calidad %d: iluminación indirecta" % [id, nivel])
-		_comprobar(entorno.ssr_enabled == (nivel >= 2), "%s calidad %d: reflejos" % [id, nivel])
+		_comprobar(entorno.ssil_enabled == (nivel >= 3), "%s calidad %d: iluminación indirecta" % [id, nivel])
+		_comprobar(entorno.ssr_enabled == (nivel >= 3), "%s calidad %d: reflejos" % [id, nivel])
 		_comprobar(entorno.volumetric_fog_enabled == (nivel >= 2), "%s calidad %d: niebla volumétrica" % [id, nivel])
 		if nivel == 3:
 			_comprobar(entorno.sdfgi_enabled, id + " tiene rebote SDFGI en Ultra")

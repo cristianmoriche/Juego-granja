@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bt2eiqdvcmei8"
-path="res://.godot/imported/irene_Image_0.jpg-ca8fbcaf36b2b4f5808217b21e7dfab4.ctex"
+path.s3tc="res://.godot/imported/irene_Image_0.jpg-ca8fbcaf36b2b4f5808217b21e7dfab4.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "c758735424b567a69fcf2d64165b0d7f"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/personajes/aldeanos/irene_Image_0.jpg"
-dest_files=["res://.godot/imported/irene_Image_0.jpg-ca8fbcaf36b2b4f5808217b21e7dfab4.ctex"]
+dest_files=["res://.godot/imported/irene_Image_0.jpg-ca8fbcaf36b2b4f5808217b21e7dfab4.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

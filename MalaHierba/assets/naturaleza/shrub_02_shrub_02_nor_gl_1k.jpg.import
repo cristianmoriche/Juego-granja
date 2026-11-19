@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7mkos5v1w57"
-path="res://.godot/imported/shrub_02_shrub_02_nor_gl_1k.jpg-d9e51477ef1b260a9a70a1a00bd8278e.ctex"
+path.s3tc="res://.godot/imported/shrub_02_shrub_02_nor_gl_1k.jpg-d9e51477ef1b260a9a70a1a00bd8278e.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f9caf77d9d39e894b29b3f540e9dcc05"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/naturaleza/shrub_02_shrub_02_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/shrub_02_shrub_02_nor_gl_1k.jpg-d9e51477ef1b260a9a70a1a00bd8278e.ctex"]
+dest_files=["res://.godot/imported/shrub_02_shrub_02_nor_gl_1k.jpg-d9e51477ef1b260a9a70a1a00bd8278e.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=2048
 detect_3d/compress_to=1

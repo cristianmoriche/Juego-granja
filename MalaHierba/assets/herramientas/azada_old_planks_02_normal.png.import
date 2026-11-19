@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c6mwjp86jry2a"
-path="res://.godot/imported/azada_old_planks_02_normal.png-8c45f1ded976446ed12916abcb052b92.ctex"
+path.s3tc="res://.godot/imported/azada_old_planks_02_normal.png-8c45f1ded976446ed12916abcb052b92.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "43b8c01e73c722b6b9d6777b75b4f9d8"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/herramientas/azada_old_planks_02_normal.png"
-dest_files=["res://.godot/imported/azada_old_planks_02_normal.png-8c45f1ded976446ed12916abcb052b92.ctex"]
+dest_files=["res://.godot/imported/azada_old_planks_02_normal.png-8c45f1ded976446ed12916abcb052b92.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

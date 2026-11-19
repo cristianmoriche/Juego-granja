@@ -2,23 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://0nr3ye3t14vi"
-path="res://.godot/imported/golem_cuarzo_Image_0.jpg-b67716136d8b33209dff546c2545ab98.ctex"
+uid="uid://bbdwmk48sy5ps"
+path.s3tc="res://.godot/imported/golem_cuarzo_Image_0.jpg-b67716136d8b33209dff546c2545ab98.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "f7446ef4934b2491c7e33113f5c8d099"
+"md5": "1eb362a358a1cc834b6d8e4c3bb7256d"
 }
 
 [deps]
 
 source_file="res://assets/enemigos/golem_cuarzo_Image_0.jpg"
-dest_files=["res://.godot/imported/golem_cuarzo_Image_0.jpg-b67716136d8b33209dff546c2545ab98.ctex"]
+dest_files=["res://.godot/imported/golem_cuarzo_Image_0.jpg-b67716136d8b33209dff546c2545ab98.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

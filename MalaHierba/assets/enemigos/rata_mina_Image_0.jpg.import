@@ -2,23 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bfrevbmjhaft6"
-path="res://.godot/imported/rata_mina_Image_0.jpg-ff27cb0a17f275d98683252d29060a5b.ctex"
+uid="uid://dwc4bfenqwh0"
+path.s3tc="res://.godot/imported/rata_mina_Image_0.jpg-ff27cb0a17f275d98683252d29060a5b.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "4ba0f1097d2c1b674e952ddcd0797d07"
+"md5": "69eb3a6504af252ab60f91047b980416"
 }
 
 [deps]
 
 source_file="res://assets/enemigos/rata_mina_Image_0.jpg"
-dest_files=["res://.godot/imported/rata_mina_Image_0.jpg-ff27cb0a17f275d98683252d29060a5b.ctex"]
+dest_files=["res://.godot/imported/rata_mina_Image_0.jpg-ff27cb0a17f275d98683252d29060a5b.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

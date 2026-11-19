@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csc1aokg2mw4x"
-path="res://.godot/imported/huevo_blanco_Cascara_Blanca_n.jpg-4067934f1033ba416b06e263f43d3588.ctex"
+path.s3tc="res://.godot/imported/huevo_blanco_Cascara_Blanca_n.jpg-4067934f1033ba416b06e263f43d3588.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "5d704c6bed0d928674d02c4c590407f6"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/granja/huevo_blanco_Cascara_Blanca_n.jpg"
-dest_files=["res://.godot/imported/huevo_blanco_Cascara_Blanca_n.jpg-4067934f1033ba416b06e263f43d3588.ctex"]
+dest_files=["res://.godot/imported/huevo_blanco_Cascara_Blanca_n.jpg-4067934f1033ba416b06e263f43d3588.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

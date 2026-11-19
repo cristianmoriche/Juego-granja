@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cocthk3t2vioa"
-path.bptc="res://.godot/imported/martillo_guerra_ornate_war_hammer_arm_2k.jpg-7daede2791e9b61805254243f98c1226.bptc.ctex"
+uid="uid://c3o6ph0qotfos"
+path.s3tc="res://.godot/imported/martillo_guerra_ornate_war_hammer_arm_2k.jpg-7daede2791e9b61805254243f98c1226.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "aec0768b22b046bf05a26b71436a850f"
+"md5": "c7f38946c39f682c3682801988fa3cb0"
 }
 
 [deps]
 
 source_file="res://assets/combate/martillo_guerra_ornate_war_hammer_arm_2k.jpg"
-dest_files=["res://.godot/imported/martillo_guerra_ornate_war_hammer_arm_2k.jpg-7daede2791e9b61805254243f98c1226.bptc.ctex"]
+dest_files=["res://.godot/imported/martillo_guerra_ornate_war_hammer_arm_2k.jpg-7daede2791e9b61805254243f98c1226.s3tc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=true
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
@@ -40,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

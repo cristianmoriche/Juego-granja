@@ -2,23 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c4sysj60flxo0"
-path="res://.godot/imported/salamandra_magma_Image_0.jpg-c487adad66609390a7e1ad7c477f22c6.ctex"
+uid="uid://d4jg761glmxf1"
+path.s3tc="res://.godot/imported/salamandra_magma_Image_0.jpg-c487adad66609390a7e1ad7c477f22c6.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "73e0a1fd1f80f791f3704082d6efa5cc"
+"md5": "809830d511e9c747a9988e114fb01a34"
 }
 
 [deps]
 
 source_file="res://assets/enemigos/salamandra_magma_Image_0.jpg"
-dest_files=["res://.godot/imported/salamandra_magma_Image_0.jpg-c487adad66609390a7e1ad7c477f22c6.ctex"]
+dest_files=["res://.godot/imported/salamandra_magma_Image_0.jpg-c487adad66609390a7e1ad7c477f22c6.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

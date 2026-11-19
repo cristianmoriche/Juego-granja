@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bvho1ld0f1t0r"
-path="res://.godot/imported/hoz_acero_filo.png-440e09e5eb4678fb4aaa51b19ab28242.ctex"
+path.s3tc="res://.godot/imported/hoz_acero_filo.png-440e09e5eb4678fb4aaa51b19ab28242.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "311992eadce7a60a480f69d1295a4d2f"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/herramientas/hoz_acero_filo.png"
-dest_files=["res://.godot/imported/hoz_acero_filo.png-440e09e5eb4678fb4aaa51b19ab28242.ctex"]
+dest_files=["res://.godot/imported/hoz_acero_filo.png-440e09e5eb4678fb4aaa51b19ab28242.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

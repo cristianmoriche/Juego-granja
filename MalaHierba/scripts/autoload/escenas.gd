@@ -119,6 +119,23 @@ func _ir_a_mapa_interno(id_mapa: String, marcador: String, posicion: Vector3) ->
 	await get_tree().process_frame
 	await _quitar_escena_actual()
 
+	if DisplayServer.get_name() != "headless":
+		var claves: PackedStringArray = PackedStringArray([
+			ruta,
+			CargadorMapa.RAIZ + id_mapa + "/" + id_mapa + ".glb",
+			CargadorMapa.RAIZ + id_mapa + "/" + id_mapa + ".lmbake",
+		])
+		var limite_carga := Time.get_ticks_msec() + 2500
+		while Time.get_ticks_msec() < limite_carga:
+			var cargando := false
+			for cr: String in claves:
+				if ResourceLoader.exists(cr) and ResourceLoader.load_threaded_get_status(cr) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+					cargando = true
+					break
+			if not cargando:
+				break
+			await get_tree().process_frame
+
 	var mapa := (CargadorMapa.obtener_recurso(ruta) as PackedScene).instantiate() as Node3D
 	get_tree().root.add_child(mapa)
 	get_tree().current_scene = mapa

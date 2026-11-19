@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cay071q210rql"
-path.bptc="res://.godot/imported/daga_ornate_medieval_dagger_diff_2k.jpg-f00cb366e8e48a1b7fc4983ddf1ef446.bptc.ctex"
+uid="uid://dh7afdaneifdq"
+path.s3tc="res://.godot/imported/daga_ornate_medieval_dagger_diff_2k.jpg-f00cb366e8e48a1b7fc4983ddf1ef446.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "f825eb8c717a4f1e7b9d820015bf4271"
+"md5": "67ea923c450641b97f30db0cd6c04a51"
 }
 
 [deps]
 
 source_file="res://assets/combate/daga_ornate_medieval_dagger_diff_2k.jpg"
-dest_files=["res://.godot/imported/daga_ornate_medieval_dagger_diff_2k.jpg-f00cb366e8e48a1b7fc4983ddf1ef446.bptc.ctex"]
+dest_files=["res://.godot/imported/daga_ornate_medieval_dagger_diff_2k.jpg-f00cb366e8e48a1b7fc4983ddf1ef446.s3tc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=true
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
@@ -40,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

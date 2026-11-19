@@ -25,7 +25,8 @@ func _comprobar(condicion: bool, motivo: String) -> void:
 
 
 func _fisica(n: int) -> void:
-	for _i in n:
+	var pasos := maxi(1, roundi(float(n) * float(Engine.physics_ticks_per_second) / 120.0))
+	for _i in pasos:
 		await get_tree().physics_frame
 
 
@@ -676,8 +677,10 @@ func _prueba_salto_en_cueva() -> void:
 		await _fisica(6)
 		Input.action_press("mover_arriba")
 		Input.action_press("correr")
-		for t in 360:
-			if t % 84 == 0:
+		var ticks_cueva := maxi(1, roundi(3.0 * float(Engine.physics_ticks_per_second)))
+		var cada_cueva := maxi(1, roundi(0.7 * float(Engine.physics_ticks_per_second)))
+		for t in ticks_cueva:
+			if t % cada_cueva == 0:
 				_espacio()
 			await get_tree().physics_frame
 			ymax = maxf(ymax, _j.global_position.y)

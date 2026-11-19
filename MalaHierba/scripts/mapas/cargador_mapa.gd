@@ -30,7 +30,14 @@ const MAPAS_EXTERIORES: Array[String] = [
 	"granja", "pueblo", "mina_exterior", "bosque_norte", "costa_lago",
 	"sierra_mirador", "robledal_niebla", "ruinas_valle",
 ]
-const TAM_CELDA := 38.0                 # metros: tamaño de cada trozo de MultiMesh para frustum culling por celdas
+const TAM_CELDA := 42.0                 # metros: tamaño de cada trozo de MultiMesh para frustum culling por celdas
+const TAM_CELDA_MEDIA := 68.0
+const TAM_CELDA_ARBOL := 36.0
+const TAM_CELDA_ARBOL_MEDIA := 56.0
+const UMBRAL_UNICO := 16                # prototipos no-árbol con pocas instancias van en un solo MultiMesh
+const UMBRAL_UNICO_ARBOL := 8           # prototipos de árbol con pocas instancias van en un solo MultiMesh
+const UMBRAL_CELDA_MEDIA := 55
+const MIN_INSTANCIAS_CELDA := 3         # celdas diminutas vecinas se fusionan
 const ALCANCE_PLANTAS := 75.0           # distancia a partir de la cual desaparecen las plantas pequeñas
 const ALTO_CILINDRO_TRONCO := 4.0
 const ENERGIA_LUZ_MAX := 1.45
@@ -365,8 +372,6 @@ func _cargar_geometria(base: String) -> void:
 	for l in luces:
 		_ajustar_luz(l as Light3D)
 		l.reparent(nodo_luces, true)
-	if _es_exterior():
-		_construir_oclusores(raiz)
 
 
 func _construir_oclusores(raiz: Node) -> void:
@@ -494,16 +499,47 @@ func _preparar_malla(mi: MeshInstance3D) -> void:
 		mi.gi_mode = GeometryInstance3D.GI_MODE_STATIC
 	var cristal_farol := id_mapa == "mina_interior" and String(mi.name).begins_with("Prop_int_Cristal_farol")
 	if bool(info.get("colision", true)) or cristal_farol:
-		var forma := _cache_forma_malla.get(mi.mesh) as Shape3D
-		if forma == null:
-			forma = mi.mesh.create_trimesh_shape()
-			_cache_forma_malla[mi.mesh] = forma
+		var forma_info := _forma_colision_malla(mi, nom_mi)
+		var forma := forma_info["shape"] as Shape3D
+		var offset := forma_info["offset"] as Vector3
 		var cs := CollisionShape3D.new()
 		cs.shape = forma
-		cs.name = "col_" + String(mi.name)
+		cs.name = "col_" + nom_mi
 		cs.set_meta("malla_apuntada", mi)
 		colisiones.add_child(cs)
-		cs.global_transform = mi.global_transform
+		cs.global_transform = mi.global_transform * Transform3D(Basis.IDENTITY, offset)
+
+
+func _forma_colision_malla(mi: MeshInstance3D, nom: String) -> Dictionary:
+	# Props individuales compactos de alto poligonaje usan cilindro/caja; el resto conserva trimesh exacto.
+	var caja := mi.mesh.get_aabb()
+	var dim_max := maxf(caja.size.x, maxf(caja.size.y, caja.size.z))
+	if dim_max <= 3.0:
+		if nom.contains("wooden_barrels_") or nom.contains("wooden_bucket_"):
+			var clave_c := "cyl_%d" % mi.mesh.get_instance_id()
+			if _cache_forma_malla.has(clave_c):
+				return _cache_forma_malla[clave_c] as Dictionary
+			var cil := CylinderShape3D.new()
+			cil.radius = maxf(0.05, maxf(caja.size.x, caja.size.z) * 0.46)
+			cil.height = maxf(0.05, caja.size.y)
+			var res_c := {"shape": cil, "offset": caja.get_center()}
+			_cache_forma_malla[clave_c] = res_c
+			return res_c
+		if nom.contains("wooden_crate_") or nom.contains("txt_"):
+			var clave_b := "box_%d" % mi.mesh.get_instance_id()
+			if _cache_forma_malla.has(clave_b):
+				return _cache_forma_malla[clave_b] as Dictionary
+			var box := BoxShape3D.new()
+			box.size = Vector3(maxf(0.05, caja.size.x), maxf(0.05, caja.size.y), maxf(0.05, caja.size.z))
+			var res_b := {"shape": box, "offset": caja.get_center()}
+			_cache_forma_malla[clave_b] = res_b
+			return res_b
+	var clave_t := "tri_%d" % mi.mesh.get_instance_id()
+	if _cache_forma_malla.has(clave_t):
+		return _cache_forma_malla[clave_t] as Dictionary
+	var res_t := {"shape": mi.mesh.create_trimesh_shape(), "offset": Vector3.ZERO}
+	_cache_forma_malla[clave_t] = res_t
+	return res_t
 
 
 ## Datos de objetos.json de un nodo. Godot añade sufijos numéricos (`Techo_roca_001`, `Techo_roca2`) a los nombres repetidos al
@@ -961,49 +997,52 @@ func actualizar_iluminacion_hora(factor_ventanas: float, factor_luces: float, fu
 			GraficaH03.ajustar_luz(l, calidad_actual)
 
 
-func _crear_nodo_arbol(nombre: String, mesh: Mesh, xf: Transform3D, r_ini: float, r_fin: float, m_ini: float, m_fin: float, lod_bias_val: float, sombra: bool) -> MeshInstance3D:
-	var mi := MeshInstance3D.new()
-	mi.name = nombre
-	mi.mesh = mesh
-	mi.transform = xf
-	mi.extra_cull_margin = 0.3
-	mi.lod_bias = lod_bias_val
-	mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
-	mi.visibility_range_begin = r_ini
-	mi.visibility_range_begin_margin = m_ini
-	mi.visibility_range_end = r_fin
-	mi.visibility_range_end_margin = m_fin
-	mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
-	if not sombra:
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	return mi
-
-
-func _instanciar_celda_arbol(p: String, ts: Array, mesh_lod0: Mesh, mesh_lod1: Mesh, _mesh_lod2: Mesh, celda: Vector2i) -> void:
-	var tiene_lods := mesh_lod1 != null
-	var idx := 0
-	for t: Array in ts:
-		var xf := Transform3D(
-			Vector3(float(t[0]), float(t[1]), float(t[2])),
-			Vector3(float(t[3]), float(t[4]), float(t[5])),
-			Vector3(float(t[6]), float(t[7]), float(t[8])),
-			Vector3(float(t[9]), float(t[10]), float(t[11]))
-		)
-		var base_nom := "arb_%s_%d_%d_%d" % [p, celda.x, celda.y, idx]
-		idx += 1
-		if tiene_lods:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L1", mesh_lod1, xf, 0.0, 10.5, 0.0, 1.5, 0.12, true))
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L2", mesh_lod1, xf, 9.5, 100.0, 1.5, 10.0, 0.035, false))
-		elif "dead_tree" in p:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 75.0, 0.0, 10.0, 0.06, true))
-		elif "stump" in p:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 40.0, 0.0, 8.0, 0.04, false))
-		else:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 25.0, 0.0, 5.0, 0.035, false))
-
-
 static func _ruta_proto(base: String, rel: String) -> String:
 	return rel if rel.begins_with("res://") else base + rel
+
+
+func _agrupar_celdas_proto(ts: Array, cat: String) -> Dictionary:
+	var umbral_unico := UMBRAL_UNICO_ARBOL if cat == "arbol" else UMBRAL_UNICO
+	if ts.size() <= umbral_unico:
+		return {Vector2i.ZERO: ts.duplicate()}
+	var tam: float
+	if cat == "arbol":
+		tam = TAM_CELDA_ARBOL_MEDIA if ts.size() <= UMBRAL_CELDA_MEDIA else TAM_CELDA_ARBOL
+	else:
+		tam = TAM_CELDA_MEDIA if ts.size() <= UMBRAL_CELDA_MEDIA else TAM_CELDA
+	var celdas: Dictionary = {}
+	for t: Variant in ts:
+		var arr := t as Array
+		var c := Vector2i(floori(float(arr[9]) / tam), floori(float(arr[11]) / tam))
+		if not celdas.has(c):
+			celdas[c] = []
+		(celdas[c] as Array).append(arr)
+	# Fusiona celdas diminutas en su vecina más poblada a distancia <= 1.
+	var cambio := true
+	while cambio and celdas.size() > 1:
+		cambio = false
+		for c: Vector2i in celdas.keys():
+			if not celdas.has(c):
+				continue
+			var lista_c := celdas[c] as Array
+			if lista_c.size() > MIN_INSTANCIAS_CELDA:
+				continue
+			var mejor_vec := Vector2i.ZERO
+			var mejor_n := -1
+			for otro: Vector2i in celdas.keys():
+				if otro == c:
+					continue
+				if maxi(absi(otro.x - c.x), absi(otro.y - c.y)) <= 1:
+					var n_otro := (celdas[otro] as Array).size()
+					if n_otro > mejor_n:
+						mejor_n = n_otro
+						mejor_vec = otro
+			if mejor_n > 0:
+				(celdas[mejor_vec] as Array).append_array(lista_c)
+				celdas.erase(c)
+				cambio = true
+				break
+	return celdas
 
 
 # ------------------------------------------------------------------------------------------------ instancias
@@ -1014,58 +1053,71 @@ func _cargar_instancias(base: String) -> void:
 	var troncos: Dictionary = _inst.get("troncos", {})
 	var rocas: Dictionary = _inst.get("rocas", {})
 	var info: Dictionary = _inst.get("info", {})
-	# agrupa por prototipo y por celda de 42 m
-	var grupos: Dictionary = {}
+	var por_proto: Dictionary = {}
 	for d: Dictionary in lista:
 		var p: String = d["proto"]
-		var t: Array = d["t"]
-		var celda := Vector2i(floori(float(t[9]) / TAM_CELDA), floori(float(t[11]) / TAM_CELDA))
-		if not grupos.has(p):
-			grupos[p] = {}
-		var g: Dictionary = grupos[p]
-		if not g.has(celda):
-			g[celda] = []
-		(g[celda] as Array).append(t)
+		if not por_proto.has(p):
+			por_proto[p] = []
+		(por_proto[p] as Array).append(d["t"])
 	var cuerpo_troncos := StaticBody3D.new()
 	cuerpo_troncos.name = "ColisionInstancias"
 	cuerpo_troncos.collision_layer = 1
 	cuerpo_troncos.collision_mask = 0
 	colisiones.add_child(cuerpo_troncos)
-	for p: String in grupos.keys():
+	for p: String in por_proto.keys():
 		var info_p: Dictionary = info.get(p, {}) as Dictionary
 		var cat := String(info_p.get("cat", "prop"))
 		var lods: Dictionary = info_p.get("lods", {}) as Dictionary
 		var usar_solo_lod1 := (cat == "arbol" and lods.has("LOD1"))
 		var mesh: Mesh = null if usar_solo_lod1 else _mesh_proto(_ruta_proto(base, String(protos.get(p, ""))))
 		var mesh_lod1: Mesh = _mesh_proto(_ruta_proto(base, String(lods.get("LOD1", "")))) if lods.has("LOD1") else (mesh if "_LOD1" in p else null)
-		var mesh_lod2: Mesh = _mesh_proto(_ruta_proto(base, String(lods.get("LOD2", "")))) if (mesh_lod1 == null and lods.has("LOD2")) else null
-		if mesh == null and mesh_lod1 == null:
+		var mesh_render: Mesh = mesh_lod1 if (cat == "arbol" and mesh_lod1 != null) else mesh
+		if mesh_render == null:
 			continue
-		var celdas: Dictionary = grupos[p]
+		var tiene_lods := cat == "arbol" and mesh_lod1 != null
+		var ts_proto: Array = por_proto[p]
+		var celdas: Dictionary = _agrupar_celdas_proto(ts_proto, cat)
 		for celda: Vector2i in celdas.keys():
 			var ts: Array = celdas[celda]
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.mesh = mesh_render
+			_cargar_buffer_instancias(mm, ts, p.begins_with("grass_") and _es_exterior())
+			var mmi := MultiMeshInstance3D.new()
+			mmi.name = "mm_%s_%d_%d" % [p, celda.x, celda.y]
+			mmi.multimesh = mm
 			if cat == "arbol":
-				_instanciar_celda_arbol(p, ts, mesh, mesh_lod1, mesh_lod2, celda)
-			else:
-				var mm := MultiMesh.new()
-				mm.transform_format = MultiMesh.TRANSFORM_3D
-				mm.mesh = mesh
-				_cargar_buffer_instancias(mm, ts, p.begins_with("grass_") and _es_exterior())
-				var mmi := MultiMeshInstance3D.new()
-				mmi.name = "mm_%s_%d_%d" % [p, celda.x, celda.y]
-				mmi.multimesh = mm
-				if cat == "planta" or sin_col.has(p):
-					mmi.extra_cull_margin = 0.3
+				mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_DISABLED
+				mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+				mmi.extra_cull_margin = 0.5
+				if tiene_lods:
+					mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+					mmi.lod_bias = 0.75
+					mmi.visibility_range_end = 160.0
+				elif "dead_tree" in p:
+					mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+					mmi.lod_bias = 0.65
+					mmi.visibility_range_end = 85.0
+				elif "stump" in p:
 					mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-					mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
-					mmi.visibility_range_end = ALCANCE_PLANTAS
-				elif cat == "roca":
-					mmi.lod_bias = 0.45
-					mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
-					if p.begins_with("rock_moss_set_02_") or p == "stone_01":
-						mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-						mmi.visibility_range_end = 110.0
-				nodo_instancias.add_child(mmi)
+					mmi.lod_bias = 0.55
+					mmi.visibility_range_end = 48.0
+				else:
+					mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+					mmi.lod_bias = 0.65
+					mmi.visibility_range_end = 55.0
+			elif cat == "planta" or sin_col.has(p):
+				mmi.extra_cull_margin = 0.3
+				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+				mmi.visibility_range_end = ALCANCE_PLANTAS
+			elif cat == "roca":
+				mmi.lod_bias = 0.45
+				mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+				if p.begins_with("rock_moss_set_02_") or p == "stone_01":
+					mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+					mmi.visibility_range_end = 110.0
+			nodo_instancias.add_child(mmi)
 			num_trozos_multimesh += 1
 			num_instancias += ts.size()
 			# colisión de troncos y rocas: cilindros

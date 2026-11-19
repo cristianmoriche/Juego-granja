@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cqfuy68o3jqey"
-path="res://.godot/imported/cliff_01_namaqualand_cliff_01_arm_2k.jpg-2f8ab08aee721cadf4291bb0d12d04c9.ctex"
+path.s3tc="res://.godot/imported/cliff_01_namaqualand_cliff_01_arm_2k.jpg-2f8ab08aee721cadf4291bb0d12d04c9.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "c74c0e46d5fd6f16c59dfc51a9c926f5"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/naturaleza/cliff_01_namaqualand_cliff_01_arm_2k.jpg"
-dest_files=["res://.godot/imported/cliff_01_namaqualand_cliff_01_arm_2k.jpg-2f8ab08aee721cadf4291bb0d12d04c9.ctex"]
+dest_files=["res://.godot/imported/cliff_01_namaqualand_cliff_01_arm_2k.jpg-2f8ab08aee721cadf4291bb0d12d04c9.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=2048
 detect_3d/compress_to=1

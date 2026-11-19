@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csqpj62vvl4nd"
-path="res://.godot/imported/roca_pared_01_rock_face_01_diff_2k.jpg-21abe0118eb806131f2964540d2d09f0.ctex"
+path.s3tc="res://.godot/imported/roca_pared_01_rock_face_01_diff_2k.jpg-21abe0118eb806131f2964540d2d09f0.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "fdafab4f3a6f7acefcdb209c46a110a1"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/mina/roca_pared_01_rock_face_01_diff_2k.jpg"
-dest_files=["res://.godot/imported/roca_pared_01_rock_face_01_diff_2k.jpg-21abe0118eb806131f2964540d2d09f0.ctex"]
+dest_files=["res://.godot/imported/roca_pared_01_rock_face_01_diff_2k.jpg-21abe0118eb806131f2964540d2d09f0.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

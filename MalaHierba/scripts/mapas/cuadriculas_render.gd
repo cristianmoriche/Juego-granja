@@ -182,9 +182,13 @@ func _indexar_instancias(cont: Node) -> void:
 			if not caja.has_volume():
 				caja = AABB(mmi.global_position - Vector3.ONE, Vector3.ONE * 2.0)
 			var celda := _obtener_celda(caja.get_center(), caja)
-			var reg := {"n": mmi, "lod": mmi.lod_bias}
+			var reg := {"n": mmi, "lod": mmi.lod_bias, "sombra": mmi.cast_shadow}
 			var nom := String(mmi.name)
-			if nom.contains("tiny") or nom.contains("moss_") or nom.contains("dandelion") or nom.contains("weed") or nom.contains("shrub_sorrel") or nom.contains("dry_branches") or nom.contains("grass_medium_02"):
+			if nom.contains("fir_sapling_") or nom.contains("pine_sapling_") or nom.contains("tree_stump_"):
+				(celda["arboles_peq"] as Array).append(reg)
+			elif nom.contains("fir_tree_") or nom.contains("roble_viejo") or nom.contains("dead_tree_"):
+				(celda["arboles_l2"] as Array).append(reg)
+			elif nom.contains("tiny") or nom.contains("moss_") or nom.contains("dandelion") or nom.contains("weed") or nom.contains("shrub_sorrel") or nom.contains("dry_branches") or nom.contains("grass_medium_02"):
 				(celda["mm_diminuta"] as Array).append(reg)
 			elif nom.contains("rock_moss_set_02_") or nom.contains("stone_01"):
 				(celda["mm_rocas_peq"] as Array).append(reg)
@@ -265,8 +269,8 @@ func _actualizar_celdas(cam_pos: Vector3, planos: Array[Plane], signos: PackedFl
 	var d_roca_peq: float = [30.0, 40.0, 52.0, 74.0][cal]
 	var d_hierba: float = [34.0, 44.0, 56.0, 80.0][cal]
 	var d_otros: float = [58.0, 74.0, 96.0, 130.0][cal]
-	var d_arb_l2: float = [56.0, 72.0, 92.0, 125.0][cal]
-	var d_arb_peq: float = [28.0, 34.0, 44.0, 60.0][cal]
+	var d_arb_l2: float = [75.0, 95.0, 125.0, 160.0][cal]
+	var d_arb_peq: float = [32.0, 42.0, 52.0, 68.0][cal]
 	var d_sombra_est: float = [46.0, 60.0, 75.0, 110.0][cal]
 	var d_luz: float = [28.0, 35.0, 44.0, 60.0][cal]
 
@@ -308,7 +312,7 @@ func _actualizar_celdas(cam_pos: Vector3, planos: Array[Plane], signos: PackedFl
 		var cambiar_hierba: bool = previo.is_empty() or previo[7] != vis_hierba or previo[8] != tier_hierba
 		var cambiar_roca: bool = previo.is_empty() or previo[9] != vis_roca_peq or previo[10] != tier_roca_peq
 		var cambiar_otros: bool = previo.is_empty() or previo[11] != vis_otros or previo[12] != tier_otros
-		var cambiar_arb_l2: bool = previo.is_empty() or previo[13] != vis_arb_l2 or previo[14] != tier_arb_l2
+		var cambiar_arb_l2: bool = previo.is_empty() or previo[13] != vis_arb_l2 or previo[14] != tier_arb_l2 or previo[3] != sombra_est
 		var cambiar_arb_peq: bool = previo.is_empty() or previo[15] != vis_arb_peq
 		var cambiar_luz: bool = previo.is_empty() or previo[16] != vis_luz
 		celda["ultimo_estado"] = estado
@@ -367,16 +371,17 @@ func _actualizar_celdas(cam_pos: Vector3, planos: Array[Plane], signos: PackedFl
 					mmi.lod_bias = orig_lod if tier_otros == 0 else minf(orig_lod, 0.22)
 		if cambiar_arb_l2:
 			for reg: Dictionary in celda["arboles_l2"]:
-				var mi := reg["n"] as MeshInstance3D
+				var mi := reg["n"] as GeometryInstance3D
 				if not is_instance_valid(mi):
 					continue
 				mi.visible = vis_arb_l2
 				if vis_arb_l2:
 					var orig_lod := float(reg["lod"])
-					mi.lod_bias = orig_lod if tier_arb_l2 == 0 else minf(orig_lod, 0.022)
+					mi.lod_bias = orig_lod if tier_arb_l2 == 0 else minf(orig_lod, 0.35)
+					mi.cast_shadow = (reg["sombra"] as GeometryInstance3D.ShadowCastingSetting) if sombra_est else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if cambiar_arb_peq:
 			for reg: Dictionary in celda["arboles_peq"]:
-				var mi := reg["n"] as MeshInstance3D
+				var mi := reg["n"] as GeometryInstance3D
 				if is_instance_valid(mi):
 					mi.visible = vis_arb_peq
 		if cambiar_luz:
@@ -410,7 +415,7 @@ func _restaurar_todo_visible() -> void:
 		celda["ultimo_estado"] = []
 		for clave: String in ["estructuras", "detalles", "arboles_l2", "arboles_peq"]:
 			for reg: Dictionary in celda[clave]:
-				var mi := reg["n"] as MeshInstance3D
+				var mi := reg["n"] as GeometryInstance3D
 				if is_instance_valid(mi):
 					mi.visible = true
 					mi.lod_bias = float(reg["lod"])

@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bncp5i2asipvo"
-path="res://.godot/imported/colmena_cuadros_Hierro_Colmena_orm.jpg-be058af717581b6207ae91136616ebaf.ctex"
+path.s3tc="res://.godot/imported/colmena_cuadros_Hierro_Colmena_orm.jpg-be058af717581b6207ae91136616ebaf.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e9b57eebd7514b599ac268da8a36075e"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/granja/colmena_cuadros_Hierro_Colmena_orm.jpg"
-dest_files=["res://.godot/imported/colmena_cuadros_Hierro_Colmena_orm.jpg-be058af717581b6207ae91136616ebaf.ctex"]
+dest_files=["res://.godot/imported/colmena_cuadros_Hierro_Colmena_orm.jpg-be058af717581b6207ae91136616ebaf.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

@@ -19,7 +19,7 @@ static func preparar_entorno(env: Environment, interior: bool, mina: bool) -> vo
 	env.sdfgi_read_sky_light = not interior
 	env.sdfgi_use_occlusion = true
 	env.sdfgi_energy = 0.62 if mina else (0.75 if interior else 0.57)
-	env.volumetric_fog_length = 26.0 if interior else 82.0
+	env.volumetric_fog_length = 24.0 if interior else 60.0
 	env.volumetric_fog_density = 0.008 if mina else (0.012 if interior else 0.003)
 	env.volumetric_fog_albedo = Color(0.69, 0.70, 0.76) if mina else Color(0.83, 0.87, 0.91)
 	env.volumetric_fog_anisotropy = 0.52 if interior else 0.63
@@ -58,7 +58,7 @@ static func aplicar_calidad_servidor(viewport: Viewport, nivel: int) -> void:
 			RenderingServer.VIEWPORT_ANISOTROPY_4X,
 			RenderingServer.VIEWPORT_ANISOTROPY_8X,
 		][n])
-		viewport.use_occlusion_culling = true
+		viewport.use_occlusion_culling = false
 		viewport.mesh_lod_threshold = [4.0, 2.8, 2.0, 1.2][n]
 	var q_ssao: int = [
 		RenderingServer.ENV_SSAO_QUALITY_VERY_LOW,
@@ -70,8 +70,8 @@ static func aplicar_calidad_servidor(viewport: Viewport, nivel: int) -> void:
 	var q_ssil: int = RenderingServer.ENV_SSIL_QUALITY_LOW if n >= 3 else RenderingServer.ENV_SSIL_QUALITY_VERY_LOW
 	RenderingServer.environment_set_ssil_quality(q_ssil, true, 0.5, 1 if n <= 2 else 2, 32.0 if n < 3 else 50.0, 95.0 if n < 3 else 160.0)
 	RenderingServer.environment_set_ssr_half_size(n < 3)
-	var vf_size := 64 if n >= 3 else 32
-	var vf_depth := 64 if n >= 3 else 48
+	var vf_size := 64 if n >= 3 else 24
+	var vf_depth := 64 if n >= 3 else 32
 	RenderingServer.environment_set_volumetric_fog_volume_size(vf_size, vf_depth)
 	RenderingServer.environment_set_volumetric_fog_filter_active(true)
 	RenderingServer.environment_set_sdfgi_ray_count(RenderingServer.ENV_SDFGI_RAY_COUNT_8)
@@ -82,11 +82,11 @@ static func aplicar_calidad_servidor(viewport: Viewport, nivel: int) -> void:
 static func ajustar_entorno(mundo: WorldEnvironment, nivel: int) -> void:
 	var env := mundo.environment
 	env.ssao_enabled = nivel >= 1
-	env.ssr_enabled = nivel >= 2
+	env.ssr_enabled = nivel >= 3
 	if not mundo.get_parent() is Mapa:
 		return
 	var mapa := mundo.get_parent() as Mapa
-	env.ssil_enabled = nivel >= 2
+	env.ssil_enabled = nivel >= 3
 	env.sdfgi_enabled = nivel >= 3
 	env.volumetric_fog_enabled = nivel >= 2
 	env.ssr_max_steps = 32 if nivel == 3 else 16

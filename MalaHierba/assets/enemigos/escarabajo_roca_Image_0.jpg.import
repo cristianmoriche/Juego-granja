@@ -2,23 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dr8f0rbsc10t0"
-path="res://.godot/imported/escarabajo_roca_Image_0.jpg-fed55a4398848cd4999fa26e913d0d0f.ctex"
+uid="uid://c82shqnu85dy8"
+path.s3tc="res://.godot/imported/escarabajo_roca_Image_0.jpg-fed55a4398848cd4999fa26e913d0d0f.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "4b09c493473c0424ff7da2f393a05d30"
+"md5": "16705bf7888699046471dc8a7d9de3ce"
 }
 
 [deps]
 
 source_file="res://assets/enemigos/escarabajo_roca_Image_0.jpg"
-dest_files=["res://.godot/imported/escarabajo_roca_Image_0.jpg-fed55a4398848cd4999fa26e913d0d0f.ctex"]
+dest_files=["res://.godot/imported/escarabajo_roca_Image_0.jpg-fed55a4398848cd4999fa26e913d0d0f.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

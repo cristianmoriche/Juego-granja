@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cg1sbo1d387lt"
-path="res://.godot/imported/ruinas_arco_rock_pitted_mossy_nor_gl_1k.jpg-356c5651f601d27c85f505e911a82519.ctex"
+path.s3tc="res://.godot/imported/ruinas_arco_rock_pitted_mossy_nor_gl_1k.jpg-356c5651f601d27c85f505e911a82519.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "04da6865c9c35c9bb1fb75664594650b"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/naturaleza/ruinas_arco_rock_pitted_mossy_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/ruinas_arco_rock_pitted_mossy_nor_gl_1k.jpg-356c5651f601d27c85f505e911a82519.ctex"]
+dest_files=["res://.godot/imported/ruinas_arco_rock_pitted_mossy_nor_gl_1k.jpg-356c5651f601d27c85f505e911a82519.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=2048
 detect_3d/compress_to=1

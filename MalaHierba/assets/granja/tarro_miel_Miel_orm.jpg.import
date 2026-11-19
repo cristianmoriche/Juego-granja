@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cw6c0exccdhkt"
-path="res://.godot/imported/tarro_miel_Miel_orm.jpg-039dd84aa731cc8fbed4e9a1e7a60135.ctex"
+path.s3tc="res://.godot/imported/tarro_miel_Miel_orm.jpg-039dd84aa731cc8fbed4e9a1e7a60135.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f2a095ee6f0e5cdd6df5c2516656ca54"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/granja/tarro_miel_Miel_orm.jpg"
-dest_files=["res://.godot/imported/tarro_miel_Miel_orm.jpg-039dd84aa731cc8fbed4e9a1e7a60135.ctex"]
+dest_files=["res://.godot/imported/tarro_miel_Miel_orm.jpg-039dd84aa731cc8fbed4e9a1e7a60135.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8d6cl43dl3m6"
-path="res://.godot/imported/gallinero_reparado_Piedra_Gallinero_n.jpg-1e6b7477e6cf69484d03773eadf4751b.ctex"
+path.s3tc="res://.godot/imported/gallinero_reparado_Piedra_Gallinero_n.jpg-1e6b7477e6cf69484d03773eadf4751b.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "8e2dbfd39176e3cc0070e7fb99b6ee32"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/granja/gallinero_reparado_Piedra_Gallinero_n.jpg"
-dest_files=["res://.godot/imported/gallinero_reparado_Piedra_Gallinero_n.jpg-1e6b7477e6cf69484d03773eadf4751b.ctex"]
+dest_files=["res://.godot/imported/gallinero_reparado_Piedra_Gallinero_n.jpg-1e6b7477e6cf69484d03773eadf4751b.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

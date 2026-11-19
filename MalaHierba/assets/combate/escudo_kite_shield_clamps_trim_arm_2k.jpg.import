@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://batv5aadijmkj"
-path.bptc="res://.godot/imported/escudo_kite_shield_clamps_trim_arm_2k.jpg-2d53caedffa241c6daceafcf1610a1be.bptc.ctex"
+uid="uid://bxce5ilbctcxp"
+path.s3tc="res://.godot/imported/escudo_kite_shield_clamps_trim_arm_2k.jpg-2d53caedffa241c6daceafcf1610a1be.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "abf4e3dc664c516589f29fc3d74c0545"
+"md5": "c3accd046e5255c8c00e6f7d05b35b0b"
 }
 
 [deps]
 
 source_file="res://assets/combate/escudo_kite_shield_clamps_trim_arm_2k.jpg"
-dest_files=["res://.godot/imported/escudo_kite_shield_clamps_trim_arm_2k.jpg-2d53caedffa241c6daceafcf1610a1be.bptc.ctex"]
+dest_files=["res://.godot/imported/escudo_kite_shield_clamps_trim_arm_2k.jpg-2d53caedffa241c6daceafcf1610a1be.s3tc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=true
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
@@ -40,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

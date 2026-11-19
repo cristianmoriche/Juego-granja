@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cu5sqx21761mt"
-path="res://.godot/imported/farol_mesa_wooden_lantern_01_albedo.jpg-e9dd72c4b3b1bb918e501b47df156bfa.ctex"
+path.s3tc="res://.godot/imported/farol_mesa_wooden_lantern_01_albedo.jpg-e9dd72c4b3b1bb918e501b47df156bfa.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f648a6cb5ace8aa9899df45ca07d140a"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/muebles/farol_mesa_wooden_lantern_01_albedo.jpg"
-dest_files=["res://.godot/imported/farol_mesa_wooden_lantern_01_albedo.jpg-e9dd72c4b3b1bb918e501b47df156bfa.ctex"]
+dest_files=["res://.godot/imported/farol_mesa_wooden_lantern_01_albedo.jpg-e9dd72c4b3b1bb918e501b47df156bfa.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

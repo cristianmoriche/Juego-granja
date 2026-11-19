@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cewg784rh5o6a"
-path.bptc="res://.godot/imported/espada_Acero forjado_normal.png-83b4b818c4e657ee598ca47ec31b7417.bptc.ctex"
+uid="uid://cefnkvqmlkicd"
+path.s3tc="res://.godot/imported/espada_Acero forjado_normal.png-83b4b818c4e657ee598ca47ec31b7417.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "a1707cdaa382d2ad6e5aac469b6719a6"
+"md5": "915c506bacdc7e16228dc5352d9e9a85"
 }
 
 [deps]
 
 source_file="res://assets/combate/espada_Acero forjado_normal.png"
-dest_files=["res://.godot/imported/espada_Acero forjado_normal.png-83b4b818c4e657ee598ca47ec31b7417.bptc.ctex"]
+dest_files=["res://.godot/imported/espada_Acero forjado_normal.png-83b4b818c4e657ee598ca47ec31b7417.s3tc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=true
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
@@ -40,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

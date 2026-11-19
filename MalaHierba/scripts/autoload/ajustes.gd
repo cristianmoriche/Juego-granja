@@ -233,7 +233,7 @@ func _graficos_nodo(nodo: Node, calidad: int) -> void:
 	if nodo is WorldEnvironment and nodo.environment != null:
 		GraficaH03.ajustar_entorno(nodo, calidad)
 	if nodo is Camera3D and nodo.get_parent() is CamaraJuego:
-		nodo.far = [100.0, 300.0, 700.0, 700.0][calidad]
+		nodo.far = [100.0, 220.0, 360.0, 600.0][calidad]
 	if nodo is Light3D and nodo.has_meta("sombra_h03"):
 		GraficaH03.ajustar_luz(nodo, calidad)
 	if nodo is GeometryInstance3D:

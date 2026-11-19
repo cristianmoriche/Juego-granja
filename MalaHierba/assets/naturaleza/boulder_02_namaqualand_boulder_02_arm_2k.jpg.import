@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c27d8dr4s05e6"
-path="res://.godot/imported/boulder_02_namaqualand_boulder_02_arm_2k.jpg-90a226c332519909d3af74022c9e87bf.ctex"
+path.s3tc="res://.godot/imported/boulder_02_namaqualand_boulder_02_arm_2k.jpg-90a226c332519909d3af74022c9e87bf.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "052fd50604e7c729df5b1a0e7671d440"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/naturaleza/boulder_02_namaqualand_boulder_02_arm_2k.jpg"
-dest_files=["res://.godot/imported/boulder_02_namaqualand_boulder_02_arm_2k.jpg-90a226c332519909d3af74022c9e87bf.ctex"]
+dest_files=["res://.godot/imported/boulder_02_namaqualand_boulder_02_arm_2k.jpg-90a226c332519909d3af74022c9e87bf.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +40,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=2048
 detect_3d/compress_to=1
