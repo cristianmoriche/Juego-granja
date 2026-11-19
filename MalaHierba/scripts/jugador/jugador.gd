@@ -128,6 +128,8 @@ var _ult_libre_apuntado: bool = false
 var _pos_limites_ok: Vector3 = Vector3.INF
 var _dentro_cache: bool = false
 var _ult_nivel_agua: float = -1.0
+var _ult_cabeza_oculta: int = -1
+var _t_agua_audio: float = 0.0
 
 
 func _ready() -> void:
@@ -432,6 +434,10 @@ func _actualizar_realismo_audio(corriendo: bool, delta: float) -> void:
 			_ult_nivel_agua = 0.0
 			Audio.poner_nivel_agua(0.0)
 		return
+	_t_agua_audio -= delta
+	if _t_agua_audio > 0.0:
+		return
+	_t_agua_audio = 0.15
 	var id := str(_mapa.get("id_mapa"))
 	var cercania := 0.0
 	var p := global_position
@@ -695,7 +701,10 @@ func _physics_process(delta: float) -> void:
 func _al_actualizar_vista() -> void:
 	_vista_leo.mostrar_primera(camara.cabeza_oculta)
 	_resaltador.primera_persona = camara.cabeza_oculta
-	_actualizar_visibilidad_farol()
+	var oculta_i := 1 if camara.cabeza_oculta else 0
+	if oculta_i != _ult_cabeza_oculta:
+		_ult_cabeza_oculta = oculta_i
+		_actualizar_visibilidad_farol()
 	if _activo:
 		_t_aviso_uso = maxf(_t_aviso_uso - get_physics_process_delta_time(), 0.0)
 		_actualizar_interactuable()

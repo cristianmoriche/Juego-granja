@@ -8,8 +8,11 @@ const DISTANCIA_TERCERA_MAX := 6.0
 const RESOLUCIONES := [Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(1920, 1080), Vector2i(2560, 1440)]
 const DEFECTO := {"general": 1.0, "musica": 0.8, "efectos": 1.0, "ambiente": 0.8,
 	"sensibilidad": 1.0, "vista": 0, "fov": 80.0, "distancia_tercera": 3.6, "invertir_vertical": false,
-	"resolucion": 1, "pantalla_completa": false, "calidad": 2,
+	"resolucion": 1, "pantalla_completa": false, "calidad": 2, "limite_fps": 0,
 	"texto": 0, "alto_contraste": false, "reducir_movimiento": false, "tutorial": true}
+## Opciones del límite de fotogramas (índice guardado en `limite_fps`). -1 = automático, 0 = sin límite.
+const LIMITES_FPS := [-1, 30, 60, 90, 120, 0]
+const NOMBRES_LIMITE_FPS := ["Automático (mitad de la frecuencia en 120 Hz o más)", "30 FPS", "60 FPS", "90 FPS", "120 FPS", "Sin límite"]
 const ACCIONES := {"mover_arriba": "Avanzar", "mover_abajo": "Retroceder", "mover_izquierda": "Izquierda",
 	"mover_derecha": "Derecha", "correr": "Correr", "saltar": "Saltar", "agachar": "Agacharse",
 	"interactuar": "Interactuar", "usar": "Usar / atacar", "bloquear": "Bloquear",
@@ -27,9 +30,11 @@ var ruta := RUTA
 var ultimo_error := OK
 var ultimo_mando := false
 var _originales: Dictionary = {}
+var _max_fps_cli: int = 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_max_fps_cli = Engine.max_fps
 	for accion: String in ACCIONES:
 		_originales[accion] = InputMap.action_get_events(accion).duplicate()
 	_crear_mando()
@@ -68,6 +73,7 @@ func _validar(clave: String, valor: Variant) -> Variant:
 		"distancia_tercera": return clampf(float(valor), DISTANCIA_TERCERA_MIN, DISTANCIA_TERCERA_MAX)
 		"resolucion": return clampi(int(valor), 0, 4)
 		"calidad": return clampi(int(valor), 0, 3)
+		"limite_fps": return clampi(int(valor), 0, LIMITES_FPS.size() - 1)
 		"texto": return clampi(int(valor), 0, 2)
 		_: return bool(valor)
 
@@ -178,12 +184,35 @@ func aplicar(clave: String = "") -> void:
 			var indice := AudioServer.get_bus_index(par[1])
 			AudioServer.set_bus_volume_db(indice, linear_to_db(maxf(0.0001, valores[par[0]])))
 			AudioServer.set_bus_mute(indice, valores[par[0]] == 0.0)
+	if clave == "limite_fps":
+		_max_fps_cli = 0
 	if clave.is_empty() or clave in ["pantalla_completa", "resolucion"]:
 		aplicar_ventana()
+	if clave.is_empty() or clave in ["limite_fps", "pantalla_completa"]:
+		aplicar_limite_fps()
 	if clave.is_empty() or clave == "calidad":
 		aplicar_graficos()
 	if clave.is_empty() or clave in ["texto", "alto_contraste"]:
 		aplicar_interfaz()
+
+## Fotogramas por segundo máximos que se piden al motor (0 = sin límite).
+## En automático, con monitores de 120 Hz o más se usa la mitad exacta de la frecuencia (72 en 144 Hz):
+## el ritmo de fotogramas sigue siendo regular con VSync y la CPU prepara la mitad de fotogramas.
+func fps_objetivo() -> int:
+	var limite: int = LIMITES_FPS[clampi(int(valores.get("limite_fps", 0)), 0, LIMITES_FPS.size() - 1)]
+	if limite >= 0:
+		return limite
+	if DisplayServer.get_name() == "headless":
+		return 0
+	var hz := roundi(maxf(DisplayServer.screen_get_refresh_rate(), DisplayServer.screen_get_refresh_rate(DisplayServer.SCREEN_PRIMARY)))
+	return hz / 2 if hz >= 100 else 0
+
+func aplicar_limite_fps() -> void:
+	if _max_fps_cli > 0:
+		Engine.max_fps = _max_fps_cli
+		return
+	# Sin ventana (pruebas automáticas) el motor corre libre para no alargar las pruebas.
+	Engine.max_fps = 0 if DisplayServer.get_name() == "headless" else fps_objetivo()
 
 func resolucion_elegida() -> Vector2i:
 	return DisplayServer.screen_get_size() if int(valores.resolucion) == 4 else RESOLUCIONES[int(valores.resolucion)]
@@ -195,8 +224,10 @@ func aplicar_ventana() -> void:
 	# Mantiene el tamaño lógico de la interfaz; la resolución completa se aplica al render 3D.
 	get_window().content_scale_size = Vector2i(1600, 900)
 	if not valores.pantalla_completa:
-		DisplayServer.window_set_size(resolucion_elegida())
-		DisplayServer.window_set_position((DisplayServer.screen_get_size() - resolucion_elegida()) / 2)
+		var pant := DisplayServer.window_get_current_screen()
+		var res := resolucion_elegida()
+		DisplayServer.window_set_size(res)
+		DisplayServer.window_set_position(DisplayServer.screen_get_position(pant) + (DisplayServer.screen_get_size(pant) - res) / 2)
 	_escala_render.call_deferred()
 
 func _escala_render() -> void:

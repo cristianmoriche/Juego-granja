@@ -30,14 +30,14 @@ const MAPAS_EXTERIORES: Array[String] = [
 	"granja", "pueblo", "mina_exterior", "bosque_norte", "costa_lago",
 	"sierra_mirador", "robledal_niebla", "ruinas_valle",
 ]
-const TAM_CELDA := 42.0                 # metros: tamaño de cada trozo de MultiMesh para frustum culling por celdas
-const TAM_CELDA_MEDIA := 68.0
-const TAM_CELDA_ARBOL := 36.0
-const TAM_CELDA_ARBOL_MEDIA := 56.0
-const UMBRAL_UNICO := 16                # prototipos no-árbol con pocas instancias van en un solo MultiMesh
-const UMBRAL_UNICO_ARBOL := 8           # prototipos de árbol con pocas instancias van en un solo MultiMesh
-const UMBRAL_CELDA_MEDIA := 55
-const MIN_INSTANCIAS_CELDA := 3         # celdas diminutas vecinas se fusionan
+const TAM_CELDA := 64.0                 # metros: tamaño de cada trozo de MultiMesh para frustum culling por celdas
+const TAM_CELDA_MEDIA := 96.0
+const TAM_CELDA_ARBOL := 48.0
+const TAM_CELDA_ARBOL_MEDIA := 72.0
+const UMBRAL_UNICO := 32                # prototipos no-árbol con pocas instancias van en un solo MultiMesh
+const UMBRAL_UNICO_ARBOL := 12          # prototipos de árbol con pocas instancias van en un solo MultiMesh
+const UMBRAL_CELDA_MEDIA := 90
+const MIN_INSTANCIAS_CELDA := 6         # celdas diminutas vecinas se fusionan
 const ALCANCE_PLANTAS := 75.0           # distancia a partir de la cual desaparecen las plantas pequeñas
 const ALTO_CILINDRO_TRONCO := 4.0
 const ENERGIA_LUZ_MAX := 1.45

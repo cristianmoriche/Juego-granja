@@ -182,7 +182,8 @@ func _mostrar_pagina(indice: int) -> void:
 			_opciones("resolucion", "Resolución", ["1280 × 720", "1600 × 900", "1920 × 1080", "2560 × 1440", "Nativa del monitor"])
 			_casilla("pantalla_completa", "Pantalla completa")
 			_opciones("calidad", "Calidad gráfica", ["Bajo", "Medio", "Alto", "Ultra"])
-			_nota("Bajo: escala al 75 %, FXAA, distancia reducida, sombras nítidas y sin SSAO ni SSR.\nMedio: escala al 80 %, FXAA, SSAO y distancia intermedia.\nAlto: FSR2 al 83 %, SSAO, SSIL, SSR, niebla volumétrica y autoexposición.\nUltra: TAA a resolución nativa, SDFGI, sombras suaves altas y detalle completo.")
+			_opciones("limite_fps", "Límite de FPS", Ajustes.NOMBRES_LIMITE_FPS)
+			_nota("Bajo: escala al 75 %, FXAA, distancia reducida, sombras nítidas y sin SSAO ni SSR.\nMedio: escala al 80 %, FXAA, SSAO y distancia intermedia.\nAlto: FSR al 83 %, SSAO, niebla volumétrica y autoexposición.\nUltra: TAA a resolución nativa, SSIL, SSR, SDFGI, sombras suaves altas y detalle completo.\nLímite de FPS: en automático, con monitores de 120 Hz o más el juego dibuja a la mitad de la frecuencia (72 FPS en 144 Hz), con ritmo regular y mucho menos consumo de CPU.")
 		2:
 			_opciones("texto", "Tamaño de texto", ["Normal", "Grande", "Muy grande"])
 			_casilla("alto_contraste", "Alto contraste en la interfaz")

@@ -1164,10 +1164,15 @@ func _centro_precipitacion() -> Vector3:
 
 
 func _process(delta: float) -> void:
-	_actualizar_relampago(delta)
+	if _relampago != null:
+		_actualizar_relampago(delta)
+	var hay_lluvia := _lluvia != null and is_instance_valid(_lluvia)
+	var hay_nieve := _nieve != null and is_instance_valid(_nieve)
+	if not hay_lluvia and not hay_nieve:
+		return
 	var centro := _centro_precipitacion()
-	if _lluvia != null and is_instance_valid(_lluvia):
+	if hay_lluvia:
 		_lluvia.global_position = centro + Vector3(0, 13, 0)
 		_salpicar_suelo(delta, centro)
-	if _nieve != null and is_instance_valid(_nieve):
+	if hay_nieve:
 		_nieve.global_position = centro + Vector3(0, 10, 0)

@@ -61,6 +61,15 @@ var _anim_fase: Dictionary = {}       # clave -> segundos restantes de salto y b
 var _brillos_fase: Dictionary = {}    # clave -> intensidad actual de brillo aplicada al shader
 var _indices_cultivo: Dictionary = {} # clave -> {p_idx, p_tr, p_col, f_idx, f_tr, f_col}
 var _etapas_vistas: Dictionary = {}   # clave -> [id_cultivo, etapa]
+var _ult_id_marca: String = ""
+var _ult_nivel_marca: int = -1
+var _ult_punto_marca: Vector3 = Vector3.INF
+var _ult_dir_marca: Vector3 = Vector3.INF
+var _ult_hay_inter_marca: bool = false
+var _ult_ocupada_marca: bool = false
+var _ult_en_transicion_marca: bool = false
+var _ult_listo_marca: bool = false
+var _marcas_cache_valida: bool = false
 
 
 func _ready() -> void:
@@ -563,6 +572,7 @@ func reconstruir() -> void:
 		_aplicar_anim_cultivo(ks, float(_anim_fase[ks]))
 	_sincronizar_colisiones(obstaculos, formas_obst)
 	_sincronizar_cosechables(listos)
+	_marcas_cache_valida = false
 
 
 func _actualizar_animacion_fases(delta: float) -> void:
@@ -701,22 +711,44 @@ func cosechables() -> int:
 # --- Recuadro del cursor --------------------------------------------------------------------------------------------
 
 func _actualizar_marcas() -> void:
-	var punto := Vector3.ZERO
-	var celda: Dictionary = {}
 	var j := Escenas.jugador()
-	if _listo and j is Jugador and not Interfaz.ocupada() and not Escenas.en_transicion:
-		var obj := Juego.objeto_activo()
-		var tipo := str(Datos.objeto(str(obj.get("id", ""))).get("tipo", "")) if not obj.is_empty() else ""
+	var ocupada: bool = Interfaz.ocupada()
+	var en_trans := Escenas.en_transicion
+	var activo := _listo and j is Jugador and not ocupada and not en_trans
+	var obj := Juego.objeto_activo() if activo else {}
+	var id := str(obj.get("id", "")) if not obj.is_empty() else ""
+	var nivel := Juego.nivel(id) if activo and (id == "azada" or id == "regadera") else 0
+	var objetivo: Dictionary = (j as Jugador).apuntado_actual() if activo else {}
+	var punto: Vector3 = objetivo.get("punto", Vector3.INF) if activo else Vector3.INF
+	var inter_val: Variant = objetivo.get("interactuable", null)
+	var hay_inter := inter_val != null and is_instance_valid(inter_val)
+	var d_leo := (j as Jugador).direccion if (activo and nivel >= 1) else Vector3.ZERO
+	var mismo_punto := (punto == _ult_punto_marca) or (punto.is_finite() and _ult_punto_marca.is_finite() and punto.distance_squared_to(_ult_punto_marca) < 0.000001)
+	var misma_dir := (d_leo == _ult_dir_marca) or (d_leo.is_finite() and _ult_dir_marca.is_finite() and d_leo.distance_squared_to(_ult_dir_marca) < 0.000001)
+	if _marcas_cache_valida and _ult_listo_marca == _listo and _ult_ocupada_marca == ocupada \
+		and _ult_en_transicion_marca == en_trans and _ult_id_marca == id and _ult_nivel_marca == nivel \
+		and _ult_hay_inter_marca == hay_inter and mismo_punto and misma_dir:
+		return
+	_marcas_cache_valida = true
+	_ult_listo_marca = _listo
+	_ult_ocupada_marca = ocupada
+	_ult_en_transicion_marca = en_trans
+	_ult_id_marca = id
+	_ult_nivel_marca = nivel
+	_ult_punto_marca = punto
+	_ult_hay_inter_marca = hay_inter
+	_ult_dir_marca = d_leo
+
+	var celda: Dictionary = {}
+	if activo:
+		var tipo := str(Datos.objeto(id).get("tipo", "")) if not id.is_empty() else ""
 		if tipo in ["herramienta", "semilla", "tratamiento"]:
-			var objetivo: Dictionary = j.apuntado_actual()
-			celda = celda_apuntada(objetivo) if objetivo.get("interactuable") == null else {}
-			punto = objetivo.get("punto", Vector3.ZERO)
+			celda = celda_apuntada(objetivo) if not hay_inter else {}
 	var lista: Array = []
 	if not celda.is_empty():
-		var id := str(Juego.objeto_activo().get("id", ""))
 		lista = [celda["clave"]]
-		if (id == "azada" or id == "regadera") and Juego.nivel(id) >= 1:
-			lista = _linea(celda, j, j.direccion_de_uso(punto))
+		if (id == "azada" or id == "regadera") and nivel >= 1:
+			lista = _linea(celda, j, (j as Jugador).direccion_de_uso(punto if punto.is_finite() else Vector3.ZERO))
 	for i in _marcas.size():
 		var m := _marcas[i]
 		if i < lista.size() and _celdas.has(lista[i]):

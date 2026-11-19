@@ -18,6 +18,7 @@ var mapa_de_despertar: String = "granja"
 var marcador_de_despertar: String = "Spawn_Protagonista"
 
 var _fin_solicitado: bool = false
+var _jugador_cache: Node3D = null
 
 
 func _ready() -> void:
@@ -25,8 +26,15 @@ func _ready() -> void:
 
 
 func jugador() -> Node3D:
-	var n := get_tree().get_first_node_in_group("jugador")
-	return n as Node3D if is_instance_valid(n) else null
+	if is_instance_valid(_jugador_cache) and _jugador_cache.is_inside_tree():
+		return _jugador_cache
+	var tree := get_tree()
+	if tree == null:
+		_jugador_cache = null
+		return null
+	var n := tree.get_first_node_in_group("jugador")
+	_jugador_cache = n as Node3D if is_instance_valid(n) else null
+	return _jugador_cache
 
 
 ## Nodo raíz del mapa en el que se está jugando (null en menús).
@@ -63,6 +71,7 @@ func _ir_a_escena_interno(ruta: String) -> void:
 
 
 func _quitar_escena_actual() -> void:
+	_jugador_cache = null
 	var actual := get_tree().current_scene
 	if actual == null or not is_instance_valid(actual):
 		return

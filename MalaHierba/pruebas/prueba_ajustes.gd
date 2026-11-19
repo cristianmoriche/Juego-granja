@@ -1,9 +1,9 @@
 extends Node
 ## Regresión de preferencias, aplicación real, mando, foco y conservación entre procesos.
 
-const CONFIG_PRUEBA := "res://../gestion/noche-codex/registros/T06-ajustes/ajustes_prueba.cfg"
+const CONFIG_PRUEBA := "user://ajustes_prueba.cfg"
 const ELEGIDOS := {"general": 0.35, "musica": 0.45, "efectos": 0.55, "ambiente": 0.65,
-	"sensibilidad": 2.0, "resolucion": 0, "pantalla_completa": false, "calidad": 0,
+	"sensibilidad": 2.0, "resolucion": 0, "pantalla_completa": false, "calidad": 0, "limite_fps": 2,
 	"texto": 2, "alto_contraste": true, "reducir_movimiento": true}
 var _fallos: Array[String] = []
 var _total := 0
@@ -84,6 +84,9 @@ func _ejecutar() -> void:
 			_comprobar(entorno.environment.ssr_enabled == (calidad >= 3), "SSR " + str(calidad))
 			_comprobar(jugador.camara.camara.far == [100.0, 220.0, 360.0, 600.0][calidad], "distancia de cámara " + str(calidad))
 			_comprobar(malla.visibility_range_end == [90.0, 180.0, 250.0, 250.0][calidad], "restauración de distancia de malla " + str(calidad))
+		Ajustes.poner("limite_fps", 2)
+		_comprobar(int(Ajustes.valores.limite_fps) == 2 and Ajustes.fps_objetivo() == 60, "límite de FPS 60 seleccionado")
+		Ajustes.poner("limite_fps", 0)
 		for resolucion in 5:
 			Ajustes.poner("resolucion", resolucion)
 			var esperada: Vector2i = DisplayServer.screen_get_size() if resolucion == 4 else Ajustes.RESOLUCIONES[resolucion]
@@ -244,6 +247,7 @@ func _ejecutar() -> void:
 		_comprobar(not Interfaz._ajustes.visible, "B devuelve al inicio")
 		menu.queue_free()
 		Ajustes.restaurar()
+		_comprobar(int(Ajustes.valores.limite_fps) == 0, "restaura límite de FPS automático")
 		for clave: String in ELEGIDOS:
 			Ajustes.poner(clave, ELEGIDOS[clave])
 		Ajustes.remapear("mover_arriba", KEY_F7)
@@ -260,5 +264,7 @@ func _ejecutar() -> void:
 	Ajustes.teclas = teclas_antes
 	Ajustes._aplicar_teclas()
 	Ajustes.aplicar()
+	if FileAccess.file_exists(CONFIG_PRUEBA):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(CONFIG_PRUEBA))
 	print("PRUEBA OK: %d comprobaciones de ajustes" % _total if _fallos.is_empty() else "PRUEBA FALLO: %d de %d" % [_fallos.size(), _total])
 	get_tree().quit(0 if _fallos.is_empty() else 1)

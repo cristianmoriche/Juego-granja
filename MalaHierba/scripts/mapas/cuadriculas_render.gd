@@ -41,7 +41,8 @@ func construir(mapa: Mapa, cargador: CargadorMapa) -> void:
 		var caja := celda["aabb"] as AABB
 		celda["centro"] = caja.get_center()
 		celda["radio"] = caja.size.length() * 0.5
-		celda["ultimo_estado"] = []
+		celda["estado_bits"] = -1
+		celda["en_frustum"] = true
 	_npcs_cache = get_tree().get_nodes_in_group("npc") if is_inside_tree() else []
 	_sucio = true
 	call_deferred("_evaluar_ahora")
@@ -67,8 +68,7 @@ func resumen_estado() -> Dictionary:
 	var ocultas := 0
 	var nodos_ocultos := 0
 	for celda: Dictionary in _celdas:
-		var est: Array = celda["ultimo_estado"]
-		var en_frustum := est.is_empty() or bool(est[0])
+		var en_frustum := bool(celda.get("en_frustum", true))
 		if en_frustum:
 			vis += 1
 		else:
@@ -125,7 +125,8 @@ func _obtener_celda(pos: Vector3, caja: AABB) -> Dictionary:
 		"mm_rocas_peq": [],
 		"mm_otros": [],
 		"luces": [],
-		"ultimo_estado": [],
+		"estado_bits": -1,
+		"en_frustum": true,
 	}
 	_mapa_celdas[coord] = nueva
 	_celdas.append(nueva)
@@ -224,10 +225,15 @@ func _process(delta: float) -> void:
 	var cam_pos := cam.global_position
 	var cam_dir := -cam.global_basis.z.normalized()
 	var calidad := clampi(int(Ajustes.valores.calidad), 0, 3)
-	var movida := _ult_cam_pos == Vector3.INF or cam_pos.distance_squared_to(_ult_cam_pos) > 0.09
-	var girada := cam_dir.dot(_ult_cam_dir) < 0.9995
-	if not _sucio and not movida and not girada and calidad == _ult_calidad and _t_actualizacion < 0.10:
-		return
+	var movida := _ult_cam_pos == Vector3.INF or cam_pos.distance_squared_to(_ult_cam_pos) > 0.25
+	var girada := cam_dir.dot(_ult_cam_dir) < 0.998
+	var forzar := _sucio or calidad != _ult_calidad or _ult_cam_pos == Vector3.INF
+	if not forzar:
+		if movida or girada:
+			if _t_actualizacion < 0.065:
+				return
+		elif _t_actualizacion < 0.45:
+			return
 	_t_actualizacion = 0.0
 	_sucio = false
 	_ult_cam_pos = cam_pos
@@ -236,7 +242,8 @@ func _process(delta: float) -> void:
 
 	var planos := cam.get_frustum()
 	var signos := _calcular_signos_frustum(planos, cam)
-	_actualizar_celdas(cam_pos, planos, signos, calidad)
+	if forzar or movida or girada:
+		_actualizar_celdas(cam_pos, planos, signos, calidad)
 	_actualizar_npcs(cam_pos, planos, signos, calidad)
 
 
@@ -271,7 +278,8 @@ func _actualizar_celdas(cam_pos: Vector3, planos: Array[Plane], signos: PackedFl
 	var d_otros: float = [58.0, 74.0, 96.0, 130.0][cal]
 	var d_arb_l2: float = [75.0, 95.0, 125.0, 160.0][cal]
 	var d_arb_peq: float = [32.0, 42.0, 52.0, 68.0][cal]
-	var d_sombra_est: float = [46.0, 60.0, 75.0, 110.0][cal]
+	var d_sombra_est: float = [42.0, 54.0, 68.0, 100.0][cal]
+	var d_sombra_arb: float = [26.0, 34.0, 44.0, 72.0][cal]
 	var d_luz: float = [28.0, 35.0, 44.0, 60.0][cal]
 
 	for celda: Dictionary in _celdas:
@@ -295,27 +303,45 @@ func _actualizar_celdas(cam_pos: Vector3, planos: Array[Plane], signos: PackedFl
 		var tier_otros := 0 if dist_borde <= 28.0 else 1
 		var vis_arb_l2 := en_frustum and dist_borde <= d_arb_l2
 		var tier_arb_l2 := 0 if dist_borde <= 38.0 else 1
+		var sombra_arb := en_frustum and dist_borde <= d_sombra_arb
 		var vis_arb_peq := en_frustum and dist_borde <= d_arb_peq
 		var vis_luz := (en_frustum and dist_borde <= d_luz) or caja.grow(DISTANCIA_LUZ_DETRAS).has_point(cam_pos)
 
-		var estado := [
-			en_frustum, vis_est, tier_est, sombra_est, vis_det, tier_det,
-			vis_dim, vis_hierba, tier_hierba, vis_roca_peq, tier_roca_peq,
-			vis_otros, tier_otros, vis_arb_l2, tier_arb_l2, vis_arb_peq, vis_luz
-		]
-		var previo: Array = celda["ultimo_estado"]
-		if previo == estado:
+		var estado_bits: int = (
+			(1 if en_frustum else 0)
+			| ((1 if vis_est else 0) << 1)
+			| ((tier_est & 3) << 2)
+			| ((1 if sombra_est else 0) << 4)
+			| ((1 if vis_det else 0) << 5)
+			| ((tier_det & 1) << 6)
+			| ((1 if vis_dim else 0) << 7)
+			| ((1 if vis_hierba else 0) << 8)
+			| ((tier_hierba & 1) << 9)
+			| ((1 if vis_roca_peq else 0) << 10)
+			| ((tier_roca_peq & 1) << 11)
+			| ((1 if vis_otros else 0) << 12)
+			| ((tier_otros & 1) << 13)
+			| ((1 if vis_arb_l2 else 0) << 14)
+			| ((tier_arb_l2 & 1) << 15)
+			| ((1 if sombra_arb else 0) << 16)
+			| ((1 if vis_arb_peq else 0) << 17)
+			| ((1 if vis_luz else 0) << 18)
+		)
+		var prev_bits: int = int(celda["estado_bits"])
+		if prev_bits == estado_bits:
 			continue
-		var cambiar_est: bool = previo.is_empty() or previo[1] != vis_est or previo[2] != tier_est or previo[3] != sombra_est
-		var cambiar_det: bool = previo.is_empty() or previo[4] != vis_det or previo[5] != tier_det
-		var cambiar_dim: bool = previo.is_empty() or previo[6] != vis_dim
-		var cambiar_hierba: bool = previo.is_empty() or previo[7] != vis_hierba or previo[8] != tier_hierba
-		var cambiar_roca: bool = previo.is_empty() or previo[9] != vis_roca_peq or previo[10] != tier_roca_peq
-		var cambiar_otros: bool = previo.is_empty() or previo[11] != vis_otros or previo[12] != tier_otros
-		var cambiar_arb_l2: bool = previo.is_empty() or previo[13] != vis_arb_l2 or previo[14] != tier_arb_l2 or previo[3] != sombra_est
-		var cambiar_arb_peq: bool = previo.is_empty() or previo[15] != vis_arb_peq
-		var cambiar_luz: bool = previo.is_empty() or previo[16] != vis_luz
-		celda["ultimo_estado"] = estado
+		var diff: int = -1 if prev_bits < 0 else (prev_bits ^ estado_bits)
+		celda["estado_bits"] = estado_bits
+		celda["en_frustum"] = en_frustum
+		var cambiar_est: bool = diff < 0 or (diff & 0b11110) != 0
+		var cambiar_det: bool = diff < 0 or (diff & (0b11 << 5)) != 0
+		var cambiar_dim: bool = diff < 0 or (diff & (1 << 7)) != 0
+		var cambiar_hierba: bool = diff < 0 or (diff & (0b11 << 8)) != 0
+		var cambiar_roca: bool = diff < 0 or (diff & (0b11 << 10)) != 0
+		var cambiar_otros: bool = diff < 0 or (diff & (0b11 << 12)) != 0
+		var cambiar_arb_l2: bool = diff < 0 or (diff & (0b111 << 14)) != 0
+		var cambiar_arb_peq: bool = diff < 0 or (diff & (1 << 17)) != 0
+		var cambiar_luz: bool = diff < 0 or (diff & (1 << 18)) != 0
 
 		if cambiar_est:
 			for reg: Dictionary in celda["estructuras"]:
@@ -378,7 +404,7 @@ func _actualizar_celdas(cam_pos: Vector3, planos: Array[Plane], signos: PackedFl
 				if vis_arb_l2:
 					var orig_lod := float(reg["lod"])
 					mi.lod_bias = orig_lod if tier_arb_l2 == 0 else minf(orig_lod, 0.35)
-					mi.cast_shadow = (reg["sombra"] as GeometryInstance3D.ShadowCastingSetting) if sombra_est else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+					mi.cast_shadow = (reg["sombra"] as GeometryInstance3D.ShadowCastingSetting) if sombra_arb else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if cambiar_arb_peq:
 			for reg: Dictionary in celda["arboles_peq"]:
 				var mi := reg["n"] as GeometryInstance3D
@@ -394,25 +420,27 @@ func _actualizar_celdas(cam_pos: Vector3, planos: Array[Plane], signos: PackedFl
 func _actualizar_npcs(cam_pos: Vector3, planos: Array[Plane], signos: PackedFloat32Array, cal: int) -> void:
 	var d_max: float = [48.0, 58.0, 72.0, 100.0][cal]
 	for n: Node in _npcs_cache:
-		if not is_instance_valid(n) or not n.has_method("aplicar_culling_visual"):
+		if not is_instance_valid(n):
 			continue
-		var n3 := n as Node3D
-		var d_npc := cam_pos.distance_to(n3.global_position)
-		var caja := AABB(n3.global_position - Vector3(0.9, 0.1, 0.9), Vector3(1.8, 2.2, 1.8))
-		var en_vista := (d_npc <= 4.5) or _aabb_en_frustum(caja, planos, signos, 2.5)
-		if not en_vista or d_npc > d_max:
-			n.call("aplicar_culling_visual", false, 0.12, false, false)
-		elif d_npc <= 16.0:
-			n.call("aplicar_culling_visual", true, 1.0, true, true)
-		elif d_npc <= 34.0:
-			n.call("aplicar_culling_visual", true, 0.35, cal >= 2 and d_npc <= 26.0, true)
-		else:
-			n.call("aplicar_culling_visual", true, 0.12, false, d_npc <= 52.0)
+		if n is Npc:
+			var npc := n as Npc
+			var d_npc := cam_pos.distance_to(npc.global_position)
+			var caja := AABB(npc.global_position - Vector3(0.9, 0.1, 0.9), Vector3(1.8, 2.2, 1.8))
+			var en_vista := (d_npc <= 4.5) or _aabb_en_frustum(caja, planos, signos, 2.5)
+			if not en_vista or d_npc > d_max:
+				npc.aplicar_culling_visual(false, 0.12, false, false)
+			elif d_npc <= 16.0:
+				npc.aplicar_culling_visual(true, 1.0, true, true)
+			elif d_npc <= 34.0:
+				npc.aplicar_culling_visual(true, 0.35, cal >= 2 and d_npc <= 26.0, true)
+			else:
+				npc.aplicar_culling_visual(true, 0.12, false, d_npc <= 52.0)
 
 
 func _restaurar_todo_visible() -> void:
 	for celda: Dictionary in _celdas:
-		celda["ultimo_estado"] = []
+		celda["estado_bits"] = -1
+		celda["en_frustum"] = true
 		for clave: String in ["estructuras", "detalles", "arboles_l2", "arboles_peq"]:
 			for reg: Dictionary in celda[clave]:
 				var mi := reg["n"] as GeometryInstance3D
@@ -432,5 +460,5 @@ func _restaurar_todo_visible() -> void:
 				l.visible = true
 	var npcs := get_tree().get_nodes_in_group("npc") if is_inside_tree() else _npcs_cache
 	for n: Node in npcs:
-		if is_instance_valid(n) and n.has_method("aplicar_culling_visual"):
-			n.call("aplicar_culling_visual", true, 1.0, true, true)
+		if is_instance_valid(n) and n is Npc:
+			(n as Npc).aplicar_culling_visual(true, 1.0, true, true)

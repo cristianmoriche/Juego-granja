@@ -24,6 +24,7 @@ var npcs: Dictionary = {}
 var lista: Array[Dictionary] = []
 var id_mapa: String = ""
 var construido: bool = false
+var _ult_min_sinc: int = -999
 
 
 func _ready() -> void:
@@ -54,8 +55,11 @@ func _al_mapa_cargado(id: String) -> void:
 		construir()
 
 
-func _al_cambiar_hora(_minutos: int) -> void:
-	if construido:
+func _al_cambiar_hora(minutos: int) -> void:
+	if not construido:
+		return
+	if minutos % 5 == 0 or absi(minutos - _ult_min_sinc) >= 5:
+		_ult_min_sinc = minutos
 		sincronizar()
 
 
@@ -72,6 +76,7 @@ func construir() -> void:
 	lista = datos_de_todos()
 	CargadorMapa.solicitar_lote(rutas_mapa(id_mapa, lista))
 	construido = true
+	_ult_min_sinc = Juego.minutos
 	sincronizar(true)
 
 
@@ -154,8 +159,8 @@ static func _regla_activa(d: Dictionary, minutos: int) -> Dictionary:
 
 
 ## Dónde está un vecino a una hora (minutos del día): {"mapa", "marcador", "desplazar"} o {} si no está en ningún mapa.
-static func ubicacion(d: Dictionary, minutos: int) -> Dictionary:
-	var regla := _regla_activa(d, minutos)
+static func ubicacion(d: Dictionary, minutos: int, regla_pre: Variant = null) -> Dictionary:
+	var regla: Dictionary = regla_pre if regla_pre is Dictionary else _regla_activa(d, minutos)
 	var llega := int(regla.get("llega", d.get("llega", LLEGA)))
 	var se_va := int(regla.get("se_va", d.get("se_va", SE_VA)))
 	if minutos < llega or minutos >= se_va:
@@ -199,7 +204,7 @@ static func ubicacion_en_mapa(d: Dictionary, minutos: int, mapa_destino: String)
 					"desplazar": f.get("desplazar", [0, 0]),
 					"fijo": true,
 				}
-	return ubicacion(d, minutos)
+	return ubicacion(d, minutos, regla)
 
 
 static func clave_sitio(ub: Dictionary) -> String:

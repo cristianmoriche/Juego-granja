@@ -19,6 +19,7 @@ var _ultimo_mapa: String = ""
 var _rocas_mina_previas: int = 0
 var _dinero_ganado_previo: int = 0
 var _dia_cerrado_auto: bool = false
+var _t_chequeo: float = 0.0
 
 
 func _ready() -> void:
@@ -51,8 +52,11 @@ func _process(delta: float) -> void:
 	if _actual.is_empty() and _enfriamiento <= 0.0 and _puede_mostrar_ahora():
 		_siguiente_de_cola_o_dia1()
 
-	_comprobar_movimiento_leo()
-	_comprobar_regalos_y_minas_pendientes()
+	_t_chequeo -= delta
+	if _t_chequeo <= 0.0:
+		_t_chequeo = 0.20
+		_comprobar_movimiento_leo()
+		_comprobar_regalos_y_minas_pendientes()
 
 
 # --- API pública ---------------------------------------------------------------------
@@ -331,6 +335,7 @@ func _al_cambiar_partida() -> void:
 	_rocas_mina_previas = _contar_rocas_rotas_mina()
 	_dinero_ganado_previo = int(Juego.estadisticas.get("dinero_ganado", 0))
 	_dia_cerrado_auto = false
+	_t_chequeo = 0.0
 	actualizado.emit()
 	_evaluar_progreso.call_deferred()
 

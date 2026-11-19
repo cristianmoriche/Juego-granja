@@ -111,6 +111,7 @@ var _pausa_por_ventana: bool = false
 var _arbol_pausado_antes: bool = false
 var _acumulado: float = 0.0
 var _aviso_cansancio: bool = false
+var _t_check_ventana: float = 0.0
 
 
 func _ready() -> void:
@@ -159,10 +160,13 @@ func _actualizar_pausa_de_ventana() -> void:
 func _process(delta: float) -> void:
 	# Windows puede minimizar sin emitir un cambio de foco: se comprueba también el modo.
 	if DisplayServer.get_name() != "headless":
-		var minimizada := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MINIMIZED
-		if minimizada != _minimizada:
-			_minimizada = minimizada
-			_actualizar_pausa_de_ventana()
+		_t_check_ventana -= delta
+		if _t_check_ventana <= 0.0:
+			_t_check_ventana = 0.25
+			var minimizada := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MINIMIZED
+			if minimizada != _minimizada:
+				_minimizada = minimizada
+				_actualizar_pausa_de_ventana()
 	if not partida_activa or not tiempo_corre():
 		return
 	tiempo_jugado_seg += delta

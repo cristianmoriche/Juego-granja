@@ -69,6 +69,12 @@ var _ult_dir: Vector2 = Vector2.INF
 var _ult_tex: Texture2D = null
 var _t_refresco: float = 0.0
 var _sucio: bool = true
+var _puntos_foto: PackedVector2Array = PackedVector2Array()
+var _colores_foto: PackedColorArray = PackedColorArray()
+var _uvs_foto: PackedVector2Array = PackedVector2Array()
+var _lineas_borde: PackedVector2Array = PackedVector2Array()
+var _npcs_minimap_cache: Array[Node] = []
+var _t_npcs_cache: float = 0.0
 
 
 func limpiar() -> void:
@@ -83,6 +89,8 @@ func limpiar() -> void:
 	_segs_poligono = PackedVector2Array()
 	_salidas_cache.clear()
 	_puertas_cache.clear()
+	_npcs_minimap_cache.clear()
+	_t_npcs_cache = 0.0
 	_ult_pos = Vector2.INF
 	_ult_yaw = NAN
 	_ult_dir = Vector2.INF
@@ -117,9 +125,13 @@ func _init() -> void:
 
 func _ready() -> void:
 	_dir_circulo.resize(SEGMENTOS)
+	_puntos_foto.resize(SEGMENTOS)
+	_colores_foto.resize(SEGMENTOS)
+	_uvs_foto.resize(SEGMENTOS)
 	for i in SEGMENTOS:
 		var a := TAU * float(i) / float(SEGMENTOS)
 		_dir_circulo[i] = Vector2(cos(a), sin(a))
+		_colores_foto[i] = Color.WHITE
 	_l_nombre = Estilo.etiqueta("", Estilo.TAM_TEXTO, Estilo.COLOR_TEXTO)
 	_l_nombre.position = Vector2(0, 0)
 	_l_nombre.size = Vector2(DIAMETRO, ALTO_NOMBRE)
@@ -168,14 +180,21 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not is_visible_in_tree():
 		return
-	if _mat_foto != null:
-		var tex_n: Variant = _nivel_mina.call("textura_niebla") if (id_mapa == "mina_interior" and _nivel_mina != null and is_instance_valid(_nivel_mina) and _nivel_mina.has_method("textura_niebla")) else null
+	if _mat_foto != null and id_mapa == "mina_interior":
+		var tex_n: Variant = _nivel_mina.call("textura_niebla") if (_nivel_mina != null and is_instance_valid(_nivel_mina) and _nivel_mina.has_method("textura_niebla")) else null
 		if tex_n is Texture2D:
 			_mat_foto.set_shader_parameter("usar_niebla", 1.0)
 			_mat_foto.set_shader_parameter("tex_niebla", tex_n)
 		else:
 			_mat_foto.set_shader_parameter("usar_niebla", 0.0)
 	_t_refresco += delta
+	_t_npcs_cache += delta
+	if _t_npcs_cache >= 0.5 and is_inside_tree():
+		_t_npcs_cache = 0.0
+		_npcs_minimap_cache = get_tree().get_nodes_in_group("npc")
+	var inmediato := _sucio or textura != _ult_tex or _ult_pos == Vector2.INF or is_nan(_ult_yaw)
+	if not inmediato and _t_refresco < 0.05:
+		return
 	var pos_actual := _pos_jugador()
 	var yaw_actual := _yaw()
 	var dir_actual := Vector2(0, -1)
@@ -183,8 +202,9 @@ func _process(delta: float) -> void:
 		var d3: Variant = jugador.get("direccion")
 		if d3 is Vector3:
 			dir_actual = Vector2((d3 as Vector3).x, (d3 as Vector3).z)
-	var cambio := _sucio or textura != _ult_tex or _ult_pos == Vector2.INF or pos_actual.distance_squared_to(_ult_pos) > 0.0004 or is_nan(_ult_yaw) or absf(yaw_actual - _ult_yaw) > 0.002 or dir_actual.distance_squared_to(_ult_dir) > 0.0004 or _t_refresco >= 0.10
-	if not cambio:
+	var cambio_fondo := inmediato or pos_actual.distance_squared_to(_ult_pos) > 0.0025 or absf(yaw_actual - _ult_yaw) > 0.005
+	var cambio_marcas := cambio_fondo or dir_actual.distance_squared_to(_ult_dir) > 0.0025 or _t_refresco >= 0.25
+	if not cambio_marcas:
 		return
 	_ult_tex = textura
 	_ult_pos = pos_actual
@@ -192,8 +212,9 @@ func _process(delta: float) -> void:
 	_ult_dir = dir_actual
 	_t_refresco = 0.0
 	_sucio = false
-	_poner_norte()
-	_fondo.queue_redraw()
+	if cambio_fondo:
+		_poner_norte()
+		_fondo.queue_redraw()
 	_marcas.queue_redraw()
 
 
@@ -232,6 +253,10 @@ func _al_mapa_cargado(id: String) -> void:
 				_segs_poligono.append(a.lerp(b, float(k + 1) / float(trozos)))
 	_salidas_cache.clear()
 	_puertas_cache.clear()
+	_npcs_minimap_cache = get_tree().get_nodes_in_group("npc") if is_inside_tree() else []
+	_t_npcs_cache = 0.0
+	if _mat_foto != null and id != "mina_interior":
+		_mat_foto.set_shader_parameter("usar_niebla", 0.0)
 	_sucio = true
 	var rect := Rect2()
 	if mapa.has_method("rect_mapa"):
@@ -328,37 +353,44 @@ func _draw() -> void:
 func _dibujar_foto(c: Control) -> void:
 	if not lista():
 		return
-	var puntos := PackedVector2Array()
-	var colores := PackedColorArray()
-	var uvs := PackedVector2Array()
-	puntos.resize(SEGMENTOS)
-	colores.resize(SEGMENTOS)
-	uvs.resize(SEGMENTOS)
 	var centro := _centro()
 	var r := _radio_pantalla()
+	var pos_j := _pos_jugador()
+	var der := _derecha()
+	var ade := _adelante()
+	var inv_esc := 1.0 / _escala()
+	var rect_pos := rect_mundo.position
+	var rect_tam := rect_mundo.size
 	for i in SEGMENTOS:
 		var q := centro + _dir_circulo[i] * r
-		puntos[i] = q
-		colores[i] = Color.WHITE
-		uvs[i] = _uv(pantalla_a_mundo(q))
-	c.draw_polygon(puntos, colores, uvs, textura)
+		_puntos_foto[i] = q
+		var o := (q - centro) * inv_esc
+		var pm := pos_j + der * o.x - ade * o.y
+		_uvs_foto[i] = Vector2((pm.x - rect_pos.x) / rect_tam.x, (pm.y - rect_pos.y) / rect_tam.y)
+	c.draw_polygon(_puntos_foto, _colores_foto, _uvs_foto, textura)
 
 
 func _dibujar_marcas(c: Control) -> void:
 	var centro := _centro()
 	var r := _radio_pantalla()
 	var r_lim := r - 1.0
+	var pos_j := _pos_jugador()
+	var der := _derecha()
+	var ade := _adelante()
+	var esc := _escala()
 	# Borde del área jugable.
 	if not _segs_poligono.is_empty():
-		var lineas := PackedVector2Array()
+		_lineas_borde.clear()
 		for i in range(0, _segs_poligono.size(), 2):
-			var p0 := mundo_a_pantalla(_segs_poligono[i])
-			var p1 := mundo_a_pantalla(_segs_poligono[i + 1])
+			var d0 := _segs_poligono[i] - pos_j
+			var p0 := centro + Vector2(d0.dot(der), -d0.dot(ade)) * esc
+			var d1 := _segs_poligono[i + 1] - pos_j
+			var p1 := centro + Vector2(d1.dot(der), -d1.dot(ade)) * esc
 			if p0.distance_to(centro) < r_lim and p1.distance_to(centro) < r_lim:
-				lineas.append(p0)
-				lineas.append(p1)
-		if not lineas.is_empty():
-			c.draw_multiline(lineas, COLOR_LIMITE, 2.0)
+				_lineas_borde.append(p0)
+				_lineas_borde.append(p1)
+		if not _lineas_borde.is_empty():
+			c.draw_multiline(_lineas_borde, COLOR_LIMITE, 2.0)
 	# Salidas y puertas.
 	if is_inside_tree():
 		if _salidas_cache.is_empty():
@@ -378,17 +410,21 @@ func _dibujar_marcas(c: Control) -> void:
 				if id_mapa == "mina_interior" and _nivel_mina != null and is_instance_valid(_nivel_mina) and _nivel_mina.has_method("es_punto_explorado"):
 					if not bool(_nivel_mina.call("es_punto_explorado", Vector2(nodo.global_position.x, nodo.global_position.z))):
 						continue
-				var q := mundo_a_pantalla(Vector2(nodo.global_position.x, nodo.global_position.z))
+				var dn := Vector2(nodo.global_position.x, nodo.global_position.z) - pos_j
+				var q := centro + Vector2(dn.dot(der), -dn.dot(ade)) * esc
 				if q.distance_to(centro) <= r - 7.0:
 					_rombo(c, q, 7.0, color)
 				else:
 					_flecha_borde(c, q, color)
 		# Vecinos.
-		for n3: Node in get_tree().get_nodes_in_group("npc"):
+		for n3: Node in _npcs_minimap_cache:
+			if not is_instance_valid(n3):
+				continue
 			var nodo := n3 as Node3D
 			if nodo == null or not nodo.is_inside_tree() or not nodo.visible:
 				continue
-			var q := mundo_a_pantalla(Vector2(nodo.global_position.x, nodo.global_position.z))
+			var dv := Vector2(nodo.global_position.x, nodo.global_position.z) - pos_j
+			var q := centro + Vector2(dv.dot(der), -dv.dot(ade)) * esc
 			if q.distance_to(centro) <= r - 5.0:
 				c.draw_circle(q, 5.5, COLOR_CONTORNO)
 				c.draw_circle(q, 3.8, COLOR_NPC)
@@ -398,7 +434,7 @@ func _dibujar_marcas(c: Control) -> void:
 		var d3: Variant = jugador.get("direccion")
 		if d3 is Vector3:
 			dir = Vector2((d3 as Vector3).x, (d3 as Vector3).z)
-	var ang := atan2(dir.dot(_derecha()), dir.dot(_adelante()))
+	var ang := atan2(dir.dot(der), dir.dot(ade))
 	c.draw_set_transform(centro, ang)
 	var flecha := PackedVector2Array([Vector2(0, -11), Vector2(7.5, 8), Vector2(0, 3.5), Vector2(-7.5, 8)])
 	var contorno := PackedVector2Array([Vector2(0, -13.5), Vector2(10, 10.5), Vector2(0, 5), Vector2(-10, 10.5)])
@@ -406,8 +442,8 @@ func _dibujar_marcas(c: Control) -> void:
 	c.draw_colored_polygon(flecha, COLOR_LEO)
 	c.draw_set_transform(Vector2.ZERO, 0.0)
 	# Aro.
-	c.draw_arc(centro, r + 1.5, 0.0, TAU, 96, COLOR_CONTORNO, 5.0, true)
-	c.draw_arc(centro, r + 1.5, 0.0, TAU, 96, COLOR_ANILLO, 3.0, true)
+	c.draw_arc(centro, r + 1.5, 0.0, TAU, 48, COLOR_CONTORNO, 5.0, true)
+	c.draw_arc(centro, r + 1.5, 0.0, TAU, 48, COLOR_ANILLO, 3.0, true)
 
 
 func _rombo(c: Control, q: Vector2, t: float, color: Color) -> void:

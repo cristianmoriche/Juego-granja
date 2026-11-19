@@ -30,6 +30,8 @@ var cursor_de_juego: bool = false
 var apuntando_decoracion: bool = false
 ## Cuántos avisos se han mostrado en total (el jugador lo usa para saber si algo ya explicó por qué no pasó nada).
 var avisos_emitidos: int = 0
+var _deco_cache: Node = null
+var _t_cursor: float = 0.0
 
 
 func _ready() -> void:
@@ -94,6 +96,7 @@ func _ready() -> void:
 	raiz.add_child(_ajustes)
 	_paneles.assign([_dialogo, _pregunta, _inventario, _tienda, _pausa, _mapa_grande, _diario, _carpinteria, _cocina, _herreria, _pesca, _modo_foto, _ajustes, _debug])
 	Escenas.mapa_cargado.connect(func(_id: String) -> void:
+		_deco_cache = null
 		if _debug != null and Juego.debug_hitboxes:
 			_debug.sincronizar_hitboxes.call_deferred())
 	Juego.habilidad_subida.connect(func(_id: String, _nv: int, _ven: String) -> void:
@@ -149,8 +152,11 @@ func enfocar_mira(objetivo: bool) -> void:
 	_mira.objetivo = objetivo
 
 
-func _process(_delta: float) -> void:
-	actualizar_cursor()
+func _process(delta: float) -> void:
+	_t_cursor += delta
+	if _t_cursor >= 0.08:
+		_t_cursor = 0.0
+		actualizar_cursor()
 
 
 func actualizar_cursor() -> void:
@@ -557,9 +563,13 @@ func mostrar_carga(v: bool) -> void:
 # --- Entrada global ---------------------------------------------------------------------
 
 func _decoracion_activa() -> Node:
+	if is_instance_valid(_deco_cache) and _deco_cache.is_inside_tree():
+		return _deco_cache
 	if get_tree() == null:
+		_deco_cache = null
 		return null
-	return get_tree().get_first_node_in_group("decoracion_casa")
+	_deco_cache = get_tree().get_first_node_in_group("decoracion_casa")
+	return _deco_cache
 
 
 func _input(event: InputEvent) -> void:

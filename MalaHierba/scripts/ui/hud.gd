@@ -51,6 +51,9 @@ var _l_tut_texto: Label
 var _tut_ultimo_mando: bool = false
 var _tut_id_mostrado: String = ""
 var _tween_tutorial: Tween = null
+var _ult_muni_arco: String = ""
+var _ult_total_arco: int = -1
+var _t_visor_arco: float = 0.0
 
 
 func _init() -> void:
@@ -87,8 +90,8 @@ func _ready() -> void:
 	Juego.dano_recibido.connect(_al_recibir_dano)
 	Juego.resistencia_cambiada.connect(_actualizar_resistencia)
 	Escenas.mapa_cargado.connect(_conectar_jugador)
-	Juego.inventario_cambiado.connect(_actualizar_barra)
-	Juego.ranura_cambiada.connect(func(_r: int) -> void: _actualizar_barra())
+	Juego.inventario_cambiado.connect(_al_cambiar_inventario)
+	Juego.ranura_cambiada.connect(func(_r: int) -> void: _al_cambiar_inventario())
 	Tutorial.actualizado.connect(refrescar_tutorial)
 	_tut_ultimo_mando = Ajustes.ultimo_mando
 	refrescar()
@@ -108,9 +111,14 @@ func refrescar() -> void:
 	refrescar_tutorial()
 
 
+func _al_cambiar_inventario() -> void:
+	_ult_total_arco = -1
+	_actualizar_barra()
+
+
 func _process(delta: float) -> void:
 	_actualizar_efectos_vida(delta)
-	_actualizar_visor_arco()
+	_actualizar_visor_arco(delta)
 	if _panel_enemigo.visible:
 		var margen := _tutorial.position.y + _tutorial.size.y + 12.0 if _tutorial.visible else 22.0
 		_panel_enemigo.offset_top = margen
@@ -512,9 +520,15 @@ func _al_recibir_dano(n: float) -> void:
 
 
 func _actualizar_efectos_vida(delta: float) -> void:
-	_pulso_herida = move_toward(_pulso_herida, 0.0, delta * 0.72)
+	if _pulso_herida > 0.0:
+		_pulso_herida = move_toward(_pulso_herida, 0.0, delta * 0.72)
 	var jugando: bool = _panel_info != null and _panel_info.visible and Juego.partida_activa and not Interfaz.ocupada() and not Escenas.en_transicion
-	var baja: bool = jugando and Juego.vida > 0.0 and Juego.vida / Juego.vida_max < 0.29
+	var baja: bool = jugando and Juego.vida > 0.0 and Juego.vida / maxf(Juego.vida_max, 1.0) < 0.29
+	if _pulso_herida <= 0.0 and not baja:
+		if _vineta.visible:
+			_vineta.visible = false
+		_t_latido = 0.0
+		return
 	var intensidad := (_pulso_herida + (0.075 if baja else 0.0)) if jugando else 0.0
 	if Ajustes.valores.reducir_movimiento:
 		intensidad *= 0.52
@@ -587,26 +601,34 @@ func _construir_visor_arco() -> void:
 	_panel_arco.hide()
 
 
-func _actualizar_visor_arco() -> void:
+func _actualizar_visor_arco(delta: float = 0.0) -> void:
 	if _panel_arco == null:
 		return
 	var activo: bool = _combate != null and bool(_combate.call("es_arco_activo")) and not Interfaz.ocupada() and Juego.vida > 0.0
-	_panel_arco.visible = activo
+	if _panel_arco.visible != activo:
+		_panel_arco.visible = activo
 	if not activo:
 		return
 	var tension := clampf(float(_combate.get("tension_arco")), 0.0, 1.0)
-	_barra_arco.value = tension
-	var fill := _barra_arco.get_theme_stylebox("fill") as StyleBoxFlat
-	if fill != null:
-		fill.bg_color = Color(0.36, 0.90, 0.44) if tension >= 0.92 else Color(0.92, 0.72, 0.26)
-	var muni := Juego.municion_disponible()
-	var total := Juego.total_flechas()
-	if muni.is_empty() or total <= 0:
-		_l_arco.text = "Sin flechas"
-		_l_arco.modulate = Color(1.0, 0.48, 0.44)
-	else:
-		_l_arco.text = "%s · %d" % [Datos.nombre_objeto(muni), total]
-		_l_arco.modulate = Color.WHITE
+	if not is_equal_approx(_barra_arco.value, tension):
+		_barra_arco.value = tension
+		var fill := _barra_arco.get_theme_stylebox("fill") as StyleBoxFlat
+		if fill != null:
+			fill.bg_color = Color(0.36, 0.90, 0.44) if tension >= 0.92 else Color(0.92, 0.72, 0.26)
+	_t_visor_arco -= delta
+	if _ult_total_arco < 0 or _t_visor_arco <= 0.0:
+		_t_visor_arco = 0.20
+		var muni := Juego.municion_disponible()
+		var total := Juego.total_flechas()
+		if muni != _ult_muni_arco or total != _ult_total_arco:
+			_ult_muni_arco = muni
+			_ult_total_arco = total
+			if muni.is_empty() or total <= 0:
+				_l_arco.text = "Sin flechas"
+				_l_arco.modulate = Color(1.0, 0.48, 0.44)
+			else:
+				_l_arco.text = "%s · %d" % [Datos.nombre_objeto(muni), total]
+				_l_arco.modulate = Color.WHITE
 
 
 func _conectar_jugador(_id: String) -> void:
