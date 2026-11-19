@@ -60,6 +60,12 @@ var _saliendo: bool = false
 var ruta_diaria: Array[Vector3] = []
 var ruta_dia_clave: int = -1
 var _indice_ruta: int = 0
+var _ticks_quieto: int = 0
+var _mallas_modelo: Array[MeshInstance3D] = []
+var _vis_cull: bool = true
+var _lod_cull: float = 1.0
+var _sombra_cull: bool = true
+var _anim_cull: bool = true
 
 
 ## Crea un vecino con sus datos (aún sin añadir al árbol).
@@ -77,6 +83,7 @@ static func crear(d: Dictionary) -> Npc:
 func _ready() -> void:
 	_modelo = $Modelo
 	_cargar_modelo()
+	_recolectar_mallas_modelo()
 	_punto = Interactuable.new()
 	_punto.name = "Hablar"
 	_punto.verbo = "Hablar con"
@@ -142,6 +149,7 @@ func en_lugar_trabajo() -> bool:
 
 ## Leo ha empezado a hablar: se detiene, lo mira y saluda.
 func empezar_charla(jugador: Node3D) -> void:
+	aplicar_culling_visual(true, 1.0, true, true)
 	_t_charla = 1.0
 	_mirar_a = jugador.global_position
 	if jugador.has_method("encuadrar_interlocutor"):
@@ -200,13 +208,23 @@ func _physics_process(delta: float) -> void:
 	var horizontal := Vector3.ZERO
 	if not quieto_forzado and _t_charla <= 0.0:
 		horizontal = _paseo(delta)
-	velocity.x = horizontal.x
-	velocity.z = horizontal.z
-	if is_on_floor():
+	if horizontal.is_zero_approx() and is_on_floor():
+		velocity.x = 0.0
+		velocity.z = 0.0
 		velocity.y = -1.0
+		_ticks_quieto += 1
+		if _ticks_quieto >= 12:
+			_ticks_quieto = 0
+			move_and_slide()
 	else:
-		velocity.y -= GRAVEDAD * delta
-	move_and_slide()
+		_ticks_quieto = 0
+		velocity.x = horizontal.x
+		velocity.z = horizontal.z
+		if is_on_floor():
+			velocity.y = -1.0
+		else:
+			velocity.y -= GRAVEDAD * delta
+		move_and_slide()
 	_girar(delta, horizontal)
 	_animar(horizontal)
 
@@ -303,8 +321,42 @@ func _girar(delta: float, horizontal: Vector3) -> void:
 	_modelo.rotation.y = lerp_angle(_modelo.rotation.y, objetivo, 1.0 - exp(-8.0 * delta))
 
 
+func aplicar_culling_visual(mostrar: bool, lod_bias_val: float, con_sombra: bool, animar: bool) -> void:
+	if _t_charla > 0.0 or _saliendo:
+		mostrar = true
+		animar = true
+		lod_bias_val = 1.0
+		con_sombra = true
+	if _modelo != null and _vis_cull != mostrar:
+		_vis_cull = mostrar
+		_modelo.visible = mostrar
+	if _anim != null and _anim_cull != animar:
+		_anim_cull = animar
+		_anim.active = animar
+	if mostrar and (not is_equal_approx(_lod_cull, lod_bias_val) or _sombra_cull != con_sombra):
+		_lod_cull = lod_bias_val
+		_sombra_cull = con_sombra
+		var sombra_modo := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if con_sombra else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		for mi: MeshInstance3D in _mallas_modelo:
+			if is_instance_valid(mi):
+				mi.lod_bias = lod_bias_val
+				mi.cast_shadow = sombra_modo
+
+
+func _recolectar_mallas_modelo() -> void:
+	_mallas_modelo.clear()
+	if _modelo == null:
+		return
+	for n: Node in _modelo.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi != null:
+			_mallas_modelo.append(mi)
+
+
 func _animar(horizontal: Vector3) -> void:
 	_t_saludo = maxf(_t_saludo - get_physics_process_delta_time(), 0.0)
+	if _anim != null and not _anim.active:
+		return
 	if _t_saludo > 0.0:
 		return
 	if horizontal.length() > 0.05:
@@ -358,6 +410,7 @@ func _cargar_modelo() -> void:
 			var propio := modelo == id
 			if propio:
 				_quitar_metal(inst)
+			_activar_backface_culling(inst)
 			var sombrero := str(datos.get("sombrero", ""))
 			if not sombrero.is_empty() and not propio:
 				_poner_sombrero(inst, sombrero, esc)
@@ -367,6 +420,26 @@ func _cargar_modelo() -> void:
 
 ## Materiales ya corregidos por `_quitar_metal` (original → copia), para que las instancias compartan la copia.
 static var _sin_metal: Dictionary = {}
+static var _cache_cull_back: Dictionary = {}
+
+
+func _activar_backface_culling(inst: Node3D) -> void:
+	for n: Node in inst.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		for s in mi.mesh.get_surface_count():
+			var m := mi.get_active_material(s) as BaseMaterial3D
+			if m == null or m.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED or m.cull_mode != BaseMaterial3D.CULL_DISABLED:
+				continue
+			var nom := m.resource_name.to_lower()
+			if nom.contains("falda") or nom.contains("chal") or nom.contains("delantal"):
+				continue
+			if not _cache_cull_back.has(m) or not is_instance_valid(_cache_cull_back[m]):
+				var copia := m.duplicate() as BaseMaterial3D
+				copia.cull_mode = BaseMaterial3D.CULL_BACK
+				_cache_cull_back[m] = copia
+			mi.set_surface_override_material(s, _cache_cull_back[m] as BaseMaterial3D)
 
 
 ## Los modelos propios traen `metallicRoughnessTexture` sin `metallicFactor` (glTF lo toma como 1) y con la piel casi

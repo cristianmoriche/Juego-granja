@@ -85,9 +85,18 @@ uniform float humedad = 0.0;
 varying vec3 v_wpos;
 varying vec3 v_wnorm;
 
-vec4 triplanar_tex(sampler2D t, vec3 wp, vec3 w, float esc) {
-	vec3 uv_p = wp * esc;
-	return texture(t, uv_p.zy) * w.x + texture(t, uv_p.xz) * w.y + texture(t, uv_p.xy) * w.z;
+vec4 triplanar_grad(sampler2D t, vec3 uv_p, vec3 w, vec2 dxx, vec2 dxy, vec2 dyx, vec2 dyy, vec2 dzx, vec2 dzy) {
+	vec4 r = vec4(0.0);
+	if (w.x > 0.01) {
+		r += textureGrad(t, uv_p.zy, dxx, dxy) * w.x;
+	}
+	if (w.y > 0.01) {
+		r += textureGrad(t, uv_p.xz, dyx, dyy) * w.y;
+	}
+	if (w.z > 0.01) {
+		r += textureGrad(t, uv_p.xy, dzx, dzy) * w.z;
+	}
+	return r;
 }
 
 void vertex() {
@@ -101,13 +110,37 @@ void fragment() {
 	vec3 w = an / max(an.x + an.y + an.z, 0.0001);
 	float es_suelo = smoothstep(0.55, 0.85, n.y);
 
-	vec3 alb_p = triplanar_tex(tex_pared_alb, v_wpos, w, escala_pared).rgb * tinte_pared.rgb;
-	vec3 alb_s = triplanar_tex(tex_suelo_alb, v_wpos, w, escala_suelo).rgb * tinte_suelo.rgb;
+	vec3 uv_p = v_wpos * escala_pared;
+	vec2 pxx = dFdx(uv_p.zy); vec2 pxy = dFdy(uv_p.zy);
+	vec2 pyx = dFdx(uv_p.xz); vec2 pyy = dFdy(uv_p.xz);
+	vec2 pzx = dFdx(uv_p.xy); vec2 pzy = dFdy(uv_p.xy);
+
+	vec3 uv_s = v_wpos * escala_suelo;
+	vec2 sxx = dFdx(uv_s.zy); vec2 sxy = dFdy(uv_s.zy);
+	vec2 syx = dFdx(uv_s.xz); vec2 syy = dFdy(uv_s.xz);
+	vec2 szx = dFdx(uv_s.xy); vec2 szy = dFdy(uv_s.xy);
+
+	vec3 alb_p = vec3(0.0);
+	float rug_p = 0.85;
+	vec3 np = vec3(0.5, 0.5, 1.0);
+	if (es_suelo < 0.99) {
+		alb_p = triplanar_grad(tex_pared_alb, uv_p, w, pxx, pxy, pyx, pyy, pzx, pzy).rgb * tinte_pared.rgb;
+		rug_p = triplanar_grad(tex_pared_rug, uv_p, w, pxx, pxy, pyx, pyy, pzx, pzy).r;
+		np = triplanar_grad(tex_pared_nor, uv_p, w, pxx, pxy, pyx, pyy, pzx, pzy).xyz;
+	}
+
+	vec3 alb_s = vec3(0.0);
+	float rug_s = 0.85;
+	vec3 ns = vec3(0.5, 0.5, 1.0);
+	if (es_suelo > 0.01) {
+		alb_s = triplanar_grad(tex_suelo_alb, uv_s, w, sxx, sxy, syx, syy, szx, szy).rgb * tinte_suelo.rgb;
+		rug_s = triplanar_grad(tex_suelo_rug, uv_s, w, sxx, sxy, syx, syy, szx, szy).r;
+		ns = triplanar_grad(tex_suelo_nor, uv_s, w, sxx, sxy, syx, syy, szx, szy).xyz;
+	}
+
 	float macro = 0.88 + 0.18 * sin(v_wpos.x * 0.17 + v_wpos.z * 0.13) * cos(v_wpos.z * 0.19 - v_wpos.y * 0.23);
 	ALBEDO = mix(alb_p, alb_s, es_suelo) * macro;
 
-	float rug_p = triplanar_tex(tex_pared_rug, v_wpos, w, escala_pared).r;
-	float rug_s = triplanar_tex(tex_suelo_rug, v_wpos, w, escala_suelo).r;
 	float rug = mix(rug_p, rug_s, es_suelo);
 	if (humedad > 0.01) {
 		float charco_w = smoothstep(0.35, 0.75, sin(v_wpos.x * 0.45) * cos(v_wpos.z * 0.41));
@@ -116,8 +149,6 @@ void fragment() {
 	ROUGHNESS = clamp(rug, 0.14, 0.96);
 	SPECULAR = mix(0.45, 0.78, humedad * es_suelo);
 
-	vec3 np = triplanar_tex(tex_pared_nor, v_wpos, w, escala_pared).xyz;
-	vec3 ns = triplanar_tex(tex_suelo_nor, v_wpos, w, escala_suelo).xyz;
 	NORMAL_MAP = mix(np, ns, es_suelo);
 	NORMAL_MAP_DEPTH = 0.85;
 }

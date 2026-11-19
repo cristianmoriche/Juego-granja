@@ -211,3 +211,6 @@ func actualizar() -> void:
 		var factor_ventanas := clampf(maxf(oscuro, 0.36 if lluvia else 0.0), 0.0, 1.0)
 		var factor_luces := clampf(maxf(0.04, maxf(oscuro * 1.15, 0.45 if lluvia else 0.0)), 0.04, 1.0)
 		_cargador.call("actualizar_iluminacion_hora", factor_ventanas, factor_luces)
+	var lm := get_parent().get_node_or_null("LightmapMapa") as LightmapGI if get_parent() != null else null
+	if lm != null:
+		lm.visible = noche < 0.65

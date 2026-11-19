@@ -1,0 +1,29 @@
+[remap]
+
+importer="2d_array_texture"
+type="CompressedTexture2DArray"
+uid="uid://cnv0pkabrckqq"
+path.bptc="res://.godot/imported/casa_leo.exr-23d80d93e1bd9327c314d288a8ce9fe1.bptc.ctexarray"
+metadata={
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+
+[deps]
+
+source_file="res://assets/mapas/casa_leo/casa_leo.exr"
+dest_files=["res://.godot/imported/casa_leo.exr-23d80d93e1bd9327c314d288a8ce9fe1.bptc.ctexarray"]
+
+[params]
+
+compress/mode=2
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
+compress/hdr_compression=1
+compress/channel_pack=1
+mipmaps/generate=false
+mipmaps/limit=-1
+slices/horizontal=1
+slices/vertical=8

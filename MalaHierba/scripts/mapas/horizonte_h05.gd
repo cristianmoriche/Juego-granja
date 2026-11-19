@@ -4,7 +4,7 @@ extends Node3D
 ## Sin colisiones y en una sola malla/MultiMesh ligera para mantener el rendimiento en Alto.
 
 const SHADER_HORIZONTE := """shader_type spatial;
-render_mode specular_disabled;
+render_mode cull_back, specular_disabled;
 uniform vec4 color_valle : source_color = vec4(0.16, 0.24, 0.17, 1.0);
 uniform vec4 color_cumbre : source_color = vec4(0.24, 0.28, 0.29, 1.0);
 uniform vec4 color_nieve : source_color = vec4(0.76, 0.80, 0.84, 1.0);

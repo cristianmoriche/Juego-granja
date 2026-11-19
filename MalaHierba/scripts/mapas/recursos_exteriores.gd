@@ -326,8 +326,21 @@ func _puntos_forraje_lista() -> Array[Dictionary]:
 	return res
 
 
+static var _mat_roca_mena: StandardMaterial3D = null
+
+
 # ---------------------------------------------------------------------------- Vetas en superficie (Sierra y Ruinas)
 func _construir_menas() -> void:
+	if _mat_roca_mena == null or not is_instance_valid(_mat_roca_mena):
+		_mat_roca_mena = StandardMaterial3D.new()
+		_mat_roca_mena.albedo_color = Color(0.32, 0.31, 0.30)
+		_mat_roca_mena.roughness = 0.92
+		const RUTA_NOR_MENA := "res://assets/texturas/h04/rock_wall_08/rock_wall_08_nor_gl_1k.jpg"
+		if ResourceLoader.exists(RUTA_NOR_MENA):
+			_mat_roca_mena.normal_enabled = true
+			_mat_roca_mena.normal_texture = CargadorMapa.obtener_recurso(RUTA_NOR_MENA) as Texture2D
+			_mat_roca_mena.normal_scale = 0.8
+			_mat_roca_mena.uv1_triplanar = true
 	var est := _estado_mapa()
 	var rotas: Dictionary = est.get("menas", {}) as Dictionary
 	for mk: Marker3D in _mapa.marcadores_de_tipo("otro"):
@@ -359,10 +372,7 @@ func _construir_menas() -> void:
 		malla_r.mesh = sph
 		malla_r.position = Vector3(0.0, 0.42, 0.0)
 		malla_r.scale = Vector3(1.15, 0.85, 1.0)
-		var mat_r := StandardMaterial3D.new()
-		mat_r.albedo_color = Color(0.32, 0.31, 0.30)
-		mat_r.roughness = 0.92
-		malla_r.material_override = mat_r
+		malla_r.material_override = _mat_roca_mena
 		cuerpo.add_child(malla_r)
 
 		var col_mena: Color = md["color"]
@@ -624,7 +634,8 @@ func _construir_campamento_mapa() -> void:
 	luz.light_energy = 2.4
 	luz.omni_range = 8.5
 	luz.position = Vector3(1.15, 0.55, 0.65)
-	GraficaH03.ajustar_luz(luz, true)
+	luz.set_meta("sombra_h03", true)
+	GraficaH03.ajustar_luz(luz, int(Ajustes.valores.calidad))
 	raiz.add_child(luz)
 
 	var timer_audio := Timer.new()

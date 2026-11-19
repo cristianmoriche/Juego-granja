@@ -207,19 +207,23 @@ func _escala_render() -> void:
 		escala *= minf(float(resolucion_elegida().x) / maxf(1, ventana.x), float(resolucion_elegida().y) / maxf(1, ventana.y))
 	var visor := get_viewport()
 	if RenderingServer.get_current_rendering_method() == "forward_plus":
-		visor.use_taa = calidad >= 2 and escala >= 1.0
-		visor.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR2 if calidad >= 2 and escala < 1.0 else Viewport.SCALING_3D_MODE_FSR
 		if escala >= 1.0:
 			visor.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+			visor.use_taa = calidad >= 2
+			visor.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+		else:
+			visor.use_taa = false
+			visor.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR
+			visor.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 		visor.msaa_3d = Viewport.MSAA_DISABLED
-		visor.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if calidad < 2 else Viewport.SCREEN_SPACE_AA_DISABLED
 	visor.scaling_3d_scale = clampf(escala, 0.25, 2.0)
 
 func aplicar_graficos() -> void:
 	var calidad := int(valores.calidad)
 	_escala_render()
-	var filtro: int = [RenderingServer.SHADOW_QUALITY_HARD, RenderingServer.SHADOW_QUALITY_SOFT_LOW,
-		RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM, RenderingServer.SHADOW_QUALITY_SOFT_HIGH][calidad]
+	GraficaH03.aplicar_calidad_servidor(get_viewport(), calidad)
+	var filtro: int = [RenderingServer.SHADOW_QUALITY_HARD, RenderingServer.SHADOW_QUALITY_SOFT_VERY_LOW,
+		RenderingServer.SHADOW_QUALITY_SOFT_LOW, RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM][calidad]
 	RenderingServer.directional_soft_shadow_filter_set_quality(filtro)
 	RenderingServer.positional_soft_shadow_filter_set_quality(filtro)
 	RenderingServer.global_shader_parameter_set("calidad_h03", calidad)
@@ -244,17 +248,20 @@ func _graficos_nodo(nodo: Node, calidad: int) -> void:
 		_graficos_nodo(hijo, calidad)
 
 func _nodo_anadido(nodo: Node) -> void:
-	if nodo is Control:
+	if nodo is Control and (int(valores.texto) != 0 or valores.alto_contraste):
 		# Algunas pruebas y paneles crean y destruyen controles en el mismo fotograma.
 		_control_pendiente.call_deferred(nodo.get_instance_id())
+
 
 func _control_pendiente(identificador: int) -> void:
 	var nodo: Object = instance_from_id(identificador)
 	if is_instance_valid(nodo) and nodo is Control:
 		_interfaz_nodo(nodo as Control)
 
+
 func aplicar_interfaz() -> void:
 	_recorrer_interfaz(get_tree().root)
+
 
 func _recorrer_interfaz(nodo: Node) -> void:
 	if nodo is Control:
@@ -262,10 +269,13 @@ func _recorrer_interfaz(nodo: Node) -> void:
 	for hijo: Node in nodo.get_children():
 		_recorrer_interfaz(hijo)
 
+
 func _interfaz_nodo(nodo: Node) -> void:
 	if not is_instance_valid(nodo) or not nodo is Control:
 		return
 	var c := nodo as Control
+	if int(valores.texto) == 0 and not valores.alto_contraste and not c.has_meta("estilo_original"):
+		return
 	if not c.has_meta("estilo_original"):
 		var original := {"tamanos": {}, "colores": {}, "cajas": {}}
 		for propiedad: String in ["font_size", "normal_font_size", "bold_font_size"]:

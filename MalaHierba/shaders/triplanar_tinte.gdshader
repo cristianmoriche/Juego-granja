@@ -3,6 +3,7 @@
 // coordenadas de mundo, mezcla con un color (tinte), multiplicación por un color (tinte_mult), rugosidad
 // y acumulación sutil de nieve invernal sobre caras orientadas hacia arriba.
 shader_type spatial;
+render_mode cull_back;
 
 global uniform float nieve_estacion;
 global uniform float calidez_otono;
@@ -55,8 +56,23 @@ void fragment() {
 	vec2 uvx = pos_mundo.zy / escala;
 	vec2 uvy = pos_mundo.xz / escala;
 	vec2 uvz = pos_mundo.xy / escala;
+	vec2 dxx = dFdx(uvx);
+	vec2 dxy = dFdy(uvx);
+	vec2 dyx = dFdx(uvy);
+	vec2 dyy = dFdy(uvy);
+	vec2 dzx = dFdx(uvz);
+	vec2 dzy = dFdy(uvz);
 
-	vec3 col = texture(albedo_tex, uvx).rgb * w.x + texture(albedo_tex, uvy).rgb * w.y + texture(albedo_tex, uvz).rgb * w.z;
+	vec3 col = vec3(0.0);
+	if (w.x > 0.01) {
+		col += textureGrad(albedo_tex, uvx, dxx, dxy).rgb * w.x;
+	}
+	if (w.y > 0.01) {
+		col += textureGrad(albedo_tex, uvy, dyx, dyy).rgb * w.y;
+	}
+	if (w.z > 0.01) {
+		col += textureGrad(albedo_tex, uvz, dzx, dzy).rgb * w.z;
+	}
 	col = mix(col, tinte, fuerza_tinte);
 	col *= tinte_mult;
 	float luma = dot(col, vec3(0.299, 0.587, 0.114));
@@ -78,21 +94,43 @@ void fragment() {
 
 	float rug = rug_base;
 	if (usa_rug) {
-		rug = texture(rug_tex, uvx).r * w.x + texture(rug_tex, uvy).r * w.y + texture(rug_tex, uvz).r * w.z;
+		rug = 0.0;
+		if (w.x > 0.01) {
+			rug += textureGrad(rug_tex, uvx, dxx, dxy).r * w.x;
+		}
+		if (w.y > 0.01) {
+			rug += textureGrad(rug_tex, uvy, dyx, dyy).r * w.y;
+		}
+		if (w.z > 0.01) {
+			rug += textureGrad(rug_tex, uvz, dzx, dzy).r * w.z;
+		}
 	}
 	ROUGHNESS = mix(clamp(rug * rug_mult, 0.68, 0.98) * (1.0 - mojado * 0.52), 0.84, factor_nieve);
 	METALLIC = 0.0;
 	SPECULAR = 0.20 + mojado * 0.11;
 
-	if (usa_normal) {
-		vec3 tx = normal_tangente(texture(normal_tex, uvx));
-		vec3 ty = normal_tangente(texture(normal_tex, uvy));
-		vec3 tz = normal_tangente(texture(normal_tex, uvz));
-		tx = vec3(tx.xy + n.zy, abs(tx.z) * n.x);
-		ty = vec3(ty.xy + n.xz, abs(ty.z) * n.y);
-		tz = vec3(tz.xy + n.xy, abs(tz.z) * n.z);
-		vec3 nm = normalize(tx.zyx * w.x + ty.xzy * w.y + tz.xyz * w.z);
+	float dist = length(VERTEX);
+	if (usa_normal && dist < 48.0) {
+		vec3 nm = vec3(0.0);
+		if (w.x > 0.01) {
+			vec3 tx = normal_tangente(textureGrad(normal_tex, uvx, dxx, dxy));
+			tx = vec3(tx.xy + n.zy, abs(tx.z) * n.x);
+			nm += tx.zyx * w.x;
+		}
+		if (w.y > 0.01) {
+			vec3 ty = normal_tangente(textureGrad(normal_tex, uvy, dyx, dyy));
+			ty = vec3(ty.xy + n.xz, abs(ty.z) * n.y);
+			nm += ty.xzy * w.y;
+		}
+		if (w.z > 0.01) {
+			vec3 tz = normal_tangente(textureGrad(normal_tex, uvz, dzx, dzy));
+			tz = vec3(tz.xy + n.xy, abs(tz.z) * n.z);
+			nm += tz.xyz * w.z;
+		}
+		nm = normalize(nm);
 		nm = mix(nm, n, factor_nieve * 0.75);
+		float lod_n = smoothstep(32.0, 48.0, dist);
+		nm = normalize(mix(nm, n, lod_n));
 		NORMAL = normalize((VIEW_MATRIX * vec4(nm, 0.0)).xyz);
 	}
 }

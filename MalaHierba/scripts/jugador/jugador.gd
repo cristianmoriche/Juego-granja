@@ -113,6 +113,17 @@ var _farol_tiempo: float = 0.0
 var _luz_manual: int = 0   # 0 auto, 1 forzada encendida, -1 forzada apagada
 var _t_respiracion: float = 0.0
 var _mascara_colision_base: int = 0
+var _nodo_deco: Node = null
+var _nodo_parcelas: Parcelas = null
+var _t_buscar_cache: float = 0.0
+var _ult_pos_apuntado: Vector3 = Vector3.INF
+var _ult_yaw_apuntado: float = NAN
+var _ult_pitch_apuntado: float = NAN
+var _ticks_apuntado: int = 0
+var _ult_libre_apuntado: bool = false
+var _pos_limites_ok: Vector3 = Vector3.INF
+var _dentro_cache: bool = false
+var _ult_nivel_agua: float = -1.0
 
 
 func _ready() -> void:
@@ -177,6 +188,8 @@ func colocar(pos: Vector3, _giro_cuerpo: float, giro_camara: float) -> void:
 	_t_atasco_aire = 0.0
 	_pos_ant = pos
 	_pos_segura = pos
+	_dentro_cache = false
+	_ult_pos_apuntado = Vector3.INF
 	if not camara.primera_persona and not is_nan(_giro_cuerpo):
 		direccion = Vector3(sin(_giro_cuerpo), 0.0, cos(_giro_cuerpo)).normalized()
 	else:
@@ -189,6 +202,12 @@ func colocar(pos: Vector3, _giro_cuerpo: float, giro_camara: float) -> void:
 ## Luz de farol en interiores (la mina) y útil de noche o manualmente en exterior con farol/antorcha equipado.
 func configurar_para_mapa(mapa: Node) -> void:
 	_mapa = mapa
+	_nodo_deco = null
+	_nodo_parcelas = null
+	_t_buscar_cache = 0.0
+	_dentro_cache = false
+	_ult_pos_apuntado = Vector3.INF
+	_ult_nivel_agua = -1.0
 	_luz_manual = 0
 	var es_mina := str(mapa.get("id_mapa")) == "mina_interior" if mapa != null else false
 	floor_block_on_wall = not es_mina
@@ -370,12 +389,14 @@ func _animar_estado(rapidez: float, corriendo: bool) -> void:
 		_reproducir("combate_reposo", 0.12)
 		return
 	var con_herramienta := not _objeto_en_mano.is_empty()
-	var nom_andar := "andar_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("andar_herramienta")) else "andar"
+	var usar_correr := corriendo and not con_herramienta and not agachado and _anim != null and _anim.has_animation("correr")
+	var nom_andar := "andar_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("andar_herramienta")) else ("correr" if usar_correr else "andar")
 	var nom_reposo := "reposo_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("reposo_herramienta")) else "reposo"
 	if estado_mov == "salto" or estado_mov == "caida":
 		_reproducir(nom_reposo, 0.1)       # en el aire no mueve las piernas como si anduviera
 	elif rapidez > 0.4:
-		_reproducir(nom_andar, 0.15, 1.45 if corriendo else (0.5 if agachado else 1.0))
+		var vel_anim := 1.15 if usar_correr else (1.45 if corriendo else (0.5 if agachado else 1.0))
+		_reproducir(nom_andar, 0.15, vel_anim)
 	else:
 		_reproducir(nom_reposo, 0.2)
 
@@ -396,7 +417,9 @@ func _actualizar_realismo_audio(corriendo: bool, delta: float) -> void:
 		Audio.reproducir("respiracion_fatiga", 0.06)
 		_t_respiracion = 2.2
 	if _mapa == null or not is_instance_valid(_mapa):
-		Audio.poner_nivel_agua(0.0)
+		if _ult_nivel_agua != 0.0:
+			_ult_nivel_agua = 0.0
+			Audio.poner_nivel_agua(0.0)
 		return
 	var id := str(_mapa.get("id_mapa"))
 	var cercania := 0.0
@@ -414,7 +437,9 @@ func _actualizar_realismo_audio(corriendo: bool, delta: float) -> void:
 		"ruinas_valle":
 			if p.z > 8.0:
 				cercania = clampf((p.z - 8.0) / 16.0, 0.0, 1.0)
-	Audio.poner_nivel_agua(cercania)
+	if absf(cercania - _ult_nivel_agua) > 0.01:
+		_ult_nivel_agua = cercania
+		Audio.poner_nivel_agua(cercania)
 
 
 func _sonido_paso() -> String:
@@ -640,13 +665,18 @@ func _physics_process(delta: float) -> void:
 	# Red de seguridad: si cae por una sima o acaba fuera del polígono de límites (los muros de Mapa lo
 	# impiden; esto es por si algo falla), vuelve al último sitio firme dentro.
 	_t_segura -= delta
-	var dentro := dentro_de_limites()
+	if not _dentro_cache or global_position.distance_squared_to(_pos_limites_ok) > 0.0004:
+		_dentro_cache = dentro_de_limites()
+		if _dentro_cache:
+			_pos_limites_ok = global_position
+	var dentro := _dentro_cache
 	if is_on_floor() and _t_segura <= 0.0 and dentro:
 		_pos_segura = global_position
 		_t_segura = 0.5
 	if not dentro or global_position.y < _pos_segura.y - 11.0:
 		global_position = _pos_segura + Vector3(0, 0.5, 0)
 		velocity = Vector3.ZERO
+		_dentro_cache = false
 
 
 # --- Interacción ---------------------------------------------------------------------------
@@ -674,10 +704,43 @@ func encuadrar_interlocutor(vecino: Node3D) -> void:
 	camara.interlocutor = vecino
 
 
-func _actualizar_interactuable() -> void:
+func _obtener_deco_cacheada() -> Node:
+	if is_instance_valid(_nodo_deco):
+		return _nodo_deco
+	if _t_buscar_cache <= 0.0 and get_tree() != null:
+		_nodo_deco = get_tree().get_first_node_in_group("decoracion_casa")
+	return _nodo_deco
+
+
+func _obtener_parcelas_cacheadas() -> Parcelas:
+	if is_instance_valid(_nodo_parcelas):
+		return _nodo_parcelas
+	if _t_buscar_cache <= 0.0 and get_tree() != null:
+		_nodo_parcelas = get_tree().get_first_node_in_group("parcelas_apuntables") as Parcelas
+	return _nodo_parcelas
+
+
+func _actualizar_interactuable(forzar: bool = false) -> void:
+	var dt_phys := get_physics_process_delta_time()
+	_t_buscar_cache = maxf(_t_buscar_cache - dt_phys, 0.0)
 	var libre: bool = not Interfaz.ocupada() and not Escenas.en_transicion
+	if not forzar:
+		var pos_d2 := global_position.distance_squared_to(_ult_pos_apuntado) if _ult_pos_apuntado.is_finite() else INF
+		var yaw_d := absf(camara.yaw - _ult_yaw_apuntado) if not is_nan(_ult_yaw_apuntado) else INF
+		var pitch_d := absf(camara.pitch - _ult_pitch_apuntado) if not is_nan(_ult_pitch_apuntado) else INF
+		var movido_grande := libre != _ult_libre_apuntado or pos_d2 > 0.01 or yaw_d > 0.04 or pitch_d > 0.04
+		var movido_suave := pos_d2 > 0.0001 or yaw_d > 0.0004 or pitch_d > 0.0004
+		_ticks_apuntado += 1
+		var intervalo := 2 if movido_suave else 6
+		if not movido_grande and _ticks_apuntado < intervalo:
+			return
+	_ticks_apuntado = 0
+	_ult_pos_apuntado = global_position
+	_ult_yaw_apuntado = camara.yaw
+	_ult_pitch_apuntado = camara.pitch
+	_ult_libre_apuntado = libre
 	_apuntado = apuntar() if libre else {}
-	var deco := get_tree().get_first_node_in_group("decoracion_casa")
+	var deco := _obtener_deco_cacheada()
 	var decorando := deco != null and bool(deco.call("esta_decorando"))
 	_objetivo = _apuntado.get("interactuable") as Interactuable if not decorando else null
 	if _objetivo is Interactuable and not (_objetivo as Interactuable).herramienta.is_empty() \
@@ -689,7 +752,7 @@ func _actualizar_interactuable() -> void:
 		var zona := _objetivo as Interactuable
 		texto = Ajustes.pista("interactuar" if zona.herramienta.is_empty() else "usar") + "  ·  " + zona.texto_interaccion()
 	elif libre and not decorando and _apuntado.has("punto"):
-		var parcelas := get_tree().get_first_node_in_group("parcelas_apuntables") as Parcelas
+		var parcelas := _obtener_parcelas_cacheadas()
 		if parcelas != null and not parcelas.celda_apuntada(_apuntado).is_empty():
 			var id := str(Juego.objeto_activo().get("id", ""))
 			var verbo := str({"azada": "Cavar", "regadera": "Regar", "hoz": "Segar", "hacha": "Talar", "pico": "Picar"}.get(id, ""))
@@ -697,6 +760,8 @@ func _actualizar_interactuable() -> void:
 				verbo = "Sembrar"
 			if not verbo.is_empty():
 				texto = Ajustes.pista("usar") + "  ·  " + verbo
+	if _t_buscar_cache <= 0.0:
+		_t_buscar_cache = 0.5
 	Interfaz.enfocar_mira(not texto.is_empty())
 	if not texto.is_empty():
 		if Interfaz.texto_accion() != texto:
@@ -764,7 +829,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _interactuar() -> void:
-	_actualizar_interactuable()
+	_actualizar_interactuable(true)
 	var zona := _objetivo as Interactuable
 	if zona != null and zona.herramienta.is_empty():
 		_activar_interactuable(zona)
@@ -921,7 +986,7 @@ func _cargar_modelo() -> void:
 			var anims := inst.find_children("*", "AnimationPlayer", true, false)
 			if not anims.is_empty():
 				_anim = anims[0] as AnimationPlayer
-				for nombre in ["reposo", "andar", "reposo_herramienta", "andar_herramienta", "agachado_reposo", "agachado_andar", "caer", "combate_reposo"]:
+				for nombre in ["reposo", "andar", "correr", "reposo_herramienta", "andar_herramienta", "agachado_reposo", "agachado_andar", "caer", "combate_reposo"]:
 					if _anim.has_animation(nombre):
 						_anim.get_animation(nombre).loop_mode = Animation.LOOP_LINEAR
 				for nombre in ["herramienta", "saltar", "aterrizar", "usar_pico", "usar_hacha", "usar_azada", "usar_regadera", "usar_hoz", "usar_semilla", "usar_cana"]:
@@ -929,9 +994,29 @@ func _cargar_modelo() -> void:
 					if a != null:
 						a.loop_mode = Animation.LOOP_NONE
 			_configurar_soporte_mano(inst)
+			_activar_backface_culling(inst)
 			_reproducir("reposo", 0.0)
 			return
 	_modelo_de_prueba()
+
+
+static var _cache_cull_leo: Dictionary = {}
+
+
+func _activar_backface_culling(raiz: Node3D) -> void:
+	for n: Node in raiz.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		for s in mi.mesh.get_surface_count():
+			var m := mi.get_active_material(s) as BaseMaterial3D
+			if m == null or m.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED or m.cull_mode != BaseMaterial3D.CULL_DISABLED:
+				continue
+			if not _cache_cull_leo.has(m) or not is_instance_valid(_cache_cull_leo[m]):
+				var copia := m.duplicate() as BaseMaterial3D
+				copia.cull_mode = BaseMaterial3D.CULL_BACK
+				_cache_cull_leo[m] = copia
+			mi.set_surface_override_material(s, _cache_cull_leo[m] as BaseMaterial3D)
 
 
 ## Cápsula de prueba con una «nariz» en el frente (+Z) para ver hacia dónde mira.

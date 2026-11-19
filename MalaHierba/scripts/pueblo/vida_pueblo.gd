@@ -405,7 +405,6 @@ func _colgar_cuerda_banderines(a: Vector3, b: Vector3, colores: Array, con_farol
 			var band := PrismMesh.new()
 			band.size = Vector3(0.22, 0.24, 0.022)
 			var mat_b := _mat(c, 0.92)
-			mat_b.cull_mode = BaseMaterial3D.CULL_DISABLED
 			var mi := _malla(n, band, curr - Vector3(0, 0.12, 0), mat_b, Vector3(0, ang_y + PI * 0.5, PI))
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 

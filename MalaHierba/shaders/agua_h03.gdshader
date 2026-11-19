@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_disabled, shadows_disabled, diffuse_burley, specular_schlick_ggx;
+render_mode cull_back, shadows_disabled, diffuse_burley, specular_schlick_ggx;
 
 global uniform float viento_h03;
 global uniform float humedad_h03;
@@ -25,9 +25,9 @@ vec3 vista_en(vec2 uv, float z, mat4 inversa) {
 }
 
 // Un cruce con la profundidad opaca da el reflejo. Fuera de pantalla queda el reflejo del cielo.
-vec4 reflejo_pantalla(vec3 origen, vec3 direccion, mat4 proyeccion, mat4 inversa, float rug) {
+vec4 reflejo_pantalla(vec3 origen, vec3 direccion, mat4 proyeccion, mat4 inversa, float rug, int pasos) {
 	float viaje = 0.30;
-	for (int i = 0; i < 12; i++) {
+	for (int i = 0; i < pasos; i++) {
 		vec3 punto = origen + direccion * viaje;
 		vec4 clip = proyeccion * vec4(punto, 1.0);
 		if (clip.w <= 0.0) {
@@ -62,10 +62,14 @@ void fragment() {
 	float incidencia = clamp(dot(n, VIEW), 0.0, 1.0);
 	float fresnel = 0.02 + 0.98 * pow(1.0 - incidencia, 5.0);
 	float rug = 0.085 + viento_h03 * 0.025 + humedad_h03 * 0.045;
-	vec2 uv_refractado = clamp(SCREEN_UV + olas * min(espesor, 1.4) * 0.015, vec2(0.001), vec2(0.999));
-	float z_refractado = textureLod(profundidad, uv_refractado, 0.0).r;
-	vec3 fondo_refractado = vista_en(uv_refractado, z_refractado, INV_PROJECTION_MATRIX);
-	uv_refractado = mix(uv_refractado, SCREEN_UV, step(VERTEX.z, fondo_refractado.z));
+	float dist_cam = length(VERTEX);
+	vec2 uv_refractado = SCREEN_UV;
+	if (dist_cam < 60.0) {
+		uv_refractado = clamp(SCREEN_UV + olas * min(espesor, 1.4) * 0.015, vec2(0.001), vec2(0.999));
+		float z_refractado = textureLod(profundidad, uv_refractado, 0.0).r;
+		vec3 fondo_refractado = vista_en(uv_refractado, z_refractado, INV_PROJECTION_MATRIX);
+		uv_refractado = mix(uv_refractado, SCREEN_UV, step(VERTEX.z, fondo_refractado.z));
+	}
 	vec3 transmision = textureLod(escena, uv_refractado, min(2.0, espesor * 0.08)).rgb;
 	vec3 absorcion = exp(-vec3(0.90, 0.31, 0.22) * espesor);
 	vec3 dispersion = mix(vec3(0.035, 0.098, 0.076), vec3(0.016, 0.048, 0.065), smoothstep(0.1, 2.5, metros));
@@ -75,8 +79,9 @@ void fragment() {
 	float rotura = smoothstep(0.32, 0.65, n1.x * 1.3 + n2.y * 0.43 + 0.27);
 	float espuma = (1.0 - smoothstep(0.045, 0.38, metros)) * rotura * (es_rio ? 0.47 : 0.30);
 	vec4 reflexion = vec4(0.0);
-	if (calidad_h03 >= 2 && incidencia < 0.85) {
-		reflexion = reflejo_pantalla(VERTEX, reflect(-VIEW, n), PROJECTION_MATRIX, INV_PROJECTION_MATRIX, rug);
+	if (calidad_h03 >= 2 && incidencia < 0.85 && dist_cam < 55.0) {
+		int pasos = calidad_h03 >= 3 ? 12 : 8;
+		reflexion = reflejo_pantalla(VERTEX, reflect(-VIEW, n), PROJECTION_MATRIX, INV_PROJECTION_MATRIX, rug, pasos);
 	}
 	ALBEDO = mix(dispersion * 0.20, vec3(0.53, 0.61, 0.59), espuma);
 	NORMAL = n;

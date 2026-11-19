@@ -16,6 +16,9 @@ const SHADER_NIEVE_CORTEZA: Shader = preload("res://shaders/nieve_corteza.gdshad
 const SHADER_AGUA: Shader = preload("res://shaders/agua_h03.gdshader")
 const SHADER_FOLLAJE: Shader = preload("res://shaders/follaje_h03.gdshader")
 const NORMAL_AGUA := "res://assets/agua/ondas_normal.png"
+const NORMAL_MADERA_TEJADO := "res://assets/texturas/old_planks_02/old_planks_02_normal.png"
+const NORMAL_PIEDRA_MURO := "res://assets/texturas/mossy_stone_wall/mossy_stone_wall_normal.png"
+const NORMAL_ROCA_CUEVA := "res://assets/texturas/rocky_terrain_02/rocky_terrain_02_normal.png"
 const SUELOS_H03 := {
 	"granja": "stony_dirt_path", "pueblo": "stony_dirt_path", "bosque_norte": "forest_floor",
 	"costa_lago": "coast_sand_rocks_02", "mina_exterior": "rocks_ground_06",
@@ -27,13 +30,14 @@ const MAPAS_EXTERIORES: Array[String] = [
 	"granja", "pueblo", "mina_exterior", "bosque_norte", "costa_lago",
 	"sierra_mirador", "robledal_niebla", "ruinas_valle",
 ]
-const TAM_CELDA := 36.0                 # metros: tamaño de cada trozo de MultiMesh (permite recortar lo que no se ve)
+const TAM_CELDA := 38.0                 # metros: tamaño de cada trozo de MultiMesh para frustum culling por celdas
 const ALCANCE_PLANTAS := 75.0           # distancia a partir de la cual desaparecen las plantas pequeñas
 const ALTO_CILINDRO_TRONCO := 4.0
 const ENERGIA_LUZ_MAX := 1.45
 const ENERGIA_LUZ_EXT_MAX := 1.35
 const ALCANCE_LUZ := 12.0
-const MAX_SOMBRAS_EXT := 4              # máx. luces puntuales con sombra dinámica por mapa exterior
+const MAX_SOMBRAS_EXT := 2              # máx. luces puntuales con sombra dinámica por mapa exterior
+const MAX_SOMBRAS_INT := 4              # máx. luces puntuales con sombra dinámica por mapa interior
 
 var listo: bool = false
 var geometria: Node3D
@@ -61,6 +65,7 @@ var _mat_nieve_corteza: ShaderMaterial = null
 var _cache_forma_malla: Dictionary = {}
 var _cache_protos: Dictionary = {}
 var _sombras_ext_activas: int = 0
+var _sombras_int_activas: int = 0
 
 static var _cache_rutas_mapa: Dictionary = {}
 static var _pedidas_hilo: Array[String] = []
@@ -163,7 +168,13 @@ static func _rutas_de_datos(base: String, id: String, datos: Dictionary, mats: D
 				anadir.call(_ruta_proto(base, str(lods.get("LOD1", ""))))
 			elif lods.has("LOD2"):
 				anadir.call(_ruta_proto(base, str(lods.get("LOD2", ""))))
+	if id in ["pueblo", "granja", "mina_exterior", "mina_interior"]:
+		anadir.call(NORMAL_MADERA_TEJADO)
+		anadir.call(NORMAL_PIEDRA_MURO)
+		anadir.call(NORMAL_ROCA_CUEVA)
 	anadir.call(base + id + ".glb")
+	if ResourceLoader.exists(base + id + ".lmbake"):
+		anadir.call(base + id + ".lmbake")
 	return PackedStringArray(salida)
 
 
@@ -322,6 +333,7 @@ func _crear_nodos() -> void:
 	_mats_ventana.clear()
 	_luces_mapa.clear()
 	_sombras_ext_activas = 0
+	_sombras_int_activas = 0
 	geometria = _nodo("Geometria")
 	colisiones = StaticBody3D.new()
 	colisiones.name = "Colisiones"
@@ -353,6 +365,92 @@ func _cargar_geometria(base: String) -> void:
 	for l in luces:
 		_ajustar_luz(l as Light3D)
 		l.reparent(nodo_luces, true)
+	if _es_exterior():
+		_construir_oclusores(raiz)
+
+
+func _construir_oclusores(raiz: Node) -> void:
+	const INCLUIR := ["Pared", "Piedra", "Tejuelas", "Tejado", "Muro", "Silo_muro", "Cabana_hastiales", "Cabana_tejado", "Fachada", "Casa", "Torre", "Molino"]
+	const EXCLUIR := ["Ventana", "Agua", "Llama", "Terreno", "Hollin", "Props_", "Postigos", "Tablas", "Vigas"]
+	var vertices := PackedVector3Array()
+	var indices := PackedInt32Array()
+	var inv_cargador := global_transform.affine_inverse()
+	var pilas: Array[Node] = [raiz]
+	while not pilas.is_empty():
+		var nodo: Node = pilas.pop_back()
+		for h in nodo.get_children():
+			pilas.append(h)
+		if not (nodo is MeshInstance3D):
+			continue
+		var mi := nodo as MeshInstance3D
+		if mi.mesh == null or mi.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY:
+			continue
+		var nom := String(mi.name)
+		var ok_nom := false
+		for inc: String in INCLUIR:
+			if nom.contains(inc):
+				ok_nom = true
+				break
+		if not ok_nom:
+			continue
+		var excluido := false
+		for exc: String in EXCLUIR:
+			if nom.contains(exc):
+				excluido = true
+				break
+		if excluido:
+			continue
+		var caja := mi.global_transform * mi.get_aabb()
+		var max_horiz := maxf(caja.size.x, caja.size.z)
+		if max_horiz < 3.0 or max_horiz > 30.0 or caja.size.y < 2.0:
+			continue
+		var sup_cnt := mi.mesh.get_surface_count()
+		var tris_total := 0
+		var opaco := true
+		var sups_arrays: Array[Array] = []
+		for s in sup_cnt:
+			if mi.mesh.surface_get_primitive_type(s) != Mesh.PRIMITIVE_TRIANGLES:
+				opaco = false
+				break
+			var mat := mi.get_active_material(s)
+			if mat is BaseMaterial3D:
+				var bm := mat as BaseMaterial3D
+				if bm.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA or bm.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR:
+					opaco = false
+					break
+			var arr := mi.mesh.surface_get_arrays(s)
+			if arr.size() <= Mesh.ARRAY_VERTEX or arr[Mesh.ARRAY_VERTEX] == null:
+				continue
+			sups_arrays.append(arr)
+			var idx_arr: Variant = arr[Mesh.ARRAY_INDEX] if arr.size() > Mesh.ARRAY_INDEX else null
+			if idx_arr is PackedInt32Array and (idx_arr as PackedInt32Array).size() >= 3:
+				tris_total += (idx_arr as PackedInt32Array).size() / 3
+			else:
+				tris_total += (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() / 3
+		if not opaco or tris_total <= 0 or tris_total > 600:
+			continue
+		var rel := inv_cargador * mi.global_transform
+		for arr: Array in sups_arrays:
+			var verts := arr[Mesh.ARRAY_VERTEX] as PackedVector3Array
+			var base_v := vertices.size()
+			for v: Vector3 in verts:
+				vertices.append(rel * v)
+			var idx_arr: Variant = arr[Mesh.ARRAY_INDEX] if arr.size() > Mesh.ARRAY_INDEX else null
+			if idx_arr is PackedInt32Array and (idx_arr as PackedInt32Array).size() >= 3:
+				for k: int in idx_arr as PackedInt32Array:
+					indices.append(base_v + k)
+			else:
+				for k in verts.size():
+					indices.append(base_v + k)
+	if indices.size() < 9:
+		return
+	var occ := ArrayOccluder3D.new()
+	occ.set_arrays(vertices, indices)
+	var inst := OccluderInstance3D.new()
+	inst.name = "OclusoresMapa"
+	inst.occluder = occ
+	inst.set_meta("tris_oclusor", indices.size() / 3)
+	add_child(inst)
 
 
 func _recorrer(n: Node, luces: Array[Node]) -> void:
@@ -369,16 +467,31 @@ func _preparar_malla(mi: MeshInstance3D) -> void:
 		return
 	var info: Dictionary = _info_objeto(String(mi.name))
 	for i in mi.mesh.get_surface_count():
-		var m := _material_para(mi.mesh.surface_get_material(i))
+		var mat_orig := mi.mesh.surface_get_material(i)
+		var m := _material_para(mat_orig)
 		if m != null:
 			mi.set_surface_override_material(i, m)
+		elif mat_orig is BaseMaterial3D:
+			var bm := mat_orig as BaseMaterial3D
+			if bm.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED and bm.cull_mode == BaseMaterial3D.CULL_DISABLED:
+				bm.cull_mode = BaseMaterial3D.CULL_BACK
 	if String(mi.name) == "Ventanas_luz" and not _es_exterior():
 		_crear_luces_ventana_h03(mi)
-	if String(mi.name) == "Rio_agua" or String(mi.name) == "Lago_agua" or String(mi.name) == "Estanque_agua":
+	var nom_mi := String(mi.name)
+	var tam_local := mi.get_aabb().size
+	var es_agua := nom_mi == "Rio_agua" or nom_mi == "Lago_agua" or nom_mi == "Estanque_agua"
+	var solo_sombra := bool(info.get("solo_sombra", false))
+	var es_prop_peq := nom_mi.contains("wooden_barrels_") or nom_mi.contains("wooden_crate_") or nom_mi.contains("wooden_bucket_") or nom_mi.begins_with("txt_") or nom_mi.contains("Props_Llama") or nom_mi.contains("Props_Brasas") or maxf(tam_local.x, maxf(tam_local.y, tam_local.z)) < 4.0
+	if es_agua:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
-	if bool(info.get("solo_sombra", false)):
+	elif solo_sombra:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+		mi.gi_mode = GeometryInstance3D.GI_MODE_STATIC if (not _es_exterior() and nom_mi.begins_with("Techo")) else GeometryInstance3D.GI_MODE_DISABLED
+	elif es_prop_peq:
+		mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+	else:
+		mi.gi_mode = GeometryInstance3D.GI_MODE_STATIC
 	var cristal_farol := id_mapa == "mina_interior" and String(mi.name).begins_with("Prop_int_Cristal_farol")
 	if bool(info.get("colision", true)) or cristal_farol:
 		var forma := _cache_forma_malla.get(mi.mesh) as Shape3D
@@ -425,10 +538,18 @@ func _ajustar_luz(l: Light3D) -> void:
 		s.spot_range = ALCANCE_LUZ
 		s.light_energy = clampf(s.light_energy, 0.2, tope)
 	if _es_exterior():
+		l.light_bake_mode = Light3D.BAKE_DYNAMIC
 		if _sombras_ext_activas >= MAX_SOMBRAS_EXT or l.light_energy < 0.45:
 			l.set_meta("sin_sombra", true)
 		else:
 			_sombras_ext_activas += 1
+	else:
+		if _sombras_int_activas >= MAX_SOMBRAS_INT or l.light_energy < 0.45:
+			l.set_meta("sin_sombra", true)
+			l.light_bake_mode = Light3D.BAKE_STATIC
+		else:
+			_sombras_int_activas += 1
+			l.light_bake_mode = Light3D.BAKE_DYNAMIC
 	_luces_mapa.append({"luz": l, "base": l.light_energy})
 	GraficaH03.ajustar_luz(l, int(Ajustes.valores.calidad))
 
@@ -561,7 +682,14 @@ func _material_estandar(nombre: String, e: Dictionary) -> Material:
 	var col_base := _color_lineal(c)
 	if c.size() > 3:
 		col_base.a = float(c[3])
-	if es_tejado or es_suelo:
+	var es_piedra_horneada := alb != null and nor == null and (
+		nombre.contains("Piedra_alcalde")
+		or nombre.contains("Silo_muro")
+		or nombre.contains("Roca_cueva")
+		or nombre.contains("Roca_inferior")
+		or nombre.contains("Pozo_escalera")
+	)
+	if es_tejado or es_suelo or es_piedra_horneada:
 		var sm := ShaderMaterial.new()
 		sm.shader = SHADER_ESTACIONAL
 		if alb != null:
@@ -573,12 +701,28 @@ func _material_estandar(nombre: String, e: Dictionary) -> Material:
 		sm.set_shader_parameter("usa_rug", rug != null)
 		sm.set_shader_parameter("color_base", col_base)
 		var rug_suelo := float(e.get("rug", 0.65))
-		if es_suelo or es_tejado:
-			rug_suelo = maxf(rug_suelo, 0.88)
+		if es_suelo or es_tejado or es_piedra_horneada:
+			rug_suelo = maxf(rug_suelo, 0.90 if es_piedra_horneada else 0.88)
 		sm.set_shader_parameter("rug_base", rug_suelo)
 		sm.set_shader_parameter("metalico", float(e.get("metalico", 0.0)))
 		sm.set_shader_parameter("es_suelo", es_suelo)
 		sm.set_shader_parameter("es_tejado", es_tejado)
+		sm.set_shader_parameter("recibe_lluvia", _es_exterior())
+		if es_tejado and nor == null:
+			var t_mad := _tex(NORMAL_MADERA_TEJADO)
+			if t_mad != null:
+				sm.set_shader_parameter("usa_normal_mundo", true)
+				sm.set_shader_parameter("normal_mundo_tex", t_mad)
+				sm.set_shader_parameter("escala_normal_mundo", 2.4)
+				sm.set_shader_parameter("fuerza_normal_mundo", 0.65)
+		elif nor == null and (es_piedra_horneada or (es_suelo and nombre != "Terreno__Suelo")):
+			var ruta_nm := NORMAL_PIEDRA_MURO if (nombre.contains("Piedra") or nombre.contains("Silo")) else NORMAL_ROCA_CUEVA
+			var t_pie := _tex(ruta_nm)
+			if t_pie != null:
+				sm.set_shader_parameter("usa_normal_mundo", true)
+				sm.set_shader_parameter("normal_mundo_tex", t_pie)
+				sm.set_shader_parameter("escala_normal_mundo", 2.2)
+				sm.set_shader_parameter("fuerza_normal_mundo", 0.72)
 		if nombre == "Terreno__Suelo" and SUELOS_H03.has(id_mapa):
 			sm.set_shader_parameter("usa_detalle", true)
 			sm.set_shader_parameter("detalle_color", _tex(_ruta_suelo_h03(id_mapa, "diff")))
@@ -801,6 +945,7 @@ func actualizar_iluminacion_hora(factor_ventanas: float, factor_luces: float, fu
 			mat.roughness = lerpf(0.16, 0.45, encendido)
 			var vidrio_dia := Color(0.12, 0.14, 0.18)
 			mat.albedo_color = vidrio_dia.lerp(reg_v["albedo"] as Color, encendido)
+	var calidad_actual := int(Ajustes.valores.calidad)
 	for reg_l: Dictionary in _luces_mapa:
 		var l := reg_l.get("luz") as Light3D
 		if not is_instance_valid(l):
@@ -810,7 +955,10 @@ func actualizar_iluminacion_hora(factor_ventanas: float, factor_luces: float, fu
 			l.light_energy = base * clampf(factor_luces, 0.04, 1.0)
 		else:
 			l.light_energy = base
-		GraficaH03.ajustar_luz(l, int(Ajustes.valores.calidad))
+		var debe_sombra := (not l.has_meta("sin_sombra")) and calidad_actual >= 2 and l.light_energy > 0.065
+		if l.shadow_enabled != debe_sombra or int(l.get_meta("calidad_luz_h03", -1)) != calidad_actual:
+			l.set_meta("calidad_luz_h03", calidad_actual)
+			GraficaH03.ajustar_luz(l, calidad_actual)
 
 
 func _crear_nodo_arbol(nombre: String, mesh: Mesh, xf: Transform3D, r_ini: float, r_fin: float, m_ini: float, m_fin: float, lod_bias_val: float, sombra: bool) -> MeshInstance3D:
@@ -820,6 +968,7 @@ func _crear_nodo_arbol(nombre: String, mesh: Mesh, xf: Transform3D, r_ini: float
 	mi.transform = xf
 	mi.extra_cull_margin = 0.3
 	mi.lod_bias = lod_bias_val
+	mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 	mi.visibility_range_begin = r_ini
 	mi.visibility_range_begin_margin = m_ini
 	mi.visibility_range_end = r_fin
@@ -843,12 +992,14 @@ func _instanciar_celda_arbol(p: String, ts: Array, mesh_lod0: Mesh, mesh_lod1: M
 		var base_nom := "arb_%s_%d_%d_%d" % [p, celda.x, celda.y, idx]
 		idx += 1
 		if tiene_lods:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L1", mesh_lod1, xf, 0.0, 12.5, 0.0, 1.5, 0.25, true))
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L2", mesh_lod1, xf, 11.5, 122.0, 1.5, 12.0, 0.060, false))
-		elif "dead_tree" in p or "stump" in p:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 110.0, 0.0, 10.0, 0.12, "dead_tree" in p))
+			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L1", mesh_lod1, xf, 0.0, 10.5, 0.0, 1.5, 0.12, true))
+			nodo_instancias.add_child(_crear_nodo_arbol(base_nom + "_L2", mesh_lod1, xf, 9.5, 100.0, 1.5, 10.0, 0.035, false))
+		elif "dead_tree" in p:
+			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 75.0, 0.0, 10.0, 0.06, true))
+		elif "stump" in p:
+			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 40.0, 0.0, 8.0, 0.04, false))
 		else:
-			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 32.0, 0.0, 5.0, 0.065, false))
+			nodo_instancias.add_child(_crear_nodo_arbol(base_nom, mesh_lod0, xf, 0.0, 25.0, 0.0, 5.0, 0.035, false))
 
 
 static func _ruta_proto(base: String, rel: String) -> String:
@@ -863,7 +1014,7 @@ func _cargar_instancias(base: String) -> void:
 	var troncos: Dictionary = _inst.get("troncos", {})
 	var rocas: Dictionary = _inst.get("rocas", {})
 	var info: Dictionary = _inst.get("info", {})
-	# agrupa por prototipo y por celda de 24 m
+	# agrupa por prototipo y por celda de 42 m
 	var grupos: Dictionary = {}
 	for d: Dictionary in lista:
 		var p: String = d["proto"]
@@ -906,7 +1057,14 @@ func _cargar_instancias(base: String) -> void:
 				if cat == "planta" or sin_col.has(p):
 					mmi.extra_cull_margin = 0.3
 					mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+					mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 					mmi.visibility_range_end = ALCANCE_PLANTAS
+				elif cat == "roca":
+					mmi.lod_bias = 0.45
+					mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+					if p.begins_with("rock_moss_set_02_") or p == "stone_01":
+						mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+						mmi.visibility_range_end = 110.0
 				nodo_instancias.add_child(mmi)
 			num_trozos_multimesh += 1
 			num_instancias += ts.size()
@@ -929,8 +1087,8 @@ func _cargar_instancias(base: String) -> void:
 
 
 func _cargar_buffer_instancias(mm: MultiMesh, originales: Array, hierba: bool) -> void:
-	# Refuerza los macizos existentes con un tallo bajo por cada tres plantas.
-	var extras := originales.size() / 3 if hierba else 0
+	# Refuerza los macizos existentes con un tallo bajo de cerca.
+	var extras := (maxi(1, originales.size() / 6) if originales.size() >= 3 else 0) if hierba else 0
 	var paso := 16 if hierba else 12
 	mm.use_custom_data = hierba
 	mm.instance_count = originales.size() + extras
@@ -938,7 +1096,7 @@ func _cargar_buffer_instancias(mm: MultiMesh, originales: Array, hierba: bool) -
 	buffer.resize(mm.instance_count * paso)
 	for i in mm.instance_count:
 		var extra := i >= originales.size()
-		var indice := (i - originales.size()) * 3 if extra else i
+		var indice := mini((i - originales.size()) * 6, originales.size() - 1) if extra else i
 		var xf := _t_a_transform(originales[indice])
 		if extra:
 			var lateral := xf.basis.x.normalized() * 0.20
@@ -991,6 +1149,8 @@ func _mesh_proto(ruta: String) -> Mesh:
 					sm.cull_mode = BaseMaterial3D.CULL_DISABLED
 				elif ruta.ends_with("roble_viejo.glb") and i == 0:
 					sm.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+					sm.cull_mode = BaseMaterial3D.CULL_BACK
+				elif sm.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED and sm.cull_mode == BaseMaterial3D.CULL_DISABLED:
 					sm.cull_mode = BaseMaterial3D.CULL_BACK
 	n.free()
 	_cache_protos[ruta] = mesh

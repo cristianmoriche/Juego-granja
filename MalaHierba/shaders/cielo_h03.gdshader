@@ -39,10 +39,19 @@ vec3 fotografia(sampler2D foto, vec4 registro, vec2 uv, vec2 uv_astro) {
 
 void sky() {
 	vec2 uv = esfera(EYEDIR);
-	vec2 uv_astro = esfera(astro);
-	vec3 a = fotografia(panorama_a, registro_a, uv, uv_astro);
-	vec3 b = fotografia(panorama_b, registro_b, uv, uv_astro);
-	vec3 color = mix(a, b, transicion);
+	vec3 color = vec3(0.0);
+	if (nubosidad < 0.999) {
+		vec2 uv_astro = esfera(astro);
+		if (transicion < 0.001) {
+			color = fotografia(panorama_a, registro_a, uv, uv_astro);
+		} else if (transicion > 0.999) {
+			color = fotografia(panorama_b, registro_b, uv, uv_astro);
+		} else {
+			vec3 a = fotografia(panorama_a, registro_a, uv, uv_astro);
+			vec3 b = fotografia(panorama_b, registro_b, uv, uv_astro);
+			color = mix(a, b, transicion);
+		}
+	}
 	if (nubosidad > 0.001) {
 		vec3 cubierto = texture(panorama_clima, vec2(uv.x, clamp(uv.y, 0.0002, 0.9998))).rgb * luz_clima;
 		color = mix(color, cubierto, nubosidad);

@@ -55,6 +55,10 @@ var _fase_relampago := 0.0
 var _salpicaduras: GPUParticles3D
 var _espera_salpicadura := 0.0
 var _azar_lluvia := RandomNumberGenerator.new()
+var _mat_vallas: StandardMaterial3D = null
+var _pass_nieve_vallas: ShaderMaterial = null
+var _mat_toldo: StandardMaterial3D = null
+var _pass_nieve_toldo: ShaderMaterial = null
 
 
 func _ready() -> void:
@@ -103,15 +107,36 @@ func _al_cargar() -> void:
 	if nm != null and nm.has_method("preparar"):
 		nm.call("preparar", self)
 	_configurar_entorno()
+	_cargar_lightmap()
 	if nm != null and nm.has_method("aplicar_ambiente"):
 		nm.call("aplicar_ambiente", self)
 	_crear_salidas()
 	_crear_limites()
 	if not interior:
 		HorizonteH05.crear(self, id_mapa)
+		if cargador is CargadorMapa:
+			var cuad := CuadriculasRender.new()
+			cuad.name = "CuadriculasRender"
+			add_child(cuad)
+			cuad.construir(self, cargador as CargadorMapa)
 	esta_listo = true
 	listo.emit()
 	_construir_vallas_y_puntos()   # necesita colisiones ya registradas: espera unos fotogramas de física
+
+
+## Carga iluminación indirecta prehorneada si el mapa cuenta con archivo .lmbake.
+func _cargar_lightmap() -> void:
+	var ruta := "res://assets/mapas/%s/%s.lmbake" % [id_mapa, id_mapa]
+	if not ResourceLoader.exists(ruta):
+		return
+	var datos_lm := CargadorMapa.obtener_recurso(ruta) as LightmapGIData
+	if datos_lm == null or datos_lm.get_user_count() <= 0:
+		return
+	var lm := LightmapGI.new()
+	lm.name = "LightmapMapa"
+	lm.interior = interior
+	lm.light_data = datos_lm
+	add_child(lm)
 
 
 ## Las vistas de ojos y hombro dejan ver los techos originales, con sus materiales y colisión.
@@ -626,11 +651,22 @@ func _crear_vallas() -> void:
 	mat.albedo_color = Color.WHITE
 	mat.vertex_color_use_as_albedo = true
 	mat.roughness = 0.95
+	const NORMAL_VALLAS := "res://assets/texturas/old_planks_02/old_planks_02_normal.png"
+	if ResourceLoader.exists(NORMAL_VALLAS):
+		mat.normal_enabled = true
+		mat.normal_texture = CargadorMapa.obtener_recurso(NORMAL_VALLAS) as Texture2D
+		mat.normal_scale = 0.85
+		mat.uv1_triplanar = true
+		mat.uv1_scale = Vector3(1.5, 1.5, 1.5)
+	_mat_vallas = mat
+	_pass_nieve_vallas = null
 	if not interior and ResourceLoader.exists("res://shaders/nieve_corteza.gdshader"):
 		var np := ShaderMaterial.new()
 		np.shader = load("res://shaders/nieve_corteza.gdshader")
 		np.set_shader_parameter("umbral", 0.45)
-		mat.next_pass = np
+		_pass_nieve_vallas = np
+		if Juego.estacion == 3:
+			mat.next_pass = np
 	_multimalla("Postes", Vector3(0.15, 1.35, 0.15), postes, colores_postes, mat)
 	_multimalla("Travesanos", Vector3(1.0, 0.11, 0.07), travesanos, colores_travesanos, mat)
 	if not huecos_pos.is_empty():
@@ -771,6 +807,10 @@ func _al_evento_cambiado() -> void:
 
 
 func _actualizar_precipitacion() -> void:
+	if _mat_vallas != null and is_instance_valid(_mat_vallas):
+		_mat_vallas.next_pass = _pass_nieve_vallas if (Juego.estacion == 3 and not interior) else null
+	if _mat_toldo != null and is_instance_valid(_mat_toldo):
+		_mat_toldo.next_pass = _pass_nieve_toldo if Juego.estacion == 3 else null
 	if interior:
 		return
 	var debe_llover := Juego.esta_lloviendo()
@@ -833,9 +873,10 @@ func _actualizar_relampago(delta: float) -> void:
 
 func _crear_lluvia(tormenta: bool = false) -> void:
 	_es_tormenta_lluvia = tormenta
+	var cal := clampi(int(Ajustes.valores.calidad), 0, 3)
 	var p := GPUParticles3D.new()
 	p.name = "Lluvia"
-	p.amount = 4600 if tormenta else 3000
+	p.amount = [1800, 2600, 3400, 4600][cal] if tormenta else [1200, 1800, 2400, 3000][cal]
 	p.lifetime = 0.85 if tormenta else 1.0
 	p.preprocess = 1.0
 	p.local_coords = false
@@ -929,9 +970,10 @@ func _salpicar_suelo(delta: float, centro: Vector3) -> void:
 
 
 func _crear_nieve() -> void:
+	var cal := clampi(int(Ajustes.valores.calidad), 0, 3)
 	var p := GPUParticles3D.new()
 	p.name = "Nieve"
-	p.amount = 1800
+	p.amount = [700, 1100, 1400, 1800][cal]
 	p.lifetime = 4.2
 	p.preprocess = 2.5
 	p.local_coords = false
@@ -1015,11 +1057,15 @@ func _actualizar_comerciante() -> void:
 	var mat_toldo := StandardMaterial3D.new()
 	mat_toldo.albedo_color = Color(0.46, 0.15, 0.13)
 	mat_toldo.roughness = 0.92
+	_mat_toldo = mat_toldo
+	_pass_nieve_toldo = null
 	if ResourceLoader.exists("res://shaders/nieve_corteza.gdshader"):
 		var np_t := ShaderMaterial.new()
 		np_t.shader = load("res://shaders/nieve_corteza.gdshader")
 		np_t.set_shader_parameter("umbral", 0.42)
-		mat_toldo.next_pass = np_t
+		_pass_nieve_toldo = np_t
+		if Juego.estacion == 3:
+			mat_toldo.next_pass = np_t
 	m_toldo.material = mat_toldo
 	toldo.mesh = m_toldo
 	toldo.position = Vector3(0, 2.26, 0.04)

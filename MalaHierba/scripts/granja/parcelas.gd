@@ -17,6 +17,9 @@ const CapaMundo := 1
 const RUTA_SUELO := "res://assets/texturas/farm_soil/farm_soil_albedo.jpg"
 const RUTA_CORTEZA := "res://assets/texturas/pine_bark/pine_bark_albedo.jpg"
 const RUTA_ROCA := "res://assets/texturas/rocky_terrain_02/rocky_terrain_02_albedo.jpg"
+const RUTA_SUELO_NORMAL := "res://assets/texturas/h03/stony_dirt_path/stony_dirt_path_nor_gl_2k.jpg"
+const RUTA_CORTEZA_NORMAL := "res://assets/texturas/pine_bark/pine_bark_normal.png"
+const RUTA_ROCA_NORMAL := "res://assets/texturas/rocky_terrain_02/rocky_terrain_02_normal.png"
 const DUR_SALTO_FASE := 0.62
 
 # Forma de cada cultivo: ancho, alto, tamaño del fruto, altura del fruto sobre el suelo, tinte de las hojas.
@@ -282,6 +285,7 @@ func usar(id_objeto: String, punto: Vector3, jugador: Node3D) -> bool:
 func _crear_nodos() -> void:
 	_hay_corteza = ResourceLoader.exists(RUTA_CORTEZA)
 	var tex_suelo: Texture2D = load(RUTA_SUELO) if ResourceLoader.exists(RUTA_SUELO) else null
+	var nor_suelo: Texture2D = load(RUTA_SUELO_NORMAL) if ResourceLoader.exists(RUTA_SUELO_NORMAL) else null
 	var sh_nieve: Shader = load("res://shaders/nieve_corteza.gdshader") if ResourceLoader.exists("res://shaders/nieve_corteza.gdshader") else null
 
 	# Tierra arada (despejada al removerla para distinguir lo labrado) y tierra limpia (con algo de escarcha invernal).
@@ -289,15 +293,22 @@ func _crear_nodos() -> void:
 	mat_arado.vertex_color_use_as_albedo = true
 	mat_arado.vertex_color_is_srgb = true
 	mat_arado.albedo_texture = tex_suelo if tex_suelo != null else _textura_tierra(true)
+	if nor_suelo != null:
+		mat_arado.normal_enabled = true
+		mat_arado.normal_texture = nor_suelo
+		mat_arado.normal_scale = 0.75
 	mat_arado.roughness = 0.96
 	mat_arado.metallic_specular = 0.12
-	mat_arado.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_mm_arado = _crear_mm("Arado", _malla_terron(), mat_arado, true, false, true)
 
 	var mat_limpio := StandardMaterial3D.new()
 	mat_limpio.vertex_color_use_as_albedo = true
 	mat_limpio.vertex_color_is_srgb = true
 	mat_limpio.albedo_texture = tex_suelo if tex_suelo != null else _textura_tierra(false)
+	if nor_suelo != null:
+		mat_limpio.normal_enabled = true
+		mat_limpio.normal_texture = nor_suelo
+		mat_limpio.normal_scale = 0.75
 	mat_limpio.roughness = 0.96
 	mat_limpio.metallic_specular = 0.10
 	if sh_nieve != null:
@@ -323,11 +334,15 @@ func _crear_nodos() -> void:
 	mat_roca.vertex_color_use_as_albedo = true
 	mat_roca.roughness = 0.95
 	mat_roca.metallic_specular = 0.16
-	mat_roca.cull_mode = BaseMaterial3D.CULL_DISABLED
 	if ResourceLoader.exists(RUTA_ROCA):
 		mat_roca.albedo_texture = load(RUTA_ROCA)
 		mat_roca.uv1_triplanar = true
 		mat_roca.uv1_scale = Vector3(1.4, 1.4, 1.4)
+	if ResourceLoader.exists(RUTA_ROCA_NORMAL):
+		mat_roca.normal_enabled = true
+		mat_roca.normal_texture = load(RUTA_ROCA_NORMAL)
+		mat_roca.normal_scale = 0.85
+		mat_roca.uv1_triplanar = true
 	if sh_nieve != null:
 		var np_roca := ShaderMaterial.new()
 		np_roca.shader = sh_nieve
@@ -341,6 +356,11 @@ func _crear_nodos() -> void:
 	mat_tronco.roughness = 1.0
 	if _hay_corteza:
 		mat_tronco.albedo_texture = load(RUTA_CORTEZA)
+		mat_tronco.uv1_scale = Vector3(2.0, 1.0, 1.0)
+	if ResourceLoader.exists(RUTA_CORTEZA_NORMAL):
+		mat_tronco.normal_enabled = true
+		mat_tronco.normal_texture = load(RUTA_CORTEZA_NORMAL)
+		mat_tronco.normal_scale = 0.9
 		mat_tronco.uv1_scale = Vector3(2.0, 1.0, 1.0)
 	if sh_nieve != null:
 		var np_tronco := ShaderMaterial.new()

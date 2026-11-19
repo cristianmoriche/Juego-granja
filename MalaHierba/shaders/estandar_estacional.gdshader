@@ -2,6 +2,7 @@
 // Conserva intactas las texturas horneadas en primavera/verano, aporta tono otoñal al suelo
 // y acumula manto de nieve realista en invierno según normal vertical y camino pisado.
 shader_type spatial;
+render_mode cull_back;
 
 global uniform float nieve_estacion;
 global uniform float calidez_otono;
@@ -19,6 +20,11 @@ uniform float rug_base = 0.65;
 uniform float metalico = 0.0;
 uniform bool es_suelo = false;
 uniform bool es_tejado = false;
+uniform bool recibe_lluvia = true;
+uniform bool usa_normal_mundo = false;
+uniform sampler2D normal_mundo_tex : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform float escala_normal_mundo = 2.2;
+uniform float fuerza_normal_mundo = 0.65;
 uniform bool usa_detalle = false;
 uniform sampler2D detalle_color : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D detalle_normal : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
@@ -44,18 +50,19 @@ float ruido_suave(vec2 p) {
 	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
-vec2 paralaje(vec2 uv, vec2 paso, vec2 dx, vec2 dy) {
+vec2 paralaje(vec2 uv, vec2 paso, vec2 dx, vec2 dy, int pasos) {
 	float capa = 0.0;
+	float inv_pasos = 1.0 / float(pasos);
 	float altura = 1.0 - textureGrad(detalle_altura, uv, dx, dy).r;
-	for (int i = 0; i < 7; i++) {
+	for (int i = 0; i < pasos; i++) {
 		if (capa >= altura) {
 			break;
 		}
 		uv -= paso;
-		capa += 1.0 / 7.0;
+		capa += inv_pasos;
 		altura = 1.0 - textureGrad(detalle_altura, uv, dx, dy).r;
 	}
-	float anterior = 1.0 - textureGrad(detalle_altura, uv + paso, dx, dy).r - (capa - 1.0 / 7.0);
+	float anterior = 1.0 - textureGrad(detalle_altura, uv + paso, dx, dy).r - (capa - inv_pasos);
 	float peso = clamp((capa - altura) / max(0.0001, capa - altura + anterior), 0.0, 1.0);
 	return uv + paso * peso;
 }
@@ -93,23 +100,28 @@ void fragment() {
 	float rug_detalle = 0.85;
 	if (usa_detalle) {
 		float cobertura = smoothstep(0.38, 0.85, n.y) * (1.0 - smoothstep(13.0, 44.0, dist));
-		float variacion = ruido_suave(pos_mundo.xz * 0.54);
 		vec2 detalle_uv = pos_mundo.xz * 0.67;
 		vec2 dx = dFdx(detalle_uv);
 		vec2 dy = dFdy(detalle_uv);
-		if (calidad_h03 >= 2 && dist < 15.0) {
-			vec3 cam = normalize(CAMERA_POSITION_WORLD - pos_mundo);
-			float factor = (1.0 - smoothstep(6.0, 15.0, dist)) * cobertura * (1.0 - nieve_estacion * 0.8);
-			detalle_uv = paralaje(detalle_uv, cam.xz * (0.018 / (7.0 * max(0.28, abs(cam.y)))) * factor, dx, dy);
+		if (cobertura > 0.001) {
+			float variacion = ruido_suave(pos_mundo.xz * 0.54);
+			if (calidad_h03 >= 2 && dist < 11.0) {
+				vec3 cam = normalize(CAMERA_POSITION_WORLD - pos_mundo);
+				float factor = (1.0 - smoothstep(5.0, 11.0, dist)) * cobertura * (1.0 - nieve_estacion * 0.8);
+				if (factor > 0.02) {
+					int pasos = calidad_h03 >= 3 ? 6 : 4;
+					detalle_uv = paralaje(detalle_uv, cam.xz * (0.018 / (float(pasos) * max(0.28, abs(cam.y)))) * factor, dx, dy, pasos);
+				}
+			}
+			float altura = textureGrad(detalle_altura, detalle_uv, dx, dy).r;
+			mezcla_detalle = cobertura * smoothstep(0.12, 0.82, altura * 0.68 + variacion * 0.32);
+			vec3 foto = textureGrad(detalle_color, detalle_uv, dx, dy).rgb;
+			float brillo_foto = dot(foto, vec3(0.2126, 0.7152, 0.0722));
+			col = mix(col, col * clamp(0.65 + brillo_foto * 2.8, 0.58, 1.34) + foto * 0.14, mezcla_detalle * 0.64);
+			rug_detalle = textureGrad(detalle_rugosidad, detalle_uv, dx, dy).r;
+			vec2 desvio = textureGrad(detalle_normal, detalle_uv, dx, dy).xy * 2.0 - 1.0;
+			relieve = normalize(n + vec3(desvio.x, 0.0, -desvio.y) * mezcla_detalle * 0.68);
 		}
-		float altura = textureGrad(detalle_altura, detalle_uv, dx, dy).r;
-		mezcla_detalle = cobertura * smoothstep(0.12, 0.82, altura * 0.68 + variacion * 0.32);
-		vec3 foto = textureGrad(detalle_color, detalle_uv, dx, dy).rgb;
-		float brillo_foto = dot(foto, vec3(0.2126, 0.7152, 0.0722));
-		col = mix(col, col * clamp(0.65 + brillo_foto * 2.8, 0.58, 1.34) + foto * 0.14, mezcla_detalle * 0.64);
-		rug_detalle = textureGrad(detalle_rugosidad, detalle_uv, dx, dy).r;
-		vec2 desvio = textureGrad(detalle_normal, detalle_uv, dx, dy).xy * 2.0 - 1.0;
-		relieve = normalize(n + vec3(desvio.x, 0.0, -desvio.y) * mezcla_detalle * 0.68);
 	}
 
 	if (calidez_otono > 0.01 && es_suelo) {
@@ -139,13 +151,30 @@ void fragment() {
 		col = mix(col, tono_nieve, nieve);
 	}
 
-	float mojado = humedad_h03 * (1.0 - nieve * 0.9);
+	float mojado = recibe_lluvia ? humedad_h03 * (1.0 - nieve * 0.9) : 0.0;
 	float charco = 0.0;
 	if (es_suelo && mojado > 0.28 && n.y > 0.94) {
 		float suelo = ruido_suave(pos_mundo.xz * 0.64) * 0.74 + ruido_suave(pos_mundo.xz * 2.26) * 0.26;
 		charco = smoothstep(0.72, 0.88, suelo) * smoothstep(0.94, 0.997, n.y) * smoothstep(0.28, 0.85, mojado);
 		vec2 onda = gotas_charco(pos_mundo.xz) * (1.0 - smoothstep(3.0, 16.0, dist));
 		relieve = normalize(mix(relieve, vec3(onda.x * 0.20, 1.0, onda.y * 0.20), charco));
+	}
+	if (usa_normal_mundo && dist < 42.0) {
+		vec2 uv_nm = pos_mundo.xz / escala_normal_mundo;
+		vec3 tang_u = vec3(1.0, 0.0, 0.0);
+		vec3 tang_v = vec3(0.0, 0.0, -1.0);
+		if (abs(n.y) <= 0.55) {
+			if (abs(n.x) > abs(n.z)) {
+				uv_nm = pos_mundo.zy / escala_normal_mundo;
+				tang_u = vec3(0.0, 0.0, 1.0);
+			} else {
+				uv_nm = pos_mundo.xy / escala_normal_mundo;
+			}
+			tang_v = vec3(0.0, 1.0, 0.0);
+		}
+		vec2 desvio_m = texture(normal_mundo_tex, uv_nm).xy * 2.0 - 1.0;
+		float peso_nm = (1.0 - smoothstep(28.0, 42.0, dist)) * fuerza_normal_mundo * (1.0 - max(nieve, charco) * 0.8);
+		relieve = normalize(relieve + (tang_u * desvio_m.x + tang_v * desvio_m.y) * peso_nm);
 	}
 	ALBEDO = col * (1.0 - mojado * 0.23 - charco * 0.22);
 	float rug = usa_rug ? texture(rug_tex, UV).r : rug_base;
@@ -156,9 +185,8 @@ void fragment() {
 	SPECULAR = mix(0.16, 0.37, max(mojado * 0.62, charco));
 	NORMAL = normalize(mat3(VIEW_MATRIX) * mix(relieve, n, nieve * 0.8));
 
-	if (usa_normal) {
-		vec3 nt = texture(normal_tex, UV).xyz * 2.0 - 1.0;
+	if (usa_normal && dist < 42.0) {
 		NORMAL_MAP = texture(normal_tex, UV).xyz;
-		NORMAL_MAP_DEPTH = mix(1.0, 0.25, max(nieve, charco));
+		NORMAL_MAP_DEPTH = mix(1.0, 0.25, max(nieve, charco)) * (1.0 - smoothstep(28.0, 42.0, dist));
 	}
 }

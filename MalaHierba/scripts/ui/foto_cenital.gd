@@ -47,6 +47,7 @@ static func _fotografiar(mapa: Node3D, rect: Rect2, max_lado: int, y_alto: float
 	sv.msaa_3d = Viewport.MSAA_DISABLED
 	sv.render_target_update_mode = SubViewport.UPDATE_ONCE
 	sv.positional_shadow_atlas_size = 0
+	sv.use_occlusion_culling = false
 
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
@@ -92,6 +93,9 @@ static func _fotografiar(mapa: Node3D, rect: Rect2, max_lado: int, y_alto: float
 			j3.visible = false
 
 	# Para la foto cenital se muestran también árboles jóvenes, helechos y hierba a distancia (sin tocar el mundo 3D al acabar).
+	var cuad := mapa.get_node_or_null("CuadriculasRender")
+	if cuad != null and cuad.has_method("forzar_todo_visible"):
+		cuad.call("forzar_todo_visible", true)
 	var ajustes_vis: Array[Dictionary] = []
 	for nodo: Node in mapa.find_children("*", "GeometryInstance3D", true, false):
 		var g := nodo as GeometryInstance3D
@@ -138,6 +142,8 @@ static func _fotografiar(mapa: Node3D, rect: Rect2, max_lado: int, y_alto: float
 	for n in ocultos:
 		if is_instance_valid(n):
 			n.visible = true
+	if cuad != null and cuad.has_method("forzar_todo_visible"):
+		cuad.call("forzar_todo_visible", false)
 	sv.queue_free()
 	if img == null or img.is_empty():
 		return null

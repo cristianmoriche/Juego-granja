@@ -59,6 +59,16 @@ var _poligono: PackedVector2Array = PackedVector2Array()
 var _mapa_actual: Node3D = null
 var _mat_foto: ShaderMaterial = null
 var _nivel_mina: Node3D = null
+var _dir_circulo: PackedVector2Array = PackedVector2Array()
+var _segs_poligono: PackedVector2Array = PackedVector2Array()
+var _salidas_cache: Array[Node3D] = []
+var _puertas_cache: Array[Node3D] = []
+var _ult_pos: Vector2 = Vector2.INF
+var _ult_yaw: float = NAN
+var _ult_dir: Vector2 = Vector2.INF
+var _ult_tex: Texture2D = null
+var _t_refresco: float = 0.0
+var _sucio: bool = true
 
 
 func limpiar() -> void:
@@ -70,6 +80,15 @@ func limpiar() -> void:
 	_mapa_actual = null
 	_nivel_mina = null
 	_poligono = PackedVector2Array()
+	_segs_poligono = PackedVector2Array()
+	_salidas_cache.clear()
+	_puertas_cache.clear()
+	_ult_pos = Vector2.INF
+	_ult_yaw = NAN
+	_ult_dir = Vector2.INF
+	_ult_tex = null
+	_t_refresco = 0.0
+	_sucio = true
 
 
 ## Capa que dibuja solo la foto (lleva el shader que deja oscuro lo que cae fuera de la imagen).
@@ -97,6 +116,10 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	_dir_circulo.resize(SEGMENTOS)
+	for i in SEGMENTOS:
+		var a := TAU * float(i) / float(SEGMENTOS)
+		_dir_circulo[i] = Vector2(cos(a), sin(a))
 	_l_nombre = Estilo.etiqueta("", Estilo.TAM_TEXTO, Estilo.COLOR_TEXTO)
 	_l_nombre.position = Vector2(0, 0)
 	_l_nombre.size = Vector2(DIAMETRO, ALTO_NOMBRE)
@@ -142,7 +165,7 @@ func _ready() -> void:
 		_al_mapa_cargado(str(m.get("id_mapa")))
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not is_visible_in_tree():
 		return
 	if _mat_foto != null:
@@ -152,6 +175,23 @@ func _process(_delta: float) -> void:
 			_mat_foto.set_shader_parameter("tex_niebla", tex_n)
 		else:
 			_mat_foto.set_shader_parameter("usar_niebla", 0.0)
+	_t_refresco += delta
+	var pos_actual := _pos_jugador()
+	var yaw_actual := _yaw()
+	var dir_actual := Vector2(0, -1)
+	if jugador != null and is_instance_valid(jugador):
+		var d3: Variant = jugador.get("direccion")
+		if d3 is Vector3:
+			dir_actual = Vector2((d3 as Vector3).x, (d3 as Vector3).z)
+	var cambio := _sucio or textura != _ult_tex or _ult_pos == Vector2.INF or pos_actual.distance_squared_to(_ult_pos) > 0.0004 or is_nan(_ult_yaw) or absf(yaw_actual - _ult_yaw) > 0.002 or dir_actual.distance_squared_to(_ult_dir) > 0.0004 or _t_refresco >= 0.10
+	if not cambio:
+		return
+	_ult_tex = textura
+	_ult_pos = pos_actual
+	_ult_yaw = yaw_actual
+	_ult_dir = dir_actual
+	_t_refresco = 0.0
+	_sucio = false
 	_poner_norte()
 	_fondo.queue_redraw()
 	_marcas.queue_redraw()
@@ -179,6 +219,20 @@ func _al_mapa_cargado(id: String) -> void:
 	else:
 		_l_nombre.text = nombre_mapa
 	_poligono = LimitesMapa.poligono(id) if LimitesMapa.mostrar_borde(id) else PackedVector2Array()
+	_segs_poligono = PackedVector2Array()
+	if _poligono.size() >= 3:
+		var n_pol := _poligono.size()
+		for i in n_pol:
+			var a := _poligono[i]
+			var b := _poligono[(i + 1) % n_pol]
+			var largo := a.distance_to(b)
+			var trozos := maxi(int(ceil(largo / 1.5)), 1)
+			for k in trozos:
+				_segs_poligono.append(a.lerp(b, float(k) / float(trozos)))
+				_segs_poligono.append(a.lerp(b, float(k + 1) / float(trozos)))
+	_salidas_cache.clear()
+	_puertas_cache.clear()
+	_sucio = true
 	var rect := Rect2()
 	if mapa.has_method("rect_mapa"):
 		rect = mapa.call("rect_mapa")
@@ -199,6 +253,7 @@ func _generar_foto_diferida(id: String, mapa: Node3D, clave_foto: String, rect: 
 	textura = foto
 	generado_ms = FotoCenital.ultimo_ms
 	fotos_hechas += 1
+	_sucio = true
 
 
 ## ¿Hay foto lista para dibujar?
@@ -276,39 +331,49 @@ func _dibujar_foto(c: Control) -> void:
 	var puntos := PackedVector2Array()
 	var colores := PackedColorArray()
 	var uvs := PackedVector2Array()
+	puntos.resize(SEGMENTOS)
+	colores.resize(SEGMENTOS)
+	uvs.resize(SEGMENTOS)
+	var centro := _centro()
 	var r := _radio_pantalla()
 	for i in SEGMENTOS:
-		var a := TAU * float(i) / float(SEGMENTOS)
-		var q := _centro() + Vector2(cos(a), sin(a)) * r
-		puntos.append(q)
-		colores.append(Color.WHITE)
-		uvs.append(_uv(pantalla_a_mundo(q)))
+		var q := centro + _dir_circulo[i] * r
+		puntos[i] = q
+		colores[i] = Color.WHITE
+		uvs[i] = _uv(pantalla_a_mundo(q))
 	c.draw_polygon(puntos, colores, uvs, textura)
 
 
 func _dibujar_marcas(c: Control) -> void:
 	var centro := _centro()
 	var r := _radio_pantalla()
+	var r_lim := r - 1.0
 	# Borde del área jugable.
-	if _poligono.size() >= 3:
-		var n := _poligono.size()
-		for i in n:
-			var a := _poligono[i]
-			var b := _poligono[(i + 1) % n]
-			var largo := a.distance_to(b)
-			var trozos := maxi(int(ceil(largo / 1.5)), 1)
-			for k in trozos:
-				var p0 := mundo_a_pantalla(a.lerp(b, float(k) / float(trozos)))
-				var p1 := mundo_a_pantalla(a.lerp(b, float(k + 1) / float(trozos)))
-				if p0.distance_to(centro) < r - 1.0 and p1.distance_to(centro) < r - 1.0:
-					c.draw_line(p0, p1, COLOR_LIMITE, 2.0)
+	if not _segs_poligono.is_empty():
+		var lineas := PackedVector2Array()
+		for i in range(0, _segs_poligono.size(), 2):
+			var p0 := mundo_a_pantalla(_segs_poligono[i])
+			var p1 := mundo_a_pantalla(_segs_poligono[i + 1])
+			if p0.distance_to(centro) < r_lim and p1.distance_to(centro) < r_lim:
+				lineas.append(p0)
+				lineas.append(p1)
+		if not lineas.is_empty():
+			c.draw_multiline(lineas, COLOR_LIMITE, 2.0)
 	# Salidas y puertas.
 	if is_inside_tree():
-		for grupo in ["salida", "puerta"]:
-			var color := COLOR_SALIDA if grupo == "salida" else COLOR_PUERTA
-			for n3: Node in get_tree().get_nodes_in_group(grupo):
-				var nodo := n3 as Node3D
-				if nodo == null or not nodo.is_inside_tree():
+		if _salidas_cache.is_empty():
+			for n3: Node in get_tree().get_nodes_in_group("salida"):
+				if n3 is Node3D:
+					_salidas_cache.append(n3 as Node3D)
+		if _puertas_cache.is_empty():
+			for n3: Node in get_tree().get_nodes_in_group("puerta"):
+				if n3 is Node3D:
+					_puertas_cache.append(n3 as Node3D)
+		for par_grupo: Array in [[_salidas_cache, COLOR_SALIDA], [_puertas_cache, COLOR_PUERTA]]:
+			var lista_nodos: Array[Node3D] = par_grupo[0]
+			var color: Color = par_grupo[1]
+			for nodo: Node3D in lista_nodos:
+				if not is_instance_valid(nodo) or not nodo.is_inside_tree():
 					continue
 				if id_mapa == "mina_interior" and _nivel_mina != null and is_instance_valid(_nivel_mina) and _nivel_mina.has_method("es_punto_explorado"):
 					if not bool(_nivel_mina.call("es_punto_explorado", Vector2(nodo.global_position.x, nodo.global_position.z))):
