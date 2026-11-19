@@ -18,9 +18,9 @@ const VEL_ANDAR := 3.5 * EscalaPersonaje.ESCALA
 const VEL_CORRER := 6.0 * EscalaPersonaje.ESCALA
 const VEL_AGACHADO := 1.5
 # Velocidad del suelo bajo los pies (m/s, ya con la escala del personaje) en cada clip de movimiento a velocidad 1,0
-const VEL_SUELO_ANDAR := 1.82
-const VEL_SUELO_CORRER := 2.80
-const VEL_SUELO_AGACHADO := 1.74
+const VEL_SUELO_ANDAR := 1.42 * EscalaPersonaje.ESCALA
+const VEL_SUELO_CORRER := 2.95 * EscalaPersonaje.ESCALA
+const VEL_SUELO_AGACHADO := 1.25 * EscalaPersonaje.ESCALA
 const ACELERACION := 32.0
 const ACELERACION_AIRE := 10.0   # en el aire se puede corregir el rumbo, pero con menos fuerza que en el suelo
 const GRAVEDAD := 24.0
@@ -395,18 +395,18 @@ func _animar_estado(rapidez: float, corriendo: bool) -> void:
 		return
 	var con_herramienta := not _objeto_en_mano.is_empty()
 	var usar_correr := corriendo and not agachado and _anim != null and _anim.has_animation("correr")
-	var nom_andar := "correr" if usar_correr else ("andar_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("andar_herramienta")) else "andar")
+	var nom_correr := "correr_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("correr_herramienta")) else "correr"
+	var nom_andar := nom_correr if usar_correr else ("andar_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("andar_herramienta")) else "andar")
 	var nom_reposo := "reposo_herramienta" if (con_herramienta and _anim != null and _anim.has_animation("reposo_herramienta")) else "reposo"
 	if estado_mov == "salto" or estado_mov == "caida":
 		_reproducir(nom_reposo, 0.1)       # en el aire no mueve las piernas como si anduviera
 	elif rapidez > 0.4:
-		# Los clips nuevos (andar/correr) son in-place y de ritmo lento: se acelera cada uno en proporción a la velocidad real
-		# del personaje para que los pies no patinen y Leo siga moviéndose a la misma velocidad de siempre.
-		var vel_anim := 1.45 if corriendo else (0.5 if agachado else 1.0)
+		# Se ajusta la velocidad de reproducción de forma moderada para acompañar el avance sin acelerar ni sacudir el brazo.
+		var vel_anim := 1.35 if corriendo else (0.5 if agachado else 1.0)
 		if usar_correr:
-			vel_anim = clampf(rapidez / VEL_SUELO_CORRER, 1.0, 1.95)
+			vel_anim = clampf(rapidez / VEL_SUELO_CORRER, 0.95, 1.35)
 		elif nom_andar == "andar" or nom_andar == "andar_herramienta":
-			vel_anim = clampf(rapidez / VEL_SUELO_ANDAR, 1.0, 2.4)
+			vel_anim = clampf(rapidez / VEL_SUELO_ANDAR, 0.95, 1.65)
 		_reproducir(nom_andar, 0.15, vel_anim)
 	else:
 		_reproducir(nom_reposo, 0.2)
@@ -997,7 +997,7 @@ func _cargar_modelo() -> void:
 			var anims := inst.find_children("*", "AnimationPlayer", true, false)
 			if not anims.is_empty():
 				_anim = anims[0] as AnimationPlayer
-				for nombre in ["reposo", "andar", "correr", "reposo_herramienta", "andar_herramienta", "agachado_reposo", "agachado_andar", "caer", "combate_reposo"]:
+				for nombre in ["reposo", "andar", "correr", "correr_herramienta", "reposo_herramienta", "andar_herramienta", "agachado_reposo", "agachado_andar", "caer", "combate_reposo"]:
 					if _anim.has_animation(nombre):
 						_anim.get_animation(nombre).loop_mode = Animation.LOOP_LINEAR
 				for nombre in ["herramienta", "saltar", "aterrizar", "usar_pico", "usar_hacha", "usar_azada", "usar_regadera", "usar_hoz", "usar_semilla", "usar_cana"]:

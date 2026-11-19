@@ -111,12 +111,12 @@ Todas las pruebas ejecutadas tras el último cambio pasaron correctamente:
 
 ---
 
-## 3. Mejora de 13 animaciones de Leo con MotionBricks (`/home/juanjo/herramientas/motionbricks`)
+## 3. Mejora de animaciones de Leo con MotionBricks (`/home/juanjo/herramientas/motionbricks`)
 
-- **Generación neuronal en GPU (`MotionBricksSOMAEngine`):** se generaron secuencias de movimiento SOMA sobre RTX 4070 (`mb_generate_leo.py`) y se aplicó **retargeting directo 1-salto (SOMA 77 → Leo 35 huesos `DEF-*`)** sin alterar la malla (`28.000` triángulos), textura, nombres exactos con puntos, primera persona ni los 17 clips previos de herramientas/ataques.
-- **13 animaciones actualizadas en `leo.glb` (26 pistas cada una, cierre cíclico suave y contacto exacto al suelo):**
-  - `reposo` (`3.567 s`), `andar` (`1.167 s`, ciclo completo izq.+der.), `correr` (`0.700 s`, ciclo atlético completo), `agachado_reposo` (`3.567 s`, cadera `0.894 → 0.663 m`, rodillas `100.5°`), `agachado_andar` (`1.067 s`, desplazamiento `0.962 m` en T05), `saltar` (`0.567 s`), `caer` (`0.500 s`), `aterrizar` (`0.433 s`), `combate_reposo` (`3.300 s`), `combate_esquiva` (`0.733 s`), `combate_esquiva_atras` (`0.733 s`).
-  - `reposo_herramienta` (`3.567 s`) y `andar_herramienta` (`1.167 s`) combinan el cuerpo completo MotionBricks conservando el agarre original del brazo derecho.
-- **Sincronización de velocidad en `MalaHierba/scripts/jugador/jugador.gd`:**
-  - Actualizadas `VEL_SUELO_ANDAR := 1.82`, `VEL_SUELO_CORRER := 2.80`, `VEL_SUELO_AGACHADO := 1.74` (incluyendo `andar_herramienta` y tope `1.95` en sprint) para mantener las velocidades exactas de Leo sin patinaje y dar prioridad a `"correr"` al pulsar **Shift** incluso con herramienta en mano.
+- **Generación neuronal en GPU (`MotionBricksSOMAEngine`) y retargeting anatómico sin torsión:** se generaron secuencias SOMA sobre RTX 4070 (`mb_generate_leo.py`) convertidas a rotaciones locales sobre los ejes propios de Leo (**bisagra sagital `1-DOF` pura `Rx` en piernas y brazos**, `dY = 0°`, `dZ = 0°` y sin hiperextensión negativa en rodillas `dX >= 0°`) exportando los **35 huesos `DEF-*`** en cada clip (36 canales GLB; 25 pistas activas en `AnimationPlayer` tras omitir tracks constantes en la importación) sin alterar la malla (`28.000` triángulos), textura, primera persona ni los 17 clips previos de herramientas/ataques.
+- **14 animaciones actualizadas/añadidas en `leo.glb` (`31` clips totales):**
+  - `reposo` (`3.567 s`), `andar` (`1.167 s`, ciclo completo izq.+der.), `correr` (`1.367 s`, ciclo amplio de zancada con muñecas rectas `0°`), `agachado_reposo` (`3.567 s`, cadera `0.923 → 0.724 m`, rodillas `94.3°`), `agachado_andar` (`1.133 s`, desplazamiento `0.602 m` en T05), `saltar` (`0.567 s`), `caer` (`0.500 s`), `aterrizar` (`0.433 s`), `combate_reposo` (`3.300 s`), `combate_esquiva` (`0.733 s`), `combate_esquiva_atras` (`0.733 s`).
+  - `reposo_herramienta` (`3.567 s`), `andar_herramienta` (`1.167 s`, oscilación del brazo derecho amortiguada al `50 %`) y el nuevo clip **`correr_herramienta`** (`1.367 s`, oscilación del brazo derecho amortiguada al `35 %` alrededor de la pose de porte original) evitan sacudidas del objeto equipado al andar o correr.
+- **Sincronización en `MalaHierba/scripts/jugador/jugador.gd`:**
+  - Actualizadas `VEL_SUELO_ANDAR := 1.42 * EscalaPersonaje.ESCALA`, `VEL_SUELO_CORRER := 2.95 * EscalaPersonaje.ESCALA` y `VEL_SUELO_AGACHADO := 1.25 * EscalaPersonaje.ESCALA`, con topes moderados (`[0.95, 1.35]` en sprint y `[0.95, 1.65]` andando), soporte en bucle `LOOP_LINEAR` para `correr_herramienta` y prioridad de `correr`/`correr_herramienta` al pulsar **Shift**.
 - **Verificación tras el cambio:** `prueba_t05_animaciones` (`OK`), `prueba_l2` (`PRUEBA OK`), `prueba_l3` (`PRUEBA OK`), `prueba_h01_camara` (`116/0`) y `prueba_h02_combate` (`105/0`).
